@@ -1,0 +1,23 @@
+# System Architecture
+
+## Overview
+The system follows general development with separate front-end and back-end layers.
+Front end team - Izzati, Anis, Qasdina
+Back end team - Celine
+
+### Components 
+1. **Front-End**
+   - Technologies/language: 
+   - Responsible for UI and user interactions
+
+2. **Back-End**
+   - Technologies: 
+   - Handles API endpoints, business logic, and database operations
+
+3. **Database**
+   - Type: 
+   - Stores user data, system logs, and device records
+
+### Data Flow (To update)
+Front-End → API Requests → Back-End → Database  
+Back-End → API Response → Front-End
