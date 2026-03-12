@@ -1,0 +1,107 @@
+/* Stats Cards */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.stats-card {
+  background-color: var(--dark-blue);
+  color: white;
+  padding: 40px;
+  border-radius: 6px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+/* Add/Edit - Form Card & Watermark */
+.form-section-card {
+  background-color: #E8EEF9;
+  border-radius: 16px;
+  padding: 40px;
+  margin-bottom: 48px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #dbeafe;
+}
+
+/* Container for the watermark */
+.watermark-container {
+  position: absolute;
+  /* Push it to the bottom right */
+  bottom: -20px; 
+  right: -40px;
+  
+  /* Scale it up so it looks large like in the photo */
+  width: 300px; 
+  height: auto;
+  
+  /* Ensure it sits behind the text but above the background color */
+  z-index: 1;
+  pointer-events: none;
+  transform: rotate(-5deg); /* Slight tilt for the designer look */
+}
+
+.wm-ellipse-1 {
+  position: absolute;
+  width: 140.15px;
+  height: 83.82px;
+  left: 0px;
+  top: 0px;
+  background: #0504AA;
+  border-radius: 50%; /* Makes it an ellipse */
+  transform: rotate(-4.67deg);
+}
+
+.wm-ellipse-2 {
+  position: absolute;
+  width: 91.52px;
+  height: 79.09px;
+  left: 110.61px;
+  top: 4px;
+  background: #0504AA;
+  border-radius: 50%;
+  transform: rotate(-5.99deg);
+}
+
+.wm-rect-1 {
+  position: absolute;
+  width: 43px;
+  height: 42px;
+  left: 90px;
+  top: 4.07px;
+  background: #0504AA;
+}
+
+.wm-rect-2 {
+  position: absolute;
+  width: 47px;
+  height: 38px;
+  left: 73px;
+  top: 48.07px;
+  background: #0504AA;
+  transform: rotate(-4.63deg);
+}
+
+/* Optional: Masking to create the inner "cutouts" if the solid color isn't enough */
+.watermark-container {
+  mix-blend-mode: multiply; /* Helps blend with background colors */
+}
+
+
+.form-grid {
+  position: relative;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+}
+
+@media (min-width: 768px) {
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 64px;
+    row-gap: 40px;
+  }
+}
