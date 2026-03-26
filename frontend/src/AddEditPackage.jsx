@@ -231,7 +231,15 @@ const AddEditPackage = () => {
                 </div>
             )}
 
-            <footer className="bg-gradient-to-r from-blue-900 to-blue-700 h-8 w-full mt-auto"></footer>
+            {/* Footer with centered text */}
+            <footer className="bg-gradient-to-r from-blue-900 to-blue-700 h-8 w-full print:hidden flex items-center justify-center">
+                <span className="text-white text-xs">© 2026 AsiaByte. All rights reserved.</span>
+            </footer>
+
+            {/* Print footer element that will be visible in print */}
+            <div className="print-footer hidden print:block text-center text-gray-700 text-xs mt-4">
+                © 2026 AsiaByte. All rights reserved.
+            </div>
         </div>
     );
 };

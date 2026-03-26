@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import watermarkLogo from './assets/Pictures/watermark.png'; 
 import './App.css';
 
 const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
@@ -49,13 +50,12 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
     };
 
     const Watermark = () => (
-        <div className="absolute inset-0 pointer-events-none opacity-5 flex items-center justify-center overflow-hidden">
-            <svg width="400" height="200" viewBox="0 0 210 95" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path 
-                    d="M65 15C35 15 10 37 10 65C10 93 35 115 65 115C85 115 102 105 112 90C122 105 139 115 159 115C189 115 214 93 214 65C214 37 189 15 159 15C139 15 122 25 112 40C102 25 85 15 65 15ZM65 35C80 35 93 45 98 58L75 88C72 92 68 95 63 95C52 95 43 86 43 75C43 64 52 55 63 55H85L65 35ZM159 35C175 35 189 48 189 65C189 82 175 95 159 95C148 95 139 88 134 78L157 48C160 44 164 41 169 41H147L159 35Z" 
-                    fill="#0504AA" 
-                />
-            </svg>
+        <div className="absolute inset-0 pointer-events-none opacity-10 flex items-center justify-center overflow-hidden">
+            <img 
+                src={watermarkLogo}
+                alt="Watermark"
+                className="w-[450px] h-auto object-contain"
+            />
         </div>
     );
 
@@ -117,11 +117,6 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                                 disabled
                                                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                                             />
-                                            <div className="absolute right-3 top-3 text-gray-400">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                </svg>
-                                            </div>
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1">SKU is auto-generated and cannot be edited</p>
                                     </div>
@@ -134,11 +129,6 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                                 disabled
                                                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                                             />
-                                            <div className="absolute right-3 top-3 text-gray-400">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                </svg>
-                                            </div>
                                         </div>
                                     </div>
                                     {/*<div>
@@ -184,11 +174,6 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                                 disabled
                                                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                                             />
-                                            <div className="absolute right-3 top-3 text-gray-400">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                </svg>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -217,11 +202,6 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                                 disabled
                                                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                                             />
-                                            <div className="absolute right-3 top-3 text-gray-400">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                </svg>
-                                            </div>
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1">Reference No is locked for ths transaction</p>
                                     </div>
@@ -234,11 +214,6 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                                 disabled
                                                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                                             />
-                                            <div className="absolute right-3 top-3 text-gray-400">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                </svg>
-                                            </div>
                                         </div>
                                     </div>
                                     <div>
@@ -250,11 +225,6 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                                 disabled
                                                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed"
                                             />
-                                            <div className="absolute right-3 top-3 text-gray-400">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                </svg>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -278,11 +248,6 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                                 disabled
                                                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed" 
                                             />
-                                            <div className="absolute right-3 top-3 text-gray-400">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                </svg>
-                                            </div>
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1">Tracking is auto-generated by the system</p>
                                     </div>
@@ -295,11 +260,6 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                                 disabled
                                                 className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed" 
                                             />
-                                            <div className="absolute right-3 top-3 text-gray-400">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                                </svg>
-                                            </div>
                                         </div>
                                         <p className="text-xs text-gray-500 mt-1">Customer Name is auto-generated by the system</p>
                                     </div>
@@ -342,42 +302,7 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                     </div>
                 </div>
 
-                {/* Modal Footer */}
-                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
-                    {mode === 'edit' ? (
-                        <button 
-                            className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group" 
-                            onClick={() => setShowDeleteConfirm(true)}
-                        >
-                            <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                        </button>
-                    ) : (
-                        <div />
-                    )}
-
-                    <div className="flex gap-3">
-                        <button 
-                            onClick={onClose} 
-                            className="px-6 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 font-medium"
-                        >
-                            Cancel
-                        </button>
-                        <button 
-                            className="save-btn-main bg-blue-800 text-white px-8 py-2 rounded-md flex items-center gap-2" 
-                            onClick={() => {
-                                console.log("Saving stock:", formData);
-                                onClose();
-                            }}
-                        >
-                            <span>{mode === 'edit' ? 'Update' : 'Save'}</span>
-                            <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
+                {/* Modal Footer - Buttons removed */}
 
                 {/* Delete Confirmation Modal */}
                 {showDeleteConfirm && (

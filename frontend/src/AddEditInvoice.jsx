@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
+import watermarkLogo from './assets/Pictures/watermark.png'; 
 
 const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
   const navigate = useNavigate();
@@ -45,16 +46,15 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
 
   if (!isOpen) return null;
 
-  const Watermark = () => (
-    <div className="absolute inset-0 pointer-events-none opacity-5 flex items-center justify-center overflow-hidden">
-      <svg width="400" height="200" viewBox="0 0 210 95" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path 
-          d="M65 15C35 15 10 37 10 65C10 93 35 115 65 115C85 115 102 105 112 90C122 105 139 115 159 115C189 115 214 93 214 65C214 37 189 15 159 15C139 15 122 25 112 40C102 25 85 15 65 15ZM65 35C80 35 93 45 98 58L75 88C72 92 68 95 63 95C52 95 43 86 43 75C43 64 52 55 63 55H85L65 35ZM159 35C175 35 189 48 189 65C189 82 175 95 159 95C148 95 139 88 134 78L157 48C160 44 164 41 169 41H147L159 35Z" 
-          fill="#0504AA" 
-        />
-      </svg>
-    </div>
-  );
+    const Watermark = () => (
+        <div className="absolute inset-0 pointer-events-none opacity-10 flex items-center justify-center overflow-hidden">
+            <img 
+                src={watermarkLogo}
+                alt="Watermark"
+                className="w-[450px] h-auto object-contain"
+            />
+        </div>
+    );
 
   const handleDelete = () => {
     console.log("Invoice Deleted");
