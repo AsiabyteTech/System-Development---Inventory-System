@@ -149,7 +149,7 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
 
         {/* Save Button */}
         <div className="save-container">
-          <button onClick={onNavigateToCustomer} className="save-btn-main">Save
+          <button onClick={onNavigateToCustomer} className="save-btn-main">
             <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
               <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'></path>
               <polyline points='17 21 17 13 7 13 7 21' />

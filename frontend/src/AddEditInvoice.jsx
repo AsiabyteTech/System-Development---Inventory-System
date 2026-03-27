@@ -8,7 +8,10 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
   const [currentScanIndex, setCurrentScanIndex] = useState(null);
-  const [serialNumbers, setSerialNumbers] = useState(['']);
+  const [currentSectionIndex, setCurrentSectionIndex] = useState(null);
+  const [sections, setSections] = useState([
+    { product: '', serialNumbers: [''] }
+  ]);
   const [formData, setFormData] = useState({
     refNo: '',
     supplier: '',
@@ -29,7 +32,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
           amount: invoice.amount || '',
           file: invoice.file || null
         });
-        setSerialNumbers(invoice.snDetails || ['']);
+        setSections(invoice.sections || [{ product: '', serialNumbers: [''] }]);
       } else {
         setFormData({
           refNo: '',
@@ -39,7 +42,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
           amount: '',
           file: null
         });
-        setSerialNumbers(['']);
+        setSections([{ product: '', serialNumbers: [''] }]);
       }
     }
   }, [isOpen, invoice, mode]);
@@ -63,20 +66,33 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
     navigate('/invoice');
   };
 
-  const addSerialNumberRow = () => {
-    setSerialNumbers([...serialNumbers, '']);
+  const addSerialNumberRow = (sectionIndex) => {
+    const newSections = [...sections];
+    newSections[sectionIndex].serialNumbers.push('');
+    setSections(newSections);
   };
 
-  const updateSerialNumber = (index, value) => {
-    const newSns = [...serialNumbers];
-    newSns[index] = value;
-    setFormData({...formData, snDetails: newSns});
-    setSerialNumbers(newSns);
+  const updateSerialNumber = (sectionIndex, serialIndex, value) => {
+    const newSections = [...sections];
+    newSections[sectionIndex].serialNumbers[serialIndex] = value;
+    setSections(newSections);
   };
 
-  const removeSerialNumberRow = (index) => {
-    const newSns = serialNumbers.filter((_, i) => i !== index);
-    setSerialNumbers(newSns.length ? newSns : ['']);
+  const removeSerialNumberRow = (sectionIndex, serialIndex) => {
+    const newSections = [...sections];
+    const newSerialNumbers = newSections[sectionIndex].serialNumbers.filter((_, i) => i !== serialIndex);
+    newSections[sectionIndex].serialNumbers = newSerialNumbers.length ? newSerialNumbers : [''];
+    setSections(newSections);
+  };
+
+  const updateProduct = (sectionIndex, value) => {
+    const newSections = [...sections];
+    newSections[sectionIndex].product = value;
+    setSections(newSections);
+  };
+
+  const addProductSection = () => {
+    setSections([...sections, { product: '', serialNumbers: [''] }]);
   };
 
   const handleFileUpload = (e) => {
@@ -87,22 +103,37 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
   };
 
   const handleBarcodeDetected = (barcode) => {
-    if (currentScanIndex !== null) {
-      updateSerialNumber(currentScanIndex, barcode);
+    if (currentScanIndex !== null && currentSectionIndex !== null) {
+      updateSerialNumber(currentSectionIndex, currentScanIndex, barcode);
       setShowBarcodeScanner(false);
       setCurrentScanIndex(null);
+      setCurrentSectionIndex(null);
 
       // Auto-add new row
-      if (currentScanIndex === serialNumbers.length - 1) {
-        addSerialNumberRow();
+      if (currentScanIndex === sections[currentSectionIndex].serialNumbers.length - 1) {
+        addSerialNumberRow(currentSectionIndex);
       }
     }
   };
 
-  const openBarcodeScanner = (index) => {
-    setCurrentScanIndex(index);
+  const openBarcodeScanner = (sectionIndex, serialIndex) => {
+    setCurrentSectionIndex(sectionIndex);
+    setCurrentScanIndex(serialIndex);
     setShowBarcodeScanner(true);
   };
+
+  const productOptions = [
+    'EZ-C8C-2MP',
+    'EZ-C8C-5MP',
+    'EZ-H1C',
+    'EZ-TY1-PRO',
+    'EZ-H6C-PRO',
+    'EZ-H9C-DL',
+    'EZ-C6N',
+    'TP-C200',
+    'TP-C500',
+    'HS-SD-64G'
+  ];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
@@ -243,7 +274,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                     <th className="p-4 text-left font-medium">Purchase Cost (RM)</th>
                     <th className="p-4 text-left font-medium">Additional Cost (RM)</th>
                     <th className="p-4 text-left font-medium">Total Cost (RM)</th>
-                  </tr>
+                   </tr>
                 </thead>
                 <tbody className="bg-white">
                   <tr className="border-t border-gray-200">
@@ -253,115 +284,145 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                         placeholder="0.00" 
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                       />
-                    </td>
+                     </td>
                     <td className="p-4">
                       <input 
                         type="text" 
                         placeholder="0.00" 
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                       />
-                    </td>
+                     </td>
                     <td className="p-4">
                       <input 
                         type="text" 
                         placeholder="0.00" 
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                       />
-                    </td>
-                  </tr>
+                     </td>
+                   </tr>
                 </tbody>
-              </table>
+               </table>
             </div>
           </div>
 
-          {/* Section 3: Serial Numbers */}
-          <div className="bg-gray-50 p-5 rounded-xl border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
-              </svg>
-              Serial Numbers
-              <span className="text-xs font-normal text-gray-500 ml-2">({serialNumbers.length} items)</span>
-            </h3>
-            
-            <div className="rounded-xl overflow-hidden border border-gray-200">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-gray-100">
-                    <th className="p-4 w-12"></th>
-                    <th className="p-4 text-left font-medium text-gray-700">Serial Number</th>
-                    <th className="p-4 w-24 text-center font-medium text-gray-700">Scan</th>
-                    <th className="p-4 w-20"></th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
-                  {serialNumbers.map((sn, idx) => (
-                    <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                      <td className="p-4 text-center">
-                        {idx === 0 ? (
-                          <button 
-                            onClick={addSerialNumberRow} 
-                            className="w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
-                            title="Add new serial number"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                          </button>
-                        ) : (
-                          <span className="text-gray-300 text-lg">•</span>
-                        )}
-                      </td>
-                      <td className="p-4">
-                        <input 
-                          type="text" 
-                          placeholder={`SN-${String(idx + 1).padStart(3, '0')}`}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                          value={sn}
-                          onChange={(e) => updateSerialNumber(idx, e.target.value)}
-                        />
-                      </td>
-                      <td className='p-4 text-center'>
-                        <button
-                          onClick={() => openBarcodeScanner(idx)}
-                          className='w-8 h-8 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg flex items-center justify-center transition-all duration-200 mx-auto group'
-                          title='Scan barcode'
-                        >
-                          <svg className='w-4 h-4 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d="M12 4v1m6 11h2a2 2 0 012 2v1m0-12v1a2 2 0 01-2 2h-2M4 12h16M7 12v5m4-5v5m4-5v5M4 7V6a2 2 0 012-2h1M4 17v1a2 2 0 002 2h1m9-16h1a2 2 0 012 2v1" />
-                          </svg>
-                        </button>
-                      </td>
-                      <td className="p-4">
-                        {serialNumbers.length > 1 && (
-                          <button 
-                            onClick={() => removeSerialNumberRow(idx)} 
-                            className="w-8 h-8 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center transition-all duration-200 group"
-                            title="Remove serial number"
-                          >
-                            <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                        )}
-                      </td>
-                    </tr>
+          {/* Section 3: Serial Numbers - Dynamic Sections */}
+          {sections.map((section, sectionIdx) => (
+            <div key={sectionIdx} className="bg-gray-50 p-5 rounded-xl border border-gray-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
+                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
+                </svg>
+                Product {sectionIdx + 1}
+                <span className="text-xs font-normal text-gray-500 ml-2">({section.serialNumbers.length} items)</span>
+              </h3>
+              
+              {/* Product Dropdown */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
+                <select 
+                  value={section.product}
+                  onChange={(e) => updateProduct(sectionIdx, e.target.value)}
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white"
+                >
+                  <option value="">Select Product</option>
+                  {productOptions.map(product => (
+                    <option key={product} value={product}>{product}</option>
                   ))}
-                </tbody>
-              </table>
-            </div>
-            
-            {/* Quick Stats for Serial Numbers */}
-            {serialNumbers.length > 1 && (
-              <div className="mt-3 flex gap-2 text-xs text-gray-500">
-                <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-full">
-                  {serialNumbers.filter(sn => sn.trim() !== '').length} filled
-                </span>
-                <span className="px-2 py-1 bg-gray-100 rounded-full">
-                  {serialNumbers.filter(sn => sn.trim() === '').length} empty
-                </span>
+                </select>
               </div>
-            )}
+              
+              <div className="rounded-xl overflow-hidden border border-gray-200">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-100">
+                      <th className="p-4 w-12"></th>
+                      <th className="p-4 text-left font-medium text-gray-700">Serial Number</th>
+                      <th className="p-4 w-24 text-center font-medium text-gray-700">Scan</th>
+                      <th className="p-4 w-20"></th>
+                     </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-100">
+                    {section.serialNumbers.map((sn, serialIdx) => (
+                      <tr key={serialIdx} className="hover:bg-gray-50 transition-colors">
+                        <td className="p-4 text-center">
+                          {serialIdx === 0 ? (
+                            <button 
+                              onClick={() => addSerialNumberRow(sectionIdx)} 
+                              className="w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105"
+                              title="Add new serial number"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4"></path>
+                              </svg>
+                            </button>
+                          ) : (
+                            <span className="text-gray-300 text-lg">•</span>
+                          )}
+                         </td>
+                        <td className="p-4">
+                          <input 
+                            type="text" 
+                            placeholder={`SN-${String(serialIdx + 1).padStart(3, '0')}`}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                            value={sn}
+                            onChange={(e) => updateSerialNumber(sectionIdx, serialIdx, e.target.value)}
+                          />
+                         </td>
+                        <td className='p-4 text-center'>
+                          <button
+                            onClick={() => openBarcodeScanner(sectionIdx, serialIdx)}
+                            className='w-8 h-8 bg-blue-100 hover:bg-blue-200 text-blue-600 rounded-lg flex items-center justify-center transition-all duration-200 mx-auto group'
+                            title='Scan barcode'
+                          >
+                            <svg className='w-4 h-4 group-hover:scale-110 transition-transform' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d="M12 4v1m6 11h2a2 2 0 012 2v1m0-12v1a2 2 0 01-2 2h-2M4 12h16M7 12v5m4-5v5m4-5v5M4 7V6a2 2 0 012-2h1M4 17v1a2 2 0 002 2h1m9-16h1a2 2 0 012 2v1" />
+                            </svg>
+                          </button>
+                         </td>
+                        <td className="p-4">
+                          {section.serialNumbers.length > 1 && (
+                            <button 
+                              onClick={() => removeSerialNumberRow(sectionIdx, serialIdx)} 
+                              className="w-8 h-8 text-red-500 hover:bg-red-50 rounded-lg flex items-center justify-center transition-all duration-200 group"
+                              title="Remove serial number"
+                            >
+                              <svg className="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          )}
+                         </td>
+                       </tr>
+                    ))}
+                  </tbody>
+                 </table>
+              </div>
+              
+              {/* Quick Stats for Serial Numbers */}
+              {section.serialNumbers.length > 1 && (
+                <div className="mt-3 flex gap-2 text-xs text-gray-500">
+                  <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-full">
+                    {section.serialNumbers.filter(sn => sn.trim() !== '').length} filled
+                  </span>
+                  <span className="px-2 py-1 bg-gray-100 rounded-full">
+                    {section.serialNumbers.filter(sn => sn.trim() === '').length} empty
+                  </span>
+                </div>
+              )}
+            </div>
+          ))}
+          
+          {/* Add Product Button */}
+          <div className="flex justify-center">
+            <button
+              onClick={addProductSection}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all duration-200 hover:scale-105 shadow-md"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 4v16m8-8H4" />
+              </svg>
+              Add Product
+            </button>
           </div>
         </div>
 
@@ -390,7 +451,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
             <button 
               className="save-btn-main bg-blue-800 text-white px-8 py-2 rounded-md flex items-center gap-2"
               onClick={() => {
-                console.log("Saving invoice:", formData, serialNumbers);
+                console.log("Saving invoice:", formData, sections);
                 onClose();
               }}
             >
@@ -447,6 +508,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                   onClick={() => {
                     setShowBarcodeScanner(false);
                     setCurrentScanIndex(null);
+                    setCurrentSectionIndex(null);
                   }}
                   className='hover:bg-gray-100 p-2 rounded-full transition-all duration-200'>
                     <svg className='w-5 h-5 text-gray-500' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -486,6 +548,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                     onClick={() => {
                       setShowBarcodeScanner(false);
                       setCurrentScanIndex(null);
+                      setCurrentSectionIndex(null);
                     }}
                   >Cancel</button>
 
