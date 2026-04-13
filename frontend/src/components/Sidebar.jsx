@@ -1,8 +1,13 @@
 import React from 'react';
 import { FaHome, FaTachometerAlt, FaTruck, FaBox, FaShoppingCart, FaSignOutAlt } from 'react-icons/fa';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
+  const navigate = useNavigate();
+  
+  // Get user role from localStorage (set during login)
+  const userRole = localStorage.getItem("userRole") || "Staff";
+  
   const menuItems = [
     { name: "Home", path: "/", icon: <FaHome />, isParent: false },
     { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt />, isParent: false },
@@ -10,6 +15,16 @@ const Sidebar = () => {
     { name: "Product", path: "/product", icon: <FaBox />, isParent: false },
     { name: "Order", path: "/order", icon: <FaShoppingCart />, isParent: false },
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem("userRole");
+    navigate('/login');
+  };
+
+  const formatRole = (role) => {
+  if (!role) return "";
+  return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+};
 
   return (
     <div className="sidebar-container">
@@ -66,11 +81,11 @@ const Sidebar = () => {
 
           <div className='sidebar-profile-info'>
             <p className='sidebar-profile-name'>Zaty Raof</p>
-            <p className='sidebar-profile-role'>Admin</p>
+            <p className='sidebar-profile-role'>{formatRole(userRole)}</p>
           </div>
         </div>
         
-        <button className="sidebar-logout-btn">
+        <button onClick={handleLogout} className="sidebar-logout-btn">
           <FaSignOutAlt className="sidebar-logout-icon" />
           <span className="sidebar-logout-text">Logout</span>
         </button>

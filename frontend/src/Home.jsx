@@ -2,6 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { FiShoppingCart, FiArrowRight, FiUser } from 'react-icons/fi';
 import { BsGraphUp, BsBoxSeam, BsPeople } from 'react-icons/bs';
+// ✅ ADDED: role-based condition import
+import { isAdmin } from "./shared/role";
 import "./App.css";
 
 const Home = () => {
@@ -60,7 +62,8 @@ const Home = () => {
           <div className="flex items-center space-x-4">
             <div className='hidden md:flex flex-col items-end mr-2'>
               <span className='text-sm font-semibold text-slate-800'>Zaty Raof</span>
-              <span className='text-xs text-blue-600/70'>Administrator</span>
+              {/* ✅ ADDED: role-based condition - Display role dynamically */}
+              <span className='text-xs text-blue-600/70'>{isAdmin() ? 'Administrator' : 'Staff'}</span>
             </div>
             <div className="relative flex items-center">
               <button className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center">
@@ -97,7 +100,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Partners Section matching dashboard card style */}
+      {/* ✅ FIXED: Partners Section - No clipping, full borders visible */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10">
@@ -107,33 +110,37 @@ const Home = () => {
             <p className="text-slate-500">Partnering with the best in the industry</p>
           </div>
           
-          {/* Scrolling Container */}
-          <div className="relative overflow-hidden">
-            <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white to-transparent z-10"></div>
-            <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white to-transparent z-10"></div>
+          {/* Scrolling Container - Fixed overflow and clipping issues */}
+          <div className="relative">
+            {/* Gradient overlays - adjusted width to not cut off cards */}
+            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
             
-            <div className="flex gap-6 animate-scroll">
-              {/* Combine original and duplicate logos in one array */}
-              {[...partners, ...partners].map((img, index) => (
-                <div 
-                  key={`logo-${index}`} 
-                  className="flex-shrink-0 w-32 h-24 bg-white rounded-xl border border-slate-200 hover:border-blue-300 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group"
-                >
-                  <img 
-                    src={getImagePath(img)} 
-                    alt={`Partner ${index + 1}`} 
-                    className="w-full h-full object-contain p-3"
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.parentElement.classList.add('flex', 'items-center', 'justify-center');
-                    }}
-                  />
-                  {/* Fallback text if image fails to load */}
-                  <span className="hidden group-hover:block text-xs text-slate-500 font-medium text-center px-2">
-                    {img.split('.')[0].replace(/[-_]/g, ' ').toUpperCase()}
-                  </span>
-                </div>
-              ))}
+            {/* ✅ FIXED: Scroll container with proper padding and overflow */}
+            <div className="overflow-hidden py-4">
+              <div className="flex gap-6 animate-scroll">
+                {/* Combine original and duplicate logos in one array */}
+                {[...partners, ...partners].map((img, index) => (
+                  <div 
+                    key={`logo-${index}`} 
+                    className="flex-shrink-0 w-32 h-24 bg-white rounded-xl border-2 border-slate-200 hover:border-blue-500 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-visible"
+                  >
+                    <img 
+                      src={getImagePath(img)} 
+                      alt={`Partner ${index + 1}`} 
+                      className="w-full h-full object-contain p-3"
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        e.target.parentElement.classList.add('flex', 'items-center', 'justify-center');
+                      }}
+                    />
+                    {/* Fallback text if image fails to load */}
+                    <span className="hidden group-hover:block text-xs text-slate-500 font-medium text-center px-2 absolute bottom-0 left-0 right-0 bg-white/90 rounded-b-xl py-1">
+                      {img.split('.')[0].replace(/[-_]/g, ' ').toUpperCase()}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

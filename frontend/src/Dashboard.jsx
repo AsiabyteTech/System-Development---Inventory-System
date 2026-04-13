@@ -5,6 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { FiFileText, FiPackage, FiGift, FiPlus, FiEdit2 } from 'react-icons/fi';
 import { BsBoxSeam, BsGraphUp, BsCurrencyDollar } from 'react-icons/bs';
+// ✅ ADDED: role-based condition import
+import { isAdmin } from "./shared/role";
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -50,43 +52,43 @@ const Dashboard = () => {
     const products = [
         { 
             id: '1', 
-            image: 'src/assets/Pictures/EZC8C.jpg', 
+            image: '/src/assets/Pictures/EZC8C.jpg', 
             sku: 'EZ-C8C-2MP', 
             ...generateRandomStock()
         },
         { 
             id: '2', 
-            image: 'src/assets/Pictures/C8C5MP.png', 
+            image: '/src/assets/Pictures/C8C5MP.png', 
             sku: 'EZ-C8C-5MP', 
             ...generateRandomStock()
         },
         { 
             id: '3', 
-            image: 'src/assets/Pictures/Ezviz-H1C front.jpg', 
+            image: '/src/assets/Pictures/Ezviz-H1C front.jpg', 
             sku: 'EZ-H1C', 
             ...generateRandomStock()
         },
         { 
             id: '4', 
-            image: 'src/assets/Pictures/ez ty1pro.jpg', 
+            image: '/src/assets/Pictures/ez ty1pro.jpg', 
             sku: 'EZ-TY1-PRO', 
             ...generateRandomStock()
         },
         { 
             id: '5', 
-            image: 'src/assets/Pictures/ez h6cpro.png', 
+            image: '/src/assets/Pictures/ez h6cpro.png', 
             sku: 'EZ-H6C-PRO', 
             ...generateRandomStock()
         },
         { 
             id: '6', 
-            image: 'src/assets/Pictures/H9c.png', 
+            image: '/src/assets/Pictures/H9c.png', 
             sku: 'EZ-H9C-DL', 
             ...generateRandomStock()
         },
         { 
             id: '7', 
-            image: 'src/assets/Pictures/c6n.jpg', 
+            image: '/src/assets/Pictures/c6n.jpg', 
             sku: 'EZ-C6N', 
             ...generateRandomStock()
         },
@@ -178,6 +180,7 @@ const Dashboard = () => {
                                     </div>
                                     <h2 className="text-2xl font-bold text-slate-800">8</h2>
                                 </div>
+                                {/* ✅ ADDED: role-based condition - View Report button visible to all */}
                                 <button
                                     onClick={() => navigate('/reportorder')}
                                     className="add-button p-2 hover:bg-slate-100 rounded-full transition-all duration-200 hover:scale-105"
@@ -233,6 +236,7 @@ const Dashboard = () => {
                                     </div>
                                     <h2 className="text-2xl font-bold text-slate-800">1000</h2>
                                 </div>
+                                {/* ✅ ADDED: role-based condition - View Report button visible to all */}
                                 <button
                                     onClick={() => navigate('/reportproductvalue')}
                                     className="add-button p-2 hover:bg-slate-100 rounded-full transition-all duration-200 hover:scale-105"
@@ -358,13 +362,16 @@ const Dashboard = () => {
                                         <p className="text-sm font-medium text-slate-500 mb-1">Packages</p>
                                         <h2 className="text-2xl font-bold text-slate-800">1</h2>
                                     </div>
-                                    <button
-                                        onClick={() => navigate('/addeditpackage')}
-                                        className="add-button p-2 hover:bg-slate-100 rounded-full transition-all duration-200 hover:scale-105"
-                                        title="Add Package"
-                                    >
-                                        <FiPlus className="w-5 h-5 text-white" />
-                                    </button>
+                                    {/* ✅ ADDED: role-based condition - Add Package button only for admin */}
+                                    {isAdmin() && (
+                                        <button
+                                            onClick={() => navigate('/addeditpackage')}
+                                            className="add-button p-2 hover:bg-slate-100 rounded-full transition-all duration-200 hover:scale-105"
+                                            title="Add Package"
+                                        >
+                                            <FiPlus className="w-5 h-5 text-white" />
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="overflow-y-auto flex-1">
                                     <table className="w-full">
@@ -394,14 +401,19 @@ const Dashboard = () => {
                                                     <td className="px-4 py-3 text-sm text-slate-600">{item.quantity}</td>
                                                     <td className="px-4 py-3 text-sm font-medium text-slate-900">RM {item.price}</td>
                                                     <td className="px-4 py-3 text-sm text-slate-600">{item.dateline}</td>
-                                                    <td className="px-4 py-3">
-                                                        <button
-                                                            onClick={() => navigate(item.id)}
-                                                            className="p-1 hover:bg-slate-200 rounded transition-colors"
-                                                        >
-                                                            <FiEdit2 className="w-4 h-4 text-slate-400 hover:text-blue-600" />
-                                                        </button>
-                                                    </td>
+                                                    {/* ✅ ADDED: role-based condition - Edit button only for admin */}
+                                                    {isAdmin() && (
+                                                        <td className="px-4 py-3">
+                                                            <button
+                                                                onClick={() => navigate(item.id)}
+                                                                className="p-1 hover:bg-slate-200 rounded transition-colors"
+                                                            >
+                                                                <FiEdit2 className="w-4 h-4 text-slate-400 hover:text-blue-600" />
+                                                            </button>
+                                                        </td>
+                                                    )}
+                                                    {/* ✅ ADDED: For staff, show empty column to maintain table structure */}
+                                                    {!isAdmin() && <td className="px-4 py-3"></td>}
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -416,13 +428,16 @@ const Dashboard = () => {
                                         <p className="text-sm font-medium text-slate-500 mb-1">Promotions</p>
                                         <h2 className="text-2xl font-bold text-slate-800">1</h2>
                                     </div>
-                                    <button
-                                        onClick={() => navigate('/addeditpromo')}
-                                        className="add-button p-2 hover:bg-slate-100 rounded-full transition-all duration-200 hover:scale-105"
-                                        title="Add Promotion"
-                                    >
-                                        <FiPlus className="w-5 h-5 text-white" />
-                                    </button>
+                                    {/* ✅ ADDED: role-based condition - Add Promotion button only for admin */}
+                                    {isAdmin() && (
+                                        <button
+                                            onClick={() => navigate('/addeditpromo')}
+                                            className="add-button p-2 hover:bg-slate-100 rounded-full transition-all duration-200 hover:scale-105"
+                                            title="Add Promotion"
+                                        >
+                                            <FiPlus className="w-5 h-5 text-white" />
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="overflow-y-auto flex-1">
                                     <table className="w-full">
@@ -458,14 +473,19 @@ const Dashboard = () => {
                                                     </td>
                                                     <td className="px-4 py-3 text-sm font-medium text-slate-900">RM {item.price}</td>
                                                     <td className="px-4 py-3 text-sm text-slate-600">{item.dateline}</td>
-                                                    <td className="px-4 py-3">
-                                                        <button
-                                                            onClick={() => navigate(item.id)}
-                                                            className="p-1 hover:bg-slate-200 rounded transition-colors"
-                                                        >
-                                                            <FiEdit2 className="w-4 h-4 text-slate-400 hover:text-blue-600" />
-                                                        </button>
-                                                    </td>
+                                                    {/* ✅ ADDED: role-based condition - Edit button only for admin */}
+                                                    {isAdmin() && (
+                                                        <td className="px-4 py-3">
+                                                            <button
+                                                                onClick={() => navigate(item.id)}
+                                                                className="p-1 hover:bg-slate-200 rounded transition-colors"
+                                                            >
+                                                                <FiEdit2 className="w-4 h-4 text-slate-400 hover:text-blue-600" />
+                                                            </button>
+                                                        </td>
+                                                    )}
+                                                    {/* ✅ ADDED: For staff, show empty column to maintain table structure */}
+                                                    {!isAdmin() && <td className="px-4 py-3"></td>}
                                                 </tr>
                                             ))} 
                                         </tbody>

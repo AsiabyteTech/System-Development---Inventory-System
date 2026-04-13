@@ -3,6 +3,8 @@ import Sidebar from './components/Sidebar';
 import {Outlet} from 'react-router';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
+// ✅ ADDED: role helper import
+import { isAdmin } from "./shared/role";
 
 const Order = ({ 
   onBack, 
@@ -196,16 +198,19 @@ const Order = ({
                 <p className="text-xs text-slate-400 mt-2">*Tracking Number, Customer Name</p>
               </div>
               
+              {/* ✅ ADDED: role-based condition - Add Customer button only for admin */}
               <div className="flex items-center justify-end">
-                <button 
-                  onClick={() => navigate('/customer')}
-                  className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 flex items-center justify-center"
-                  title="Add New Customer"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                  </svg>
-                </button>
+                {isAdmin() && (
+                  <button 
+                    onClick={() => navigate('/customer')}
+                    className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 flex items-center justify-center"
+                    title="Add New Customer"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -287,7 +292,10 @@ const Order = ({
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gradient-to-r from-blue-900 to-blue-700 text-white">
-                      <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"></th>
+                      {/* ✅ ADDED: role-based condition - Edit column header only for admin */}
+                      {isAdmin() && (
+                        <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"></th>
+                      )}
                       <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Tracking Number</th>
                       <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Customer Name</th>
                       <th className="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider">Purchase Date</th>
@@ -300,16 +308,19 @@ const Order = ({
                   <tbody className="divide-y divide-slate-100">
                     {filteredOrders.map((item) => (
                       <tr key={item.id} className="hover:bg-blue-50/50 transition-colors">
-                        <td className="px-6 py-4">
-                          <button 
-                            onClick={() => navigate(item.id)}
-                            className="w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                            </svg>
-                          </button>
-                        </td>
+                        {/* ✅ ADDED: role-based condition - Edit button only for admin */}
+                        {isAdmin() && (
+                          <td className="px-6 py-4">
+                            <button 
+                              onClick={() => navigate(item.id)}
+                              className="w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                              </svg>
+                            </button>
+                          </td>
+                        )}
                         <td className="px-6 py-4">
                           <span className="font-semibold text-blue-900">{item.trackingNumber}</span>
                         </td>
@@ -342,14 +353,14 @@ const Order = ({
                     {filteredOrders.length > 0 && filteredOrders.length < 5 && 
                       [...Array(5 - filteredOrders.length)].map((_, i) => (
                         <tr key={`empty-${i}`} className="border-b border-slate-50 h-14">
-                          <td className="px-6 py-4"></td>
+                          {isAdmin() && <td className="px-6 py-4"></td>}
                           <td className="px-6 py-4 text-slate-300">—</td>
                           <td className="px-6 py-4 text-slate-300">—</td>
                           <td className="px-6 py-4 text-slate-300">—</td>
                           <td className="px-6 py-4 text-slate-300">—</td>
                           <td className="px-6 py-4 text-slate-300">—</td>
                           <td className="px-6 py-4 text-slate-300">—</td>
-                          <td className="px-6 py-4 text-slate-300"></td>
+                          <td className="px-6 py-4 text-slate-300">—</td>
                         </tr>
                       ))
                     }

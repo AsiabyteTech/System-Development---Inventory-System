@@ -5,127 +5,613 @@ import './App.css';
 const Login = () => {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  
+  // ✅ ADDED: Modal state for Privacy Policy and Terms of Service
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+
+  // ✨ UI IMPROVEMENT: Handle login with email/password
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage('');
+    
+    // Simulate API call
+    setTimeout(() => {
+      // For demo purposes - in real app, validate against backend
+      if (email && password) {
+        // Store role in localStorage (default to admin for demo)
+        localStorage.setItem("role", "admin");
+        localStorage.setItem("userEmail", email);
+        if (rememberMe) {
+          localStorage.setItem("rememberMe", "true");
+        }
+        navigate('/dashboard');
+      } else {
+        setErrorMessage('Invalid email or password. Please try again.');
+      }
+      setIsLoading(false);
+    }, 1000);
+  };
+
+  // ✅ ADDED: Handle Google login
+  const handleGoogleLogin = () => {
+    setIsLoading(true);
+    setErrorMessage('');
+    
+    // Simulate Google authentication
+    setTimeout(() => {
+      // Store role in localStorage (default to admin for demo)
+      localStorage.setItem("role", "admin");
+      localStorage.setItem("userEmail", "user@gmail.com");
+      localStorage.setItem("googleLogin", "true");
+      navigate('/dashboard');
+      setIsLoading(false);
+    }, 1000);
+  };
+
+  // ✅ ADDED: Modal component for Privacy Policy and Terms
+  const Modal = ({ isOpen, onClose, title, content }) => {
+    if (!isOpen) return null;
+
+    return (
+      <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn" onClick={onClose}>
+        <div className="modal-container bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden animate-scaleIn mx-4" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-header flex justify-between items-center p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-white">
+            <h3 className="text-2xl font-bold text-slate-800">{title}</h3>
+            <button 
+              onClick={onClose}
+              className="modal-close w-10 h-10 rounded-full hover:bg-slate-100 transition-all duration-200 flex items-center justify-center group"
+            >
+              <svg className="w-5 h-5 text-slate-500 group-hover:text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <div className="modal-content p-6 overflow-y-auto max-h-[60vh] space-y-4 text-slate-600">
+            {content}
+          </div>
+          <div className="modal-footer p-6 border-t border-slate-200 bg-slate-50 flex justify-end">
+            <button 
+              onClick={onClose}
+              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // ✅ ADDED: Privacy Policy content
+  const privacyPolicyContent = (
+    <>
+      <div className="space-y-4">
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">1. Information We Collect</h4>
+          <p className="text-sm leading-relaxed">AsiaByte P&L Inventory System collects information you provide directly to us, such as when you create an account, update your profile, or use our services. This may include your name, email address, phone number, company information, and inventory data.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">2. How We Use Your Information</h4>
+          <p className="text-sm leading-relaxed">We use the information we collect to provide, maintain, and improve our services, to process transactions, to communicate with you, and to protect against fraud or unauthorized access to your account.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">3. Data Security</h4>
+          <p className="text-sm leading-relaxed">We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. Your data is encrypted and stored securely.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">4. Data Sharing</h4>
+          <p className="text-sm leading-relaxed">We do not share your personal information with third parties except as necessary to provide our services, comply with the law, or protect our rights. We may share aggregated, anonymized data for analytical purposes.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">5. Your Rights</h4>
+          <p className="text-sm leading-relaxed">You have the right to access, correct, or delete your personal information. You may also request a copy of your data or ask us to restrict processing of your information.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">6. Cookies and Tracking</h4>
+          <p className="text-sm leading-relaxed">We use cookies and similar tracking technologies to enhance your experience, analyze usage, and personalize content. You can control cookie settings through your browser preferences.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">7. Updates to This Policy</h4>
+          <p className="text-sm leading-relaxed">We may update this privacy policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the effective date.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">8. Contact Us</h4>
+          <p className="text-sm leading-relaxed">If you have questions about this privacy policy, please contact us at privacy@asiabyte.com or call +60 3-1234 5678.</p>
+        </div>
+        
+        <p className="text-xs text-slate-400 italic mt-4">Effective Date: January 1, 2026</p>
+      </div>
+    </>
+  );
+
+  // ✅ ADDED: Terms of Service content
+  const termsContent = (
+    <>
+      <div className="space-y-4">
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">1. Acceptance of Terms</h4>
+          <p className="text-sm leading-relaxed">By accessing or using AsiaByte P&L Inventory System, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">2. Account Registration</h4>
+          <p className="text-sm leading-relaxed">You must provide accurate and complete information when creating an account. You are responsible for maintaining the confidentiality of your login credentials and for all activities that occur under your account.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">3. User Responsibilities</h4>
+          <p className="text-sm leading-relaxed">You agree to use the system in compliance with all applicable laws and regulations. You are responsible for all inventory data you input and for ensuring the accuracy of your information.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">4. Prohibited Activities</h4>
+          <p className="text-sm leading-relaxed">You may not use the system for any illegal purpose, to infringe on the rights of others, to distribute malware, or to attempt to gain unauthorized access to any part of the system.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">5. Intellectual Property</h4>
+          <p className="text-sm leading-relaxed">All content, features, and functionality of the system are owned by AsiaByte and are protected by intellectual property laws. You may not copy, modify, or distribute any part of the system without our express written consent.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">6. Limitation of Liability</h4>
+          <p className="text-sm leading-relaxed">AsiaByte shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the system.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">7. Termination</h4>
+          <p className="text-sm leading-relaxed">We may terminate or suspend your account immediately, without prior notice, for conduct that violates these terms or is harmful to other users or the system.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">8. Governing Law</h4>
+          <p className="text-sm leading-relaxed">These terms shall be governed by and construed in accordance with the laws of Malaysia, without regard to its conflict of law provisions.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">9. Changes to Terms</h4>
+          <p className="text-sm leading-relaxed">We reserve the right to modify these terms at any time. Your continued use of the system after any changes constitutes acceptance of the new terms.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-lg font-semibold text-slate-800 mb-2">10. Contact Information</h4>
+          <p className="text-sm leading-relaxed">For questions about these terms, please contact us at legal@asiabyte.com.</p>
+        </div>
+        
+        <p className="text-xs text-slate-400 italic mt-4">Last Updated: January 1, 2026</p>
+      </div>
+    </>
+  );
 
   return (
-    <div className="auth-canvas">
+    <div className="relative min-h-screen overflow-hidden">
+      {/* Enhanced Animated Background with Gradient Mesh and Blobs */}
+      <div className="fixed inset-0 -z-10 bg-gradient-to-br from-slate-900 via-blue-900 to-cyan-800">
+        {/* Animated glowing blobs */}
+        <div className="absolute top-0 -left-40 w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+        <div className="absolute top-0 -right-40 w-96 h-96 bg-cyan-600 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-40 left-20 w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+        
+        {/* Floating particles */}
+        <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-white rounded-full animate-float opacity-60"></div>
+        <div className="absolute top-3/4 left-1/3 w-1.5 h-1.5 bg-white rounded-full animate-float animation-delay-1000 opacity-40"></div>
+        <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-white rounded-full animate-float animation-delay-2000 opacity-50"></div>
+        <div className="absolute bottom-1/3 right-1/3 w-1 h-1 bg-white rounded-full animate-float animation-delay-3000 opacity-30"></div>
+        <div className="absolute top-2/3 right-1/2 w-1.5 h-1.5 bg-blue-300 rounded-full animate-float animation-delay-1500 opacity-40"></div>
+        <div className="absolute bottom-1/4 left-1/2 w-1 h-1 bg-cyan-300 rounded-full animate-float animation-delay-2500 opacity-50"></div>
+      </div>
 
-      <main className="auth-container">
-        <div className="brand-section">
-          <div className="brand-header">
-            <div className="brand-icon-box">
-          <img src="src/assets/Pictures/asiabite.png" alt="Logo" className="logo-image" />
+      <main className="auth-container max-w-7xl mx-auto px-4 py-8 md:py-12 flex flex-col md:flex-row items-center justify-center min-h-screen relative z-10">
+        
+        {/* ✨ UI IMPROVEMENT: Left Section - Branding - Enhanced for prominence and readability */}
+        <div className="brand-section flex-1 mb-12 md:mb-0 md:pr-16 lg:pr-20">
+          {/* ✨ UI IMPROVEMENT: Larger logo container with better visibility */}
+          <div className="brand-header mb-10 animate-fade-in-up">
+            <div className="brand-icon-box w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-xl transform transition-all duration-300 hover:scale-105 border border-white/30">
+              <img src="src/assets/Pictures/asiabite.png" alt="Logo" className="logo-image w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 object-contain" />
             </div>
           </div>
 
-          <div className="brand-content">
-            <h1 className="hero-text">
-              <span className="text-highlight">AsiaByte</span>
-              <br /> P&L Inventory System 
+          {/* ✨ UI IMPROVEMENT: Enhanced text hierarchy and sizing */}
+          <div className="brand-content animate-fade-in-up animation-delay-200">
+            <h1 className="hero-text mb-6">
+              {/* ✨ UI IMPROVEMENT: Larger, more prominent title with better gradient */}
+              <span className="text-5xl md:text-6xl lg:text-7xl font-extrabold bg-gradient-to-r from-white via-white to-cyan-200 bg-clip-text text-transparent block leading-tight">
+                AsiaByte
+              </span>
+              {/* ✨ UI IMPROVEMENT: Secondary title with better spacing */}
+              <span className="text-3xl md:text-4xl lg:text-5xl font-bold text-white/95 block mt-2 leading-tight">
+                P&L Inventory System
+              </span>
             </h1>
-            <p className="hero-subtext">
-              Join teams building the future with AsiaByte's strong infrastructure platform.
-            </p>
+            
+            {/* ✨ UI IMPROVEMENT: Enhanced description with glass morphism card effect */}
+            <div className="relative mt-6 max-w-md">
+              {/* Decorative background glow */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl blur-xl opacity-75"></div>
+              
+              {/* Main content card */}
+              <div className="relative bg-gradient-to-r from-white/15 to-white/5 backdrop-blur-md rounded-xl p-5 border border-white/20 shadow-2xl transform transition-all duration-300 hover:scale-105 hover:shadow-cyan-500/25">
+                {/* Animated icon row */}
+                <div className="flex items-center gap-2 mb-3">
+                  <svg className="w-5 h-5 text-cyan-300 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                  <div className="h-px flex-1 bg-gradient-to-r from-cyan-400/50 to-transparent"></div>
+                  <svg className="w-5 h-5 text-blue-300 animate-pulse animation-delay-1000" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                
+                {/* Enhanced text with gradient and shadow */}
+                <p className="text-white text-base md:text-lg lg:text-xl font-semibold leading-relaxed tracking-wide">
+                  Join teams building the future with 
+                  <span className="inline-block ml-1">
+                    <span className="bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent font-bold">
+                      AsiaByte's
+                    </span>
+                  </span>
+                  <br />
+                  <span className="text-cyan-200/90 font-bold">strong infrastructure platform.</span>
+                </p>
+                
+                {/* Decorative bottom line */}
+                <div className="mt-3 flex gap-1 justify-start">
+                  <div className="w-8 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full animate-pulse"></div>
+                  <div className="w-4 h-1 bg-cyan-400/50 rounded-full"></div>
+                  <div className="w-2 h-1 bg-cyan-400/30 rounded-full"></div>
+                </div>
+              </div>
+            </div>
+            
+            {/* ✨ UI IMPROVEMENT: Added decorative element for visual balance */}
+            <div className="mt-8 hidden md:block">
+              <div className="w-20 h-1 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"></div>
+            </div>
           </div>
-
         </div>
 
         {/* Right Section: Login Form */}
-        <div className="form-section">
-          <div className="auth-card">
-            <div className="card-accent-bar"></div>
+        <div className="form-section flex-1 max-w-md w-full animate-fade-in-up animation-delay-400">
+          {/* 🔧 VISIBILITY FIX: Changed card background to solid white for maximum readability */}
+          <div className="auth-card bg-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 p-8 relative overflow-hidden">
+            <div className="card-accent-bar absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-cyan-600"></div>
             
-            <header className="card-header">
-              <h2>Welcome</h2>
-              <p>Please enter your details to sign in.</p>
+            <header className="card-header mb-6">
+              {/* 🔧 VISIBILITY FIX: Changed to dark text for high contrast on white background */}
+              <h2 className="text-2xl font-bold text-slate-800">Welcome Back</h2>
+              <p className="text-slate-500 font-medium mt-1">Please enter your details to sign in.</p>
             </header>
 
-            <form className="auth-form" onSubmit={(e) => e.preventDefault()}>
+            {/* ✨ UI IMPROVEMENT: Error message display */}
+            {errorMessage && (
+              <div className="error-message bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm flex items-center gap-2 animate-shake">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {errorMessage}
+              </div>
+            )}
+
+            <form className="auth-form space-y-5" onSubmit={handleLogin}>
               <div className="input-group">
-                <label htmlFor="email">Email</label>
-                <div className="input-wrapper">
-                  <svg className='input-icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2} strokeLinecap='round' strokeLinejoin='round'>
-                    <path d='M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z'></path>
-                    <polyline points='22,6 12,13 2,6'></polyline>
-                  </svg>
+                {/* 🔧 VISIBILITY FIX: Dark label for high contrast */}
+                <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
+                <div className="input-wrapper relative">
+                  {/* 🔧 VISIBILITY FIX: Dark icon for high contrast */}
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg className='w-5 h-5 text-slate-400' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2} strokeLinecap='round' strokeLinejoin='round'>
+                      <path d='M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z'></path>
+                      <polyline points='22,6 12,13 2,6'></polyline>
+                    </svg>
+                  </div>
                   <input
                     type="email" 
                     id="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@company.com" 
+                    // 🔧 VISIBILITY FIX: Solid white background, dark text, visible border
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-slate-800 placeholder:text-slate-400 text-base"
                     required 
                   />
                 </div>
               </div>
 
               <div className="input-group">
-                <label htmlFor="password">Password</label>
-                <div className="input-wrapper">
-                  <svg className='input-icon' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2} strokeLinecap='round' strokeLinejoin='round'>
-                    <rect x='3' y='11' width='18' height='11' rx='2' ry='2'></rect>
-                    <path d='M7 11V7a5 5 0 0 1 10 0v4'></path>
-                  </svg>
+                {/* 🔧 VISIBILITY FIX: Dark label for high contrast */}
+                <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
+                <div className="input-wrapper relative">
+                  {/* 🔧 VISIBILITY FIX: Dark icon for high contrast */}
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg className='w-5 h-5 text-slate-400' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2} strokeLinecap='round' strokeLinejoin='round'>
+                      <rect x='3' y='11' width='18' height='11' rx='2' ry='2'></rect>
+                      <path d='M7 11V7a5 5 0 0 1 10 0v4'></path>
+                    </svg>
+                  </div>
                   <input 
                     type={showPassword ? "text" : "password"} 
                     id="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••" 
+                    // 🔧 VISIBILITY FIX: Solid white background, dark text, visible border
+                    className="w-full pl-10 pr-12 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-slate-800 placeholder:text-slate-400 text-base"
                     required 
                   />
                   <button 
                     type="button" 
-                    className="visibility-toggle"
+                    // 🔧 VISIBILITY FIX: Dark icon with proper hover effect
+                    className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 transition-colors"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label='Toggle password visibility'
                   >
                     {showPassword ? (
-                      // Eye Off Icon (Slash)
-                      <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2} strokeLinecap='round' strokeLinejoin='round'>
+                      <svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2} strokeLinecap='round' strokeLinejoin='round'>
                         <path d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'></path>
                         <line x1='1' y1='1' x2='23' y2='23'></line>
                       </svg>
                     ):(
-                      // Eye Icon (Open)
-                      <svg viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2} strokeLinecap='round' strokeLinejoin='round'>
+                      <svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth={2} strokeLinecap='round' strokeLinejoin='round'>
                         <path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'></path>
                         <circle cx='12' cy='12' r='3'></circle>
                       </svg>
                     )}
-                    
                   </button>
                 </div>
-                <div className="forgot-password-link">
-                  <a href="#">Forgot password?</a>
+                <div className="forgot-password-link text-right mt-2">
+                  {/* 🔧 VISIBILITY FIX: Visible link color */}
+                  <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors hover:underline">Forgot password?</a>
                 </div>
               </div>
 
-              <button type="submit" className="submit-btn">Sign In</button>
+              {/* ✅ ADDED: Remember me checkbox */}
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-2 cursor-pointer group">
+                  <input 
+                    type="checkbox" 
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 focus:ring-2 transition-all"
+                  />
+                  {/* 🔧 VISIBILITY FIX: Dark text for checkbox label */}
+                  <span className="text-sm font-medium text-slate-600 group-hover:text-slate-800 transition-colors">Remember me</span>
+                </label>
+              </div>
+
+              <button 
+                type="submit" 
+                className="submit-btn w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed active:scale-95 text-base"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Signing In...
+                  </>
+                ) : (
+                  'Sign In'
+                )}
+              </button>
             </form>
 
-            {/* <div className="divider">
-              <span>or sign in with</span>
+            {/* ✅ ADDED: Google Login Button */}
+            <div className="divider relative my-6 text-center">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-slate-200"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                {/* 🔧 VISIBILITY FIX: Dark text for divider */}
+                <span className="px-4 bg-white text-slate-500 font-medium">or sign in with</span>
+              </div>
             </div>
 
-            <div className="social-login-grid">
-              <button className="social-btn">
-                <svg className="social-icon" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-              </button>
-              <button className="social-btn">
-                <svg className="social-icon" fill="#1877F2" viewBox="0 0 24 24"><path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12z" /></svg>
-              </button>
-              <button className="social-btn">
-                <svg className="social-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M13.6823 10.6218L20.2391 3H18.6854L12.9921 9.61788L8.44486 3H3.2002L10.0765 13.0074L3.2002 21H4.75404L10.7663 14.0113L15.5685 21H20.8131L13.6819 10.6218ZM11.5541 13.0956L10.8574 12.0991L5.31391 4.16971H7.70053L12.1742 10.5689L12.8709 11.5655L18.6861 19.8835H16.2995L11.5541 13.096V13.0956Z" /></svg>
-              </button>
-            </div> */}
+            <button 
+              onClick={handleGoogleLogin}
+              disabled={isLoading}
+              className="social-btn w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:shadow-md transition-all duration-200 hover:scale-105 disabled:opacity-70 active:scale-95"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+              </svg>
+              {/* 🔧 VISIBILITY FIX: Dark text for Google button */}
+              <span className="text-slate-700 font-medium">Continue with Google</span>
+            </button>
 
-            <footer className="card-footer">
-              <p>Don't have an account? <a onClick={() => navigate('/Register')}>Sign up now</a></p>
+            <footer className="card-footer mt-6 text-center">
+              {/* 🔧 VISIBILITY FIX: Dark text for footer */}
+              <p className="text-slate-600 font-medium">
+                Don't have an account? 
+                <button 
+                  onClick={() => navigate('/Register')} 
+                  className="text-blue-600 hover:text-blue-700 font-semibold ml-1 hover:underline transition-colors"
+                >
+                  Sign up now
+                </button>
+              </p>
             </footer>
           </div>
           
-          <div className="legal-links">
-            <a href="#">Privacy Policy</a>
-            <a href="#">Terms of Service</a>
+          {/* ✅ ADDED: Legal links with modal triggers */}
+          <div className="legal-links flex justify-center gap-6 mt-6 text-sm">
+            <button 
+              onClick={() => setShowPrivacyModal(true)}
+              // 🔧 VISIBILITY FIX: Light text on dark background for legal links
+              className="text-white/80 hover:text-white font-medium transition-all duration-200 hover:scale-105"
+            >
+              Privacy Policy
+            </button>
+            <button 
+              onClick={() => setShowTermsModal(true)}
+              // 🔧 VISIBILITY FIX: Light text on dark background for legal links
+              className="text-white/80 hover:text-white font-medium transition-all duration-200 hover:scale-105"
+            >
+              Terms of Service
+            </button>
           </div>
         </div>
       </main>
+
+      {/* ✅ ADDED: Modals for Privacy Policy and Terms of Service */}
+      <Modal 
+        isOpen={showPrivacyModal} 
+        onClose={() => setShowPrivacyModal(false)} 
+        title="Privacy Policy" 
+        content={privacyPolicyContent} 
+      />
+      
+      <Modal 
+        isOpen={showTermsModal} 
+        onClose={() => setShowTermsModal(false)} 
+        title="Terms of Service" 
+        content={termsContent} 
+      />
+
+      <style>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        
+        @keyframes scaleIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+          20%, 40%, 60%, 80% { transform: translateX(2px); }
+        }
+
+        @keyframes blob {
+          0% {
+            transform: translate(0px, 0px) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+          100% {
+            transform: translate(0px, 0px) scale(1);
+          }
+        }
+
+        @keyframes float {
+          0% {
+            transform: translateY(0px);
+          }
+          50% {
+            transform: translateY(-20px);
+          }
+          100% {
+            transform: translateY(0px);
+          }
+        }
+        
+        .animate-fade-in-up {
+          animation: fadeInUp 0.6s ease-out forwards;
+        }
+        
+        .animate-fadeIn {
+          animation: fadeIn 0.2s ease-out;
+        }
+        
+        .animate-scaleIn {
+          animation: scaleIn 0.2s ease-out;
+        }
+        
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
+
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+
+        .animate-float {
+          animation: float 6s ease-in-out infinite;
+        }
+        
+        .animation-delay-200 {
+          animation-delay: 0.2s;
+          opacity: 0;
+          animation-fill-mode: forwards;
+        }
+        
+        .animation-delay-400 {
+          animation-delay: 0.4s;
+          opacity: 0;
+          animation-fill-mode: forwards;
+        }
+
+        .animation-delay-1000 {
+          animation-delay: 1s;
+        }
+
+        .animation-delay-1500 {
+          animation-delay: 1.5s;
+        }
+
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+
+        .animation-delay-2500 {
+          animation-delay: 2.5s;
+        }
+
+        .animation-delay-3000 {
+          animation-delay: 3s;
+        }
+
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+      `}</style>
     </div>
   );
 };
