@@ -1,6 +1,6 @@
 import './App.css'
 import React, { useEffect } from 'react'
-import {BrowserRouter, Routes, Route, useLocation} from 'react-router-dom'
+import {BrowserRouter, Routes, Route, useLocation, Navigate} from 'react-router-dom'
 import Home from './Home'
 import Register from './Register'
 import Login from './Login'
@@ -33,7 +33,8 @@ function App() {
     <BrowserRouter>
       <ScrollToTop />
       <Routes>
-        <Route path='/' element={<Home />}></Route>
+        {/* ✅ FIXED: Redirect root path to login */}
+        <Route path='/' element={<Navigate to="/login" replace />} />
         <Route path='/register' element={<Register />}></Route>
         <Route path='/login' element={<Login />}></Route>
         <Route path='/invoice' element={<Invoice />}></Route>
