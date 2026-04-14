@@ -33,8 +33,9 @@ const Sidebar = () => {
       <div className="px-5 pt-6 pb-4 border-b border-white/10">
         <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
           <div className="relative">
+            {/* ✅ FIXED: Updated logo image path */}
             <img 
-              src='src/assets/Pictures/Asiabite.png' 
+              src='/Pictures/Asiabite.png' 
               alt='AsiaByte Logo' 
               className='w-10 h-10 object-contain transition-all duration-300 group-hover:scale-110 group-hover:rotate-3'
             />

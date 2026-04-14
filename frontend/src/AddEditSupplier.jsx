@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
-import watermarkLogo from './assets/Pictures/watermark.png'; 
 
 const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
   const [formData, setFormData] = useState({ id: '', name: '', address: '', pic: '', phone: '', logo: '' });
@@ -41,8 +40,9 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
 
       const Watermark = () => (
         <div className="absolute inset-0 pointer-events-none opacity-10 flex items-center justify-center overflow-hidden">
+          {/* ✅ FIXED: Updated watermark image path */}
           <img 
-            src={watermarkLogo}
+            src="/Pictures/watermark.png"
             alt="Watermark"
             className="w-[450px] h-auto object-contain"
           />

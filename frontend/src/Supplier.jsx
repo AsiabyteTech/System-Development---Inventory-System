@@ -64,7 +64,7 @@ const Supplier = () => {
     {
       id: 'SUP-001',
       name: 'Tapo',
-      logo: 'src/assets/Pictures/tapo.jpg',
+      logo: '/Pictures/tapo.jpg',
       pic: 'John Doe',
       address: 'Industrial Park A, Area 51',
       phone: '+6012-3456789'
@@ -72,7 +72,7 @@ const Supplier = () => {
     {
       id: 'SUP-002',
       name: 'Ezviz',
-      logo: 'src/assets/Pictures/ezviz.png',
+      logo: '/Pictures/ezviz.png',
       pic: 'Jane Smith',
       address: 'Security Hub, West Wing',
       phone: '+6012-9876543'
@@ -80,7 +80,7 @@ const Supplier = () => {
     {
       id: 'SUP-003',
       name: 'Dahua',
-      logo: 'src/assets/Pictures/dahua.png',
+      logo: '/Pictures/dahua.png',
       pic: 'Alan Wong',
       address: 'Tech Valley, Block C',
       phone: '+6011-22334455'
@@ -111,7 +111,8 @@ const Supplier = () => {
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/invoice')}>
             <div className="relative">
-              <img src="src/assets/Pictures/Asiabite.png" alt="AsiaByte Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
+              {/* ✅ FIXED: Updated logo image path */}
+              <img src="/Pictures/Asiabite.png" alt="AsiaByte Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
               <div className="absolute -inset-1 bg-blue-600/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
             <span className="logo-text text-xl font-bold font-serif bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">AsiaByte</span>
@@ -234,6 +235,7 @@ const Supplier = () => {
                       }`}
                     >
                       <div className="w-20 h-20 rounded-lg flex items-center justify-center bg-white overflow-hidden">
+                        {/* ✅ FIXED: Using updated logo path from suppliers array */}
                         <img src={s.logo} alt={s.name} className="w-16 h-16 object-contain" />
                       </div>
                       <span className={`text-sm font-semibold ${

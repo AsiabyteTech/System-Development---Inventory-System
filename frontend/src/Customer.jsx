@@ -53,7 +53,8 @@ const Customer = ({
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
                         <div className="relative">
-                            <img src="src/assets/Pictures/Asiabite.png" alt="AsiaByte Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
+                            {/* ✅ FIXED: Updated logo image path */}
+                            <img src="/Pictures/Asiabite.png" alt="AsiaByte Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
                             <div className="absolute -inset-1 bg-blue-600/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
                         <span className="logo-text text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text font-serif text-transparent">AsiaByte</span>
@@ -116,7 +117,7 @@ const Customer = ({
                         <div className="space-y-5">
                             <div>
                                 <label className="input-label text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Status</label>
-                                <div className="filter-wrapper">
+                                <div className="filter-wrapper relative">
                                     <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none">
                                         <option>Active</option>
                                         <option>Inactive</option>

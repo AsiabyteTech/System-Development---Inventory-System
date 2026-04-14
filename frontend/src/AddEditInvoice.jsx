@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
-import watermarkLogo from './assets/Pictures/watermark.png'; 
 
 const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
   const navigate = useNavigate();
@@ -51,8 +50,9 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
 
     const Watermark = () => (
         <div className="absolute inset-0 pointer-events-none opacity-10 flex items-center justify-center overflow-hidden">
+            {/* ✅ FIXED: Updated watermark image path */}
             <img 
-                src={watermarkLogo}
+                src="/Pictures/watermark.png"
                 alt="Watermark"
                 className="w-[450px] h-auto object-contain"
             />
@@ -274,7 +274,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                     <th className="p-4 text-left font-medium">Purchase Cost (RM)</th>
                     <th className="p-4 text-left font-medium">Additional Cost (RM)</th>
                     <th className="p-4 text-left font-medium">Total Cost (RM)</th>
-                   </tr>
+                  </tr>
                 </thead>
                 <tbody className="bg-white">
                   <tr className="border-t border-gray-200">
@@ -284,24 +284,24 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                         placeholder="0.00" 
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                       />
-                     </td>
+                    </td>
                     <td className="p-4">
                       <input 
                         type="text" 
                         placeholder="0.00" 
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                       />
-                     </td>
+                    </td>
                     <td className="p-4">
                       <input 
                         type="text" 
                         placeholder="0.00" 
                         className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
                       />
-                     </td>
-                   </tr>
+                    </td>
+                  </tr>
                 </tbody>
-               </table>
+              </table>
             </div>
           </div>
 
@@ -339,7 +339,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                       <th className="p-4 text-left font-medium text-gray-700">Serial Number</th>
                       <th className="p-4 w-24 text-center font-medium text-gray-700">Scan</th>
                       <th className="p-4 w-20"></th>
-                     </tr>
+                    </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-100">
                     {section.serialNumbers.map((sn, serialIdx) => (
@@ -358,7 +358,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                           ) : (
                             <span className="text-gray-300 text-lg">•</span>
                           )}
-                         </td>
+                        </td>
                         <td className="p-4">
                           <input 
                             type="text" 
@@ -367,7 +367,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                             value={sn}
                             onChange={(e) => updateSerialNumber(sectionIdx, serialIdx, e.target.value)}
                           />
-                         </td>
+                        </td>
                         <td className='p-4 text-center'>
                           <button
                             onClick={() => openBarcodeScanner(sectionIdx, serialIdx)}
@@ -378,7 +378,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                               <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d="M12 4v1m6 11h2a2 2 0 012 2v1m0-12v1a2 2 0 01-2 2h-2M4 12h16M7 12v5m4-5v5m4-5v5M4 7V6a2 2 0 012-2h1M4 17v1a2 2 0 002 2h1m9-16h1a2 2 0 012 2v1" />
                             </svg>
                           </button>
-                         </td>
+                        </td>
                         <td className="p-4">
                           {section.serialNumbers.length > 1 && (
                             <button 
@@ -391,11 +391,11 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                               </svg>
                             </button>
                           )}
-                         </td>
-                       </tr>
+                        </td>
+                      </tr>
                     ))}
                   </tbody>
-                 </table>
+                </table>
               </div>
               
               {/* Quick Stats for Serial Numbers */}

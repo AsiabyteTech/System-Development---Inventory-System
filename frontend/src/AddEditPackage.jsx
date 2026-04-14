@@ -14,13 +14,13 @@ const AddEditPackage = () => {
     };
 
     const products = [
-    { id: '1', image: 'src/assets/Pictures/EZC8C.jpg', sku: 'EZ-C8C-2MP', type: 'CCTV', margin: '8.00', quantity: 7 },
-    { id: '2', image: 'src/assets/Pictures/C8C5MP.png', sku: 'EZ-C8C-5MP', type: 'CCTV', margin: '8.00', quantity: 2 },
-    { id: '3', image: 'src/assets/Pictures/Ezviz-H1C front.jpg', sku: 'EZ-H1C', type: 'CCTV', margin: '8.00', quantity: 1 },
-    { id: '4', image: 'src/assets/Pictures/ez ty1pro.jpg', sku: 'EZ-TY1-PRO', type: 'CCTV', margin: '8.00', quantity: 5 },
-    { id: '5', image: 'src/assets/Pictures/ez h6cpro.png', sku: 'EZ-H6C-PRO', type: 'CCTV', margin: '8.00', quantity: 2 },
-    { id: '6', image: 'src/assets/Pictures/H9c.png', sku: 'EZ-H9C-DL', type: 'CCTV', margin: '8.00', quantity: 4 },
-    { id: '7', image: 'src/assets/Pictures/c6n.jpg', sku: 'EZ-C6N', type: 'CCTV', margin: '14.00', quantity: 1 },
+    { id: '1', image: '/Pictures/EZC8C.jpg', sku: 'EZ-C8C-2MP', type: 'CCTV', margin: '8.00', quantity: 7 },
+    { id: '2', image: '/Pictures/C8C5MP.png', sku: 'EZ-C8C-5MP', type: 'CCTV', margin: '8.00', quantity: 2 },
+    { id: '3', image: '/Pictures/Ezviz-H1C front.jpg', sku: 'EZ-H1C', type: 'CCTV', margin: '8.00', quantity: 1 },
+    { id: '4', image: '/Pictures/ez ty1pro.jpg', sku: 'EZ-TY1-PRO', type: 'CCTV', margin: '8.00', quantity: 5 },
+    { id: '5', image: '/Pictures/ez h6cpro.png', sku: 'EZ-H6C-PRO', type: 'CCTV', margin: '8.00', quantity: 2 },
+    { id: '6', image: '/Pictures/H9c.png', sku: 'EZ-H9C-DL', type: 'CCTV', margin: '8.00', quantity: 4 },
+    { id: '7', image: '/Pictures/c6n.jpg', sku: 'EZ-C6N', type: 'CCTV', margin: '14.00', quantity: 1 },
   ];
 
   const [quantities, setQuantities] = useState(
@@ -52,7 +52,8 @@ const AddEditPackage = () => {
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
                         <div className="relative">
-                            <img src="src/assets/Pictures/Asiabite.png" alt="AsiaByte Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
+                            {/* ✅ FIXED: Updated logo image path */}
+                            <img src="/Pictures/Asiabite.png" alt="AsiaByte Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
                             <div className="absolute -inset-1 bg-blue-600/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
                         <span className="logo-text text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text font-serif text-transparent">AsiaByte</span>
@@ -139,6 +140,7 @@ const AddEditPackage = () => {
                             {products.map((item) => (
                                 <tr key={item.id} className="hover:bg-blue-50/50 transition-colors group">
                                     <td className="px-6 py-4">
+                                        {/* ✅ FIXED: Using updated image path from products array */}
                                         <img src={item.image} alt="Product" className="w-14 h-14 object-cover rounded-lg shadow-sm cursor-pointer hover:scale-110 transition-transform duration-300" onClick={() => setSelectedImage(item.image)}></img>
                                     </td>
                                     <td className="px-6 py-4 font-semibold text-blue-900">{item.sku}</td>

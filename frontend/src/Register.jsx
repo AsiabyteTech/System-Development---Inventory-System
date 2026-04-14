@@ -268,7 +268,8 @@ const Register = () => {
         <div className="brand-section flex-1 mb-12 md:mb-0 md:pr-16 lg:pr-20">
           <div className="brand-header mb-10 animate-fade-in-up">
             <div className="brand-icon-box w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-xl transform transition-all duration-300 hover:scale-105 border border-white/30">
-              <img src="src/assets/Pictures/asiabite.png" alt="Logo" className="logo-image w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 object-contain" />
+              {/* ✅ FIXED: Updated image path */}
+              <img src="/Pictures/Asiabite.png" alt="Logo" className="logo-image w-14 h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 object-contain" />
             </div>
           </div>
 

@@ -52,43 +52,43 @@ const Dashboard = () => {
     const products = [
         { 
             id: '1', 
-            image: '/src/assets/Pictures/EZC8C.jpg', 
+            image: '/Pictures/EZC8C.jpg', 
             sku: 'EZ-C8C-2MP', 
             ...generateRandomStock()
         },
         { 
             id: '2', 
-            image: '/src/assets/Pictures/C8C5MP.png', 
+            image: '/Pictures/C8C5MP.png', 
             sku: 'EZ-C8C-5MP', 
             ...generateRandomStock()
         },
         { 
             id: '3', 
-            image: '/src/assets/Pictures/Ezviz-H1C front.jpg', 
+            image: '/Pictures/Ezviz-H1C front.jpg', 
             sku: 'EZ-H1C', 
             ...generateRandomStock()
         },
         { 
             id: '4', 
-            image: '/src/assets/Pictures/ez ty1pro.jpg', 
+            image: '/Pictures/ez ty1pro.jpg', 
             sku: 'EZ-TY1-PRO', 
             ...generateRandomStock()
         },
         { 
             id: '5', 
-            image: '/src/assets/Pictures/ez h6cpro.png', 
+            image: '/Pictures/ez h6cpro.png', 
             sku: 'EZ-H6C-PRO', 
             ...generateRandomStock()
         },
         { 
             id: '6', 
-            image: '/src/assets/Pictures/H9c.png', 
+            image: '/Pictures/H9c.png', 
             sku: 'EZ-H9C-DL', 
             ...generateRandomStock()
         },
         { 
             id: '7', 
-            image: '/src/assets/Pictures/c6n.jpg', 
+            image: '/Pictures/c6n.jpg', 
             sku: 'EZ-C6N', 
             ...generateRandomStock()
         },
@@ -332,6 +332,7 @@ const Dashboard = () => {
                                             <tr key={item.id} className="hover:bg-blue-50/50 transition-colors group">
                                                 <td className="px-6 py-3">
                                                     <div className="w-10 h-10 bg-slate-100 rounded-lg overflow-hidden group-hover:scale-105 transition-transform">
+                                                        {/* ✅ FIXED: Updated image path */}
                                                         <img src={item.image} alt="Product" className="w-full h-full object-cover" />
                                                     </div>
                                                 </td>

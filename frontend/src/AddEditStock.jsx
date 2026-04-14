@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import watermarkLogo from './assets/Pictures/watermark.png'; 
 import './App.css';
 
 const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
@@ -51,8 +50,9 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
 
     const Watermark = () => (
         <div className="absolute inset-0 pointer-events-none opacity-10 flex items-center justify-center overflow-hidden">
+            {/* ✅ FIXED: Updated watermark image path */}
             <img 
-                src={watermarkLogo}
+                src="/Pictures/watermark.png"
                 alt="Watermark"
                 className="w-[450px] h-auto object-contain"
             />

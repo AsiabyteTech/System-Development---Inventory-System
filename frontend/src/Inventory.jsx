@@ -5,12 +5,12 @@ import './App.css';
 const Inventory = ({ onBack, onNavigateToCustomer }) => {
   const navigate = useNavigate();
   const [products] = useState([
-    { id: '1', sku: 'C8C2MP', image: 'src/assets/Pictures/EZC8C.jpg', price: 180.00, qtyLeft: 2 },
-    { id: '2', sku: 'C8C5MP', image: 'src/assets/Pictures/C8C5MP.png', price: 240.00, qtyLeft: 3 },
-    { id: '3', sku: 'H1C', image: 'src/assets/Pictures/Ezviz-H1C front.jpg', price: 95.00, qtyLeft: 4 },
-    { id: '4', sku: 'PROD004', image: 'src/assets/Pictures/EZC8C.jpg', price: 150.00, qtyLeft: 5 },
-    { id: '5', sku: 'PROD005', image: 'src/assets/Pictures/C8C5MP.png', price: 200.00, qtyLeft: 3 },
-    { id: '6', sku: 'PROD006', image: 'src/assets/Pictures/Ezviz-H1C front.jpg', price: 120.00, qtyLeft: 6 }
+    { id: '1', sku: 'C8C2MP', image: '/Pictures/EZC8C.jpg', price: 180.00, qtyLeft: 2 },
+    { id: '2', sku: 'C8C5MP', image: '/Pictures/C8C5MP.png', price: 240.00, qtyLeft: 3 },
+    { id: '3', sku: 'H1C', image: '/Pictures/Ezviz-H1C front.jpg', price: 95.00, qtyLeft: 4 },
+    { id: '4', sku: 'PROD004', image: '/Pictures/EZC8C.jpg', price: 150.00, qtyLeft: 5 },
+    { id: '5', sku: 'PROD005', image: '/Pictures/C8C5MP.png', price: 200.00, qtyLeft: 3 },
+    { id: '6', sku: 'PROD006', image: '/Pictures/Ezviz-H1C front.jpg', price: 120.00, qtyLeft: 6 }
   ]);
 
   const [quantities, setQuantities] = useState(
@@ -48,7 +48,8 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
       <header className="headersys">
         <div className="flex items-center gap-2 cursor-pointer">
           <div className="flex items-center gap-3">
-            <img src="src/assets/Pictures/Asiabite.png" alt="AsiaByte Logo" className="h-10 w-auto" />
+            {/* ✅ FIXED: Updated logo image path */}
+            <img src="/Pictures/Asiabite.png" alt="AsiaByte Logo" className="h-10 w-auto" />
             <span className="logo-text">AsiaByte</span>
           </div>  
         </div>
@@ -101,6 +102,7 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
               {filteredProducts.map(product => (
                 <div key={product.id} className="product-card">
                   <div className="image-container">
+                    {/* ✅ FIXED: Using updated image path from products array */}
                     <img src={product.image} alt={product.sku} className="product-image" />
                   </div>
                   

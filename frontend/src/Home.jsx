@@ -21,19 +21,8 @@ const Home = () => {
     "hiksemi.png",
   ];
 
-  // Check if images exist 
-  const getImagePath = (img) => {
-    // Try multiple possible paths
-    const paths = [
-      `src/assets/Pictures/${img}`,
-      `/assets/Pictures/${img}`,
-      `/Pictures/${img}`,
-      `./Pictures/${img}`,
-    ];
-    
-    // For now, return the most likely path
-    return `src/assets/Pictures/${img}`;
-  };
+  // ✅ FIXED: Updated image path to use public folder
+  const getImagePath = (img) => `/Pictures/${img}`;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
@@ -45,8 +34,9 @@ const Home = () => {
             onClick={() => navigate('/')}
           >
             <div className="relative">
+              {/* ✅ FIXED: Updated image path */}
               <img 
-                src="src/assets/Pictures/Asiabite.png" 
+                src="/Pictures/Asiabite.png" 
                 alt="AsiaByte Logo" 
                 className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
               />
@@ -125,6 +115,7 @@ const Home = () => {
                     key={`logo-${index}`} 
                     className="flex-shrink-0 w-32 h-24 bg-white rounded-xl border-2 border-slate-200 hover:border-blue-500 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-visible"
                   >
+                    {/* ✅ FIXED: Using updated getImagePath function */}
                     <img 
                       src={getImagePath(img)} 
                       alt={`Partner ${index + 1}`} 
