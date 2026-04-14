@@ -9,8 +9,9 @@ const Sidebar = () => {
   // Get user role from localStorage (set during login)
   const userRole = localStorage.getItem("userRole") || "Staff";
   
+  // ✅ FIXED: Changed Home path from "/" to "/home"
   const menuItems = [
-    { name: "Home", path: "/", icon: <FaHome />, isParent: false },
+    { name: "Home", path: "/home", icon: <FaHome />, isParent: false },
     { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt />, isParent: false },
     { name: "Supplier", path: "/invoice", icon: <FaTruck />, isParent: true },
     { name: "Product", path: "/product", icon: <FaBox />, isParent: false },
@@ -71,7 +72,7 @@ const Sidebar = () => {
 
         {/* Sidebar Header - Modern glass effect */}
         <div className="px-5 pt-6 pb-4 border-b border-white/10">
-          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
+          <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/home')}>
             <div className="relative">
               {/* ✅ FIXED: Updated logo image path */}
               <img 
