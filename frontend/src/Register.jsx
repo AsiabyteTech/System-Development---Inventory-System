@@ -102,31 +102,36 @@ const Register = () => {
     }, 1000);
   };
 
-  // ✅ ADDED: Modal component for Privacy Policy and Terms
+  // ✅ FIXED: Modal component for Privacy Policy and Terms - Fixed mobile layout
   const Modal = ({ isOpen, onClose, title, content }) => {
     if (!isOpen) return null;
 
     return (
-      <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn" onClick={onClose}>
-        <div className="modal-container bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden animate-scaleIn mx-4" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header flex justify-between items-center p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-white">
-            <h3 className="text-2xl font-bold text-slate-800">{title}</h3>
+      <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fadeIn p-4" onClick={onClose}>
+        <div className="modal-container bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh] sm:max-h-[80vh] animate-scaleIn" onClick={(e) => e.stopPropagation()}>
+          {/* Fixed Header */}
+          <div className="modal-header flex justify-between items-center p-4 sm:p-6 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-white flex-shrink-0">
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-800">{title}</h3>
             <button 
               onClick={onClose}
-              className="modal-close w-10 h-10 rounded-full hover:bg-slate-100 transition-all duration-200 flex items-center justify-center group"
+              className="modal-close w-8 h-8 sm:w-10 sm:h-10 rounded-full hover:bg-slate-100 transition-all duration-200 flex items-center justify-center group flex-shrink-0"
             >
-              <svg className="w-5 h-5 text-slate-500 group-hover:text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500 group-hover:text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
           </div>
-          <div className="modal-content p-6 overflow-y-auto max-h-[60vh] space-y-4 text-slate-600">
+          
+          {/* Scrollable Content Area */}
+          <div className="modal-content p-4 sm:p-6 overflow-y-auto flex-1 space-y-4 text-slate-600">
             {content}
           </div>
-          <div className="modal-footer p-6 border-t border-slate-200 bg-slate-50 flex justify-end">
+          
+          {/* Fixed Footer with Button */}
+          <div className="modal-footer p-4 sm:p-6 border-t border-slate-200 bg-slate-50 flex justify-end rounded-b-2xl flex-shrink-0">
             <button 
               onClick={onClose}
-              className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg"
+              className="px-4 sm:px-6 py-2 sm:py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg text-sm sm:text-base"
             >
               Close
             </button>
@@ -141,43 +146,43 @@ const Register = () => {
     <>
       <div className="space-y-4">
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">1. Information We Collect</h4>
-          <p className="text-sm leading-relaxed">AsiaByte P&L Inventory System collects information you provide directly to us, such as when you create an account, update your profile, or use our services. This may include your name, email address, phone number, company information, and inventory data.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">1. Information We Collect</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">AsiaByte P&L Inventory System collects information you provide directly to us, such as when you create an account, update your profile, or use our services. This may include your name, email address, phone number, company information, and inventory data.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">2. How We Use Your Information</h4>
-          <p className="text-sm leading-relaxed">We use the information we collect to provide, maintain, and improve our services, to process transactions, to communicate with you, and to protect against fraud or unauthorized access to your account.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">2. How We Use Your Information</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We use the information we collect to provide, maintain, and improve our services, to process transactions, to communicate with you, and to protect against fraud or unauthorized access to your account.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">3. Data Security</h4>
-          <p className="text-sm leading-relaxed">We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. Your data is encrypted and stored securely.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">3. Data Security</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. Your data is encrypted and stored securely.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">4. Data Sharing</h4>
-          <p className="text-sm leading-relaxed">We do not share your personal information with third parties except as necessary to provide our services, comply with the law, or protect our rights. We may share aggregated, anonymized data for analytical purposes.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">4. Data Sharing</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We do not share your personal information with third parties except as necessary to provide our services, comply with the law, or protect our rights. We may share aggregated, anonymized data for analytical purposes.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">5. Your Rights</h4>
-          <p className="text-sm leading-relaxed">You have the right to access, correct, or delete your personal information. You may also request a copy of your data or ask us to restrict processing of your information.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">5. Your Rights</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">You have the right to access, correct, or delete your personal information. You may also request a copy of your data or ask us to restrict processing of your information.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">6. Cookies and Tracking</h4>
-          <p className="text-sm leading-relaxed">We use cookies and similar tracking technologies to enhance your experience, analyze usage, and personalize content. You can control cookie settings through your browser preferences.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">6. Cookies and Tracking</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We use cookies and similar tracking technologies to enhance your experience, analyze usage, and personalize content. You can control cookie settings through your browser preferences.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">7. Updates to This Policy</h4>
-          <p className="text-sm leading-relaxed">We may update this privacy policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the effective date.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">7. Updates to This Policy</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We may update this privacy policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the effective date.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">8. Contact Us</h4>
-          <p className="text-sm leading-relaxed">If you have questions about this privacy policy, please contact us at privacy@asiabyte.com or call +60 3-1234 5678.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">8. Contact Us</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">If you have questions about this privacy policy, please contact us at privacy@asiabyte.com or call +60 3-1234 5678.</p>
         </div>
         
         <p className="text-xs text-slate-400 italic mt-4">Effective Date: January 1, 2026</p>
@@ -190,53 +195,53 @@ const Register = () => {
     <>
       <div className="space-y-4">
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">1. Acceptance of Terms</h4>
-          <p className="text-sm leading-relaxed">By accessing or using AsiaByte P&L Inventory System, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">1. Acceptance of Terms</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">By accessing or using AsiaByte P&L Inventory System, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use our services.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">2. Account Registration</h4>
-          <p className="text-sm leading-relaxed">You must provide accurate and complete information when creating an account. You are responsible for maintaining the confidentiality of your login credentials and for all activities that occur under your account.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">2. Account Registration</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">You must provide accurate and complete information when creating an account. You are responsible for maintaining the confidentiality of your login credentials and for all activities that occur under your account.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">3. User Responsibilities</h4>
-          <p className="text-sm leading-relaxed">You agree to use the system in compliance with all applicable laws and regulations. You are responsible for all inventory data you input and for ensuring the accuracy of your information.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">3. User Responsibilities</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">You agree to use the system in compliance with all applicable laws and regulations. You are responsible for all inventory data you input and for ensuring the accuracy of your information.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">4. Prohibited Activities</h4>
-          <p className="text-sm leading-relaxed">You may not use the system for any illegal purpose, to infringe on the rights of others, to distribute malware, or to attempt to gain unauthorized access to any part of the system.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">4. Prohibited Activities</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">You may not use the system for any illegal purpose, to infringe on the rights of others, to distribute malware, or to attempt to gain unauthorized access to any part of the system.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">5. Intellectual Property</h4>
-          <p className="text-sm leading-relaxed">All content, features, and functionality of the system are owned by AsiaByte and are protected by intellectual property laws. You may not copy, modify, or distribute any part of the system without our express written consent.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">5. Intellectual Property</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">All content, features, and functionality of the system are owned by AsiaByte and are protected by intellectual property laws. You may not copy, modify, or distribute any part of the system without our express written consent.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">6. Limitation of Liability</h4>
-          <p className="text-sm leading-relaxed">AsiaByte shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the system.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">6. Limitation of Liability</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">AsiaByte shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the system.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">7. Termination</h4>
-          <p className="text-sm leading-relaxed">We may terminate or suspend your account immediately, without prior notice, for conduct that violates these terms or is harmful to other users or the system.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">7. Termination</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We may terminate or suspend your account immediately, without prior notice, for conduct that violates these terms or is harmful to other users or the system.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">8. Governing Law</h4>
-          <p className="text-sm leading-relaxed">These terms shall be governed by and construed in accordance with the laws of Malaysia, without regard to its conflict of law provisions.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">8. Governing Law</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">These terms shall be governed by and construed in accordance with the laws of Malaysia, without regard to its conflict of law provisions.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">9. Changes to Terms</h4>
-          <p className="text-sm leading-relaxed">We reserve the right to modify these terms at any time. Your continued use of the system after any changes constitutes acceptance of the new terms.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">9. Changes to Terms</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We reserve the right to modify these terms at any time. Your continued use of the system after any changes constitutes acceptance of the new terms.</p>
         </div>
         
         <div>
-          <h4 className="text-lg font-semibold text-slate-800 mb-2">10. Contact Information</h4>
-          <p className="text-sm leading-relaxed">For questions about these terms, please contact us at legal@asiabyte.com.</p>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">10. Contact Information</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">For questions about these terms, please contact us at legal@asiabyte.com.</p>
         </div>
         
         <p className="text-xs text-slate-400 italic mt-4">Last Updated: January 1, 2026</p>
