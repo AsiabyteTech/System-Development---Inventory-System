@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import './App.css';
 // ✅ ADDED: role helper import
 import { isAdmin } from "./shared/role";
+// ✅ ADDED: import for file preview modal
+import FilePreviewModal from './components/FilePreviewModal';
 
 const Order = ({ 
   onBack, 
@@ -16,6 +18,10 @@ const Order = ({
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  
+  // ✅ ADDED: state for file preview modal
+  const [selectedFileOrder, setSelectedFileOrder] = useState(null);
+  const [isFileModalOpen, setIsFileModalOpen] = useState(false);
 
   // Local data for the table
   const orders = [
@@ -26,7 +32,27 @@ const Order = ({
       purchaseDate: '2023-10-25',
       salesPlatform: 'Shopee',
       marginTotal: '45.00',
-      status: 'Pending'
+      status: 'Pending',
+      // ✅ ADDED: mock file data for preview
+      fileName: 'invoice_TN-12345678.pdf',
+      fileUrl: '/invoices/invoice_TN-12345678.pdf',
+      fileType: 'application/pdf',
+      // ✅ ADDED: customer data for preloading
+      customerData: {
+        name: 'Ahmad Faiz',
+        phone: '+6012-3456789',
+        email: 'ahmad.faiz@email.com',
+        address: '12-1, Jalan PJS 7/19, Bandar Sunway, 47500 Subang Jaya',
+        status: 'Active',
+        salesPlatform: 'Shopee',
+        purchaseDate: '2023-10-25'
+      },
+      orderItems: [
+        { sku: 'EZ-C8C-2MP', type: 'CCTV', quantity: 2, total: '80.00' }
+      ],
+      remark: 'Please handle with care',
+      shippingAddress: '12-1, Jalan PJS 7/19, Bandar Sunway, 47500 Subang Jaya',
+      paymentMethod: 'Credit Card'
     },
     {
       id: '2',
@@ -35,7 +61,25 @@ const Order = ({
       purchaseDate: '2023-10-26',
       salesPlatform: 'Lazada',
       marginTotal: '120.50',
-      status: 'Delivery'
+      status: 'Delivery',
+      fileName: 'delivery_note_TN-87654321.pdf',
+      fileUrl: '/delivery_notes/delivery_TN-87654321.pdf',
+      fileType: 'application/pdf',
+      customerData: {
+        name: 'Sarah Lim',
+        phone: '+6012-9876543',
+        email: 'sarah.lim@email.com',
+        address: '45, Jalan SS2/72, 47300 Petaling Jaya',
+        status: 'Active',
+        salesPlatform: 'Lazada',
+        purchaseDate: '2023-10-26'
+      },
+      orderItems: [
+        { sku: 'EZ-C8C-5MP', type: 'CCTV', quantity: 2, total: '80.00' }
+      ],
+      remark: 'Call before delivery',
+      shippingAddress: '45, Jalan SS2/72, 47300 Petaling Jaya',
+      paymentMethod: 'Online Banking'
     },
     {
       id: '3',
@@ -44,10 +88,45 @@ const Order = ({
       purchaseDate: '2023-10-24',
       salesPlatform: 'Direct',
       marginTotal: '250.00',
-      status: 'Complete'
+      status: 'Complete',
+      fileName: 'receipt_TN-99887766.pdf',
+      fileUrl: '/receipts/receipt_TN-99887766.pdf',
+      fileType: 'application/pdf',
+      customerData: {
+        name: 'Jason Tan',
+        phone: '+6012-5551234',
+        email: 'jason.tan@email.com',
+        address: '88, Jalan Bukit Bintang, 55100 Kuala Lumpur',
+        status: 'Active',
+        salesPlatform: 'Direct',
+        purchaseDate: '2023-10-24'
+      },
+      orderItems: [
+        { sku: 'EZ-H1C', type: 'CCTV', quantity: 1, total: '40.00' }
+      ],
+      remark: 'Leave at reception',
+      shippingAddress: '88, Jalan Bukit Bintang, 55100 Kuala Lumpur',
+      paymentMethod: 'Cash on Delivery'
     }
   ];
   
+  // ✅ ADDED: function to handle file preview
+  const handleFilePreview = (order) => {
+    setSelectedFileOrder(order);
+    setIsFileModalOpen(true);
+  };
+
+  // ✅ UPDATED: function to handle edit navigation - now goes to Customer page
+  const handleEditOrder = (order) => {
+    // Navigate to Customer page with order data in state
+    navigate('/customer', { 
+      state: { 
+        editOrderData: order,
+        mode: 'edit'
+      }
+    });
+  };
+
   const getStatusBadge = (status) => {
     switch (status) {
       case 'Pending': return 'status-badge-pending';
@@ -68,7 +147,7 @@ const Order = ({
     // Month filter
     let matchesMonth = true;
     if (selectedMonth) {
-      const orderMonth = order.purchaseDate.substring(0, 7); // Get YYYY-MM format
+      const orderMonth = order.purchaseDate.substring(0, 7);
       matchesMonth = orderMonth === selectedMonth;
     }
     
@@ -199,8 +278,8 @@ const Order = ({
               </div>
               
               {/* ✅ ADDED: role-based condition - Add Customer button only for admin */}
-              <div className="flex items-center justify-end">
-                {isAdmin() && (
+              {isAdmin() && (
+                <div className="flex items-center justify-end">
                   <button 
                     onClick={() => navigate('/customer')}
                     className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 flex items-center justify-center"
@@ -210,8 +289,8 @@ const Order = ({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
                   </button>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -308,18 +387,19 @@ const Order = ({
                   <tbody className="divide-y divide-slate-100">
                     {filteredOrders.map((item) => (
                       <tr key={item.id} className="hover:bg-blue-50/50 transition-colors">
-                        {/* ✅ ADDED: role-based condition - Edit button only for admin */}
+                        {/* ✅ UPDATED: Edit button now navigates to Customer page with order data */}
                         {isAdmin() && (
                           <td className="px-6 py-4">
                             <button 
-                              onClick={() => navigate(item.id)}
+                              onClick={() => handleEditOrder(item)}
                               className="w-8 h-8 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center justify-center shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105"
+                              title="Edit Order"
                             >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                               </svg>
                             </button>
-                          </td>
+                           </td>
                         )}
                         <td className="px-6 py-4">
                           <span className="font-semibold text-blue-900">{item.trackingNumber}</span>
@@ -339,7 +419,11 @@ const Order = ({
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex justify-center">
-                            <button className="w-8 h-8 bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-105">
+                            <button 
+                              onClick={() => handleFilePreview(item)}
+                              className="w-8 h-8 bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-105"
+                              title="View File"
+                            >
                               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -393,6 +477,13 @@ const Order = ({
           <Outlet />
         </main>
       </div>
+
+      {/* ✅ ADDED: File Preview Modal */}
+      <FilePreviewModal 
+        isOpen={isFileModalOpen}
+        onClose={() => setIsFileModalOpen(false)}
+        order={selectedFileOrder}
+      />
     </div>
   );
 };

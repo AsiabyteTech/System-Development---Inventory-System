@@ -1,64 +1,108 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import './App.css';
 
-const Login = () => {
-  const navigate = useNavigate();
+const RegisterStaff = () => {
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  // ✅ ADDED: No admin code field for staff registration
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  
-  // ✅ ADDED: State for role selection on login
-  const [selectedRole, setSelectedRole] = useState('admin');
-  
-  // Modal state for Privacy Policy and Terms of Service
+  const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
+  
+  // Password strength validation
+  const [passwordStrength, setPasswordStrength] = useState({
+    hasMinLength: false,
+    hasUpperCase: false,
+    hasLowerCase: false,
+    hasNumber: false,
+    hasSpecialChar: false
+  });
 
-  // Handle login with email/password and role selection
-  const handleLogin = async (e) => {
+  const checkPasswordStrength = (pwd) => {
+    setPasswordStrength({
+      hasMinLength: pwd.length >= 8,
+      hasUpperCase: /[A-Z]/.test(pwd),
+      hasLowerCase: /[a-z]/.test(pwd),
+      hasNumber: /[0-9]/.test(pwd),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(pwd)
+    });
+  };
+
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    checkPasswordStrength(newPassword);
+  };
+
+  // ✅ ADDED: Staff-only form submission - no admin code required
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage('');
     
-    setTimeout(() => {
-      if (email && password) {
-        // ✅ UPDATED: Store selected role in localStorage
-        localStorage.setItem("role", selectedRole);
-        localStorage.setItem("userEmail", email);
-        localStorage.setItem("loginRole", selectedRole);
-        localStorage.setItem("userRole", selectedRole === 'admin' ? 'Admin' : 'Staff');
-        if (rememberMe) {
-          localStorage.setItem("rememberMe", "true");
-        }
-        
-        console.log(`User logged in as: ${selectedRole}`);
-        navigate('/dashboard');
-      } else {
-        setErrorMessage('Invalid email or password. Please try again.');
-      }
+    if (!agreeToTerms) {
+      setErrorMessage('Please read and agree to the Privacy Policy and Terms of Service to continue.');
       setIsLoading(false);
+      return;
+    }
+    
+    if (!email || !password || !confirmPassword) {
+      setErrorMessage('Please fill in all required fields.');
+      setIsLoading(false);
+      return;
+    }
+    
+    const isPasswordStrong = Object.values(passwordStrength).every(Boolean);
+    if (!isPasswordStrong) {
+      setErrorMessage('Please ensure your password meets all security requirements.');
+      setIsLoading(false);
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      setErrorMessage('Passwords do not match. Please try again.');
+      setIsLoading(false);
+      return;
+    }
+    
+    // ✅ ADDED: Staff registration - no admin code validation needed
+    setTimeout(() => {
+      console.log('Staff registration submitted', { email, password });
+      localStorage.setItem("role", "staff");
+      localStorage.setItem("userEmail", email);
+      localStorage.setItem("isStaffRegistered", "true");
+      setIsLoading(false);
+      alert('Staff registration successful! The new staff member can now login.');
+      // Clear form after successful registration
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setAgreeToTerms(false);
     }, 1000);
   };
 
-  // Handle Google login with role selection
-  const handleGoogleLogin = () => {
+  // ✅ ADDED: Google registration as staff
+  const handleGoogleRegister = () => {
     setIsLoading(true);
     setErrorMessage('');
     
     setTimeout(() => {
-      localStorage.setItem("role", selectedRole);
-      localStorage.setItem("userEmail", `${selectedRole}@gmail.com`);
-      localStorage.setItem("googleLogin", "true");
-      localStorage.setItem("loginRole", selectedRole);
-      localStorage.setItem("userRole", selectedRole === 'admin' ? 'Admin' : 'Staff');
-      
-      console.log(`User logged in via Google as: ${selectedRole}`);
-      navigate('/dashboard');
+      console.log('Google registration initiated as staff');
+      localStorage.setItem("role", "staff");
+      localStorage.setItem("userEmail", "staff@gmail.com");
+      localStorage.setItem("googleRegister", "true");
+      localStorage.setItem("isStaffRegistered", "true");
       setIsLoading(false);
+      alert('Staff registration successful! The new staff member can now login.');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setAgreeToTerms(false);
     }, 1000);
   };
 
@@ -90,6 +134,7 @@ const Login = () => {
     <>
       <div className="space-y-4">
         <div><h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">1. Information We Collect</h4><p className="text-xs sm:text-sm leading-relaxed">AsiaByte P&L Inventory System collects information you provide directly to us...</p></div>
+        <div><h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">2. How We Use Your Information</h4><p className="text-xs sm:text-sm leading-relaxed">We use the information we collect to provide, maintain, and improve our services...</p></div>
         <p className="text-xs text-slate-400 italic mt-4">Effective Date: January 1, 2026</p>
       </div>
     </>
@@ -140,55 +185,15 @@ const Login = () => {
           </div>
         </div>
 
-        {/* Login Form with Role Selection */}
+        {/* ✅ ADDED: Staff Registration Form - No Admin Code field */}
         <div className="form-section flex-1 max-w-md w-full animate-fade-in-up animation-delay-400">
           <div className="auth-card bg-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 p-8 relative overflow-hidden">
-            <div className="card-accent-bar absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-cyan-600"></div>
+            <div className="card-accent-bar absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 to-teal-600"></div>
             
             <header className="card-header mb-6">
-              <h2 className="text-2xl font-bold text-slate-800">Welcome Back</h2>
-              <p className="text-slate-500 font-medium mt-1">Please enter your details to sign in.</p>
+              <h2 className="text-2xl font-bold text-slate-800">Staff Registration</h2>
+              <p className="text-slate-500 font-medium mt-1">Create a new staff account for your team member.</p>
             </header>
-
-            {/* ✅ ADDED: Role Selection Section */}
-            <div className="role-selection mb-6">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Login as</label>
-              <div className="role-toggle bg-slate-100 rounded-lg p-1 flex gap-1">
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('admin')}
-                  className={`flex-1 py-2.5 px-4 rounded-md font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                    selectedRole === 'admin'
-                      ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md'
-                      : 'text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Admin
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('staff')}
-                  className={`flex-1 py-2.5 px-4 rounded-md font-medium transition-all duration-200 flex items-center justify-center gap-2 ${
-                    selectedRole === 'staff'
-                      ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md'
-                      : 'text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  Staff
-                </button>
-              </div>
-              <p className="text-xs text-slate-400 mt-2">
-                {selectedRole === 'admin' 
-                  ? 'Administrator access: Full system control and management' 
-                  : 'Staff access: Limited to inventory and order management'}
-              </p>
-            </div>
 
             {errorMessage && (
               <div className="error-message bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm flex items-center gap-2 animate-shake">
@@ -197,65 +202,94 @@ const Login = () => {
               </div>
             )}
 
-            <form className="auth-form space-y-5" onSubmit={handleLogin}>
+            <form className="auth-form space-y-5" onSubmit={handleSubmit}>
               <div className="input-group">
                 <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
                 <div className="input-wrapper relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <svg className='w-5 h-5 text-slate-400' viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z'></path><polyline points='22,6 12,13 2,6'></polyline></svg>
                   </div>
-                  <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-slate-800 placeholder:text-slate-400 text-base" required />
+                  <input type='email' id='email' placeholder='staff@company.com' value={email} onChange={(e) => setEmail(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-slate-800 placeholder:text-slate-400 text-base" required />
                 </div>
+                <p className="text-xs text-slate-400 mt-1">Enter the staff member's email address.</p>
               </div>
 
+              {/* ✅ ADDED: No Admin Code field for staff registration */}
+
+              {/* Password Field with Strength Indicator */}
               <div className="input-group">
                 <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
                 <div className="input-wrapper relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <svg className='w-5 h-5 text-slate-400' viewBox='0 0 24 24' fill='none' stroke='currentColor'><rect x='3' y='11' width='18' height='11' rx='2' ry='2'></rect><path d='M7 11V7a5 5 0 0 1 10 0v4'></path></svg>
                   </div>
-                  <input type={showPassword ? "text" : "password"} id="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" className="w-full pl-10 pr-12 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-slate-800 placeholder:text-slate-400 text-base" required />
-                  <button type="button" className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 transition-colors" onClick={() => setShowPassword(!showPassword)}>
+                  <input type={showPassword ? "text" : "password"} id='password' placeholder='Create a strong password' value={password} onChange={handlePasswordChange} className="w-full pl-10 pr-12 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-slate-800 placeholder:text-slate-400 text-base" required />
+                  <button type='button' className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 transition-colors" onClick={() => setShowPassword(!showPassword)}>
                     {showPassword ? <svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'></path><line x1='1' y1='1' x2='23' y2='23'></line></svg> : <svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'></path><circle cx='12' cy='12' r='3'></circle></svg>}
                   </button>
                 </div>
-                <div className="forgot-password-link text-right mt-2">
-                  <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors hover:underline">Forgot password?</a>
-                </div>
+                {password && (
+                  <div className="mt-2 space-y-1">
+                    <div className="text-xs font-semibold text-slate-600 mb-1">Password Requirements:</div>
+                    <div className={`text-xs flex items-center gap-1 ${passwordStrength.hasMinLength ? 'text-green-600' : 'text-red-500'}`}>{passwordStrength.hasMinLength ? '✓' : '○'} At least 8 characters</div>
+                    <div className={`text-xs flex items-center gap-1 ${passwordStrength.hasUpperCase ? 'text-green-600' : 'text-red-500'}`}>{passwordStrength.hasUpperCase ? '✓' : '○'} At least one uppercase letter</div>
+                    <div className={`text-xs flex items-center gap-1 ${passwordStrength.hasLowerCase ? 'text-green-600' : 'text-red-500'}`}>{passwordStrength.hasLowerCase ? '✓' : '○'} At least one lowercase letter</div>
+                    <div className={`text-xs flex items-center gap-1 ${passwordStrength.hasNumber ? 'text-green-600' : 'text-red-500'}`}>{passwordStrength.hasNumber ? '✓' : '○'} At least one number</div>
+                    <div className={`text-xs flex items-center gap-1 ${passwordStrength.hasSpecialChar ? 'text-green-600' : 'text-red-500'}`}>{passwordStrength.hasSpecialChar ? '✓' : '○'} At least one special character (!@#$%^&*)</div>
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center justify-between">
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 focus:ring-2 transition-all" />
-                  <span className="text-sm font-medium text-slate-600 group-hover:text-slate-800 transition-colors">Remember me</span>
+              {/* Confirm Password Field */}
+              <div className="input-group">
+                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-slate-700 mb-2">Confirm Password</label>
+                <div className="input-wrapper relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg className='w-5 h-5 text-slate-400' viewBox='0 0 24 24' fill='none' stroke='currentColor'><rect x='3' y='11' width='18' height='11' rx='2' ry='2'></rect><path d='M7 11V7a5 5 0 0 1 10 0v4'></path></svg>
+                  </div>
+                  <input type={showConfirmPassword ? "text" : "password"} id='confirmPassword' placeholder='Confirm your password' value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full pl-10 pr-12 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-slate-800 placeholder:text-slate-400 text-base" required />
+                  <button type='button' className="absolute inset-y-0 right-0 flex items-center pr-3 text-slate-400 hover:text-slate-600 transition-colors" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    {showConfirmPassword ? <svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'></path><line x1='1' y1='1' x2='23' y2='23'></line></svg> : <svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'></path><circle cx='12' cy='12' r='3'></circle></svg>}
+                  </button>
+                </div>
+                {confirmPassword && password !== confirmPassword && <div className="mt-1 text-xs text-red-500">Passwords do not match</div>}
+              </div>
+
+              {/* Terms and Conditions Agreement */}
+              <div className="flex items-start gap-2">
+                <input type="checkbox" id="agreeToTerms" checked={agreeToTerms} onChange={(e) => setAgreeToTerms(e.target.checked)} className="mt-1 w-4 h-4 text-blue-600 bg-white border-slate-300 rounded focus:ring-blue-500 focus:ring-2 transition-all" required />
+                <label htmlFor="agreeToTerms" className="text-sm text-slate-600">
+                  I confirm that I have the authority to create this staff account and agree to the{' '}
+                  <button type="button" onClick={() => setShowPrivacyModal(true)} className="text-blue-600 hover:text-blue-700 font-medium hover:underline">Privacy Policy</button>
+                  {' '}and{' '}
+                  <button type="button" onClick={() => setShowTermsModal(true)} className="text-blue-600 hover:text-blue-700 font-medium hover:underline">Terms of Service</button>
                 </label>
               </div>
 
-              <button type="submit" className="submit-btn w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/30 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed active:scale-95 text-base" disabled={isLoading}>
+              {/* Submit Button */}
+              <button type='submit' className="submit-btn w-full bg-gradient-to-r from-emerald-600 to-teal-600 text-white py-3 rounded-lg font-semibold hover:shadow-lg hover:shadow-emerald-500/30 hover:scale-105 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed active:scale-95 text-base" disabled={isLoading}>
                 {isLoading ? (
                   <>
                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    Signing In as {selectedRole === 'admin' ? 'Admin' : 'Staff'}...
+                    Creating Staff Account...
                   </>
-                ) : `Sign In as ${selectedRole === 'admin' ? 'Admin' : 'Staff'}`}
+                ) : 'Register Staff'}
               </button>
             </form>
 
+            {/* Google Registration Button */}
             <div className="divider relative my-6 text-center">
               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
-              <div className="relative flex justify-center text-sm"><span className="px-4 bg-white text-slate-500 font-medium">or sign in with</span></div>
+              <div className="relative flex justify-center text-sm"><span className="px-4 bg-white text-slate-500 font-medium">or register with</span></div>
             </div>
 
-            <button onClick={handleGoogleLogin} disabled={isLoading} className="social-btn w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:shadow-md transition-all duration-200 hover:scale-105 disabled:opacity-70 active:scale-95">
+            <button onClick={handleGoogleRegister} disabled={isLoading} className="social-btn w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:shadow-md transition-all duration-200 hover:scale-105 disabled:opacity-70 active:scale-95">
               <svg className="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
               <span className="text-slate-700 font-medium">Continue with Google</span>
             </button>
 
             <footer className="card-footer mt-6 text-center">
-              <p className="text-slate-600 font-medium">
-                Don't have an account? 
-                <button onClick={() => navigate('/Register')} className="text-blue-600 hover:text-blue-700 font-semibold ml-1 hover:underline transition-colors">Sign up now</button>
-              </p>
+              <p className="text-slate-600 font-medium">Return to <button onClick={() => window.location.href = '/dashboard'} className="text-blue-600 hover:text-blue-700 font-semibold ml-1 hover:underline transition-colors">Dashboard</button></p>
             </footer>
           </div>
           
@@ -274,4 +308,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default RegisterStaff;

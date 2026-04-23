@@ -1,5 +1,5 @@
-import React, {useState} from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import './App.css';
 
 const Customer = ({
@@ -8,37 +8,106 @@ const Customer = ({
     onNavigateToEditCustomer
 }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    // ✅ ADDED: State for file upload
+    const [selectedFile, setSelectedFile] = useState(null);
+    const [fileName, setFileName] = useState('');
+    
+    // ✅ ADDED: Check if we're editing an order from Order page
+    const editOrderData = location.state?.editOrderData;
+    const isEditingOrder = !!editOrderData;
+    
+    // ✅ ADDED: State for customer form data (preloaded from order if editing)
+    const [customerFormData, setCustomerFormData] = useState({
+        customerName: '',
+        phoneNumber: '',
+        email: '',
+        address: '',
+        status: 'Active',
+        salesPlatform: '',
+        purchaseDate: '',
+    });
+    
+    // ✅ ADDED: State for order-specific data
+    const [orderData, setOrderData] = useState({
+        trackingNumber: '',
+        marginTotal: '',
+        orderStatus: 'Pending',
+        shippingAddress: '',
+        paymentMethod: '',
+        remark: '',
+        orderItems: []
+    });
+    
+    // ✅ ADDED: Preload data when editing an order
+    useEffect(() => {
+        if (isEditingOrder && editOrderData) {
+            // Preload customer form data
+            setCustomerFormData({
+                customerName: editOrderData.customerData?.name || editOrderData.customerName || '',
+                phoneNumber: editOrderData.customerData?.phone || '',
+                email: editOrderData.customerData?.email || '',
+                address: editOrderData.customerData?.address || '',
+                status: editOrderData.customerData?.status || 'Active',
+                salesPlatform: editOrderData.salesPlatform || '',
+                purchaseDate: editOrderData.purchaseDate || '',
+            });
+            
+            // Preload order data
+            setOrderData({
+                trackingNumber: editOrderData.trackingNumber || '',
+                marginTotal: editOrderData.marginTotal || '',
+                orderStatus: editOrderData.status || 'Pending',
+                shippingAddress: editOrderData.shippingAddress || '',
+                paymentMethod: editOrderData.paymentMethod || '',
+                remark: editOrderData.remark || '',
+                orderItems: editOrderData.orderItems || []
+            });
+        }
+    }, [isEditingOrder, editOrderData]);
+    
     const handleDelete = () => {
-        console.log("Product Deleted");
+        console.log("Customer/Order Deleted");
         setShowDeleteConfirm(false);
         navigate('/order');
     };
 
     const [SKUs, setSKUs] = useState(['']);
 
-    /*const addSKURow = () => {
-        setSKUs([...SKUs, '']);
+    // ✅ ADDED: Handle file upload
+    const handleFileUpload = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setSelectedFile(file);
+            setFileName(file.name);
+            console.log("File selected:", file.name);
+        }
     };
-
-    const updateSKU = (index, value) => {
-        const newSKUs = [...SKUs];
-        newSKUs[index] = value;
-        setSKUs(newSKUs);
-    };
-
-    const removeSKURow = (index) => {
-        constnewSKUs = SKU.filter((_,i) => i !== index);
-        setSKUs(newSKUs.length ? newSKUs : ['']);
-    };*/
-
-    // Local data for the table
-    const orders = [
-    { id: '1', sku: 'EZ-C8C-2MP', type: 'CCTV', quantity: 2, total: '80.00'},
-    { id: '2', sku: 'EZ-C8C-5MP', type: 'CCTV', quantity: 2, total: '80.00'},
-    { id: '3', sku: 'EZ-H1C', type: 'CCTV', quantity: 1, total: '40.00'},
     
-  ];
+    // ✅ ADDED: Handle save (could save customer + order together)
+    const handleSave = () => {
+        console.log("Saving customer/order:", { customerFormData, orderData });
+        // In real app, save to backend here
+        if (isEditingOrder) {
+            alert('Order updated successfully!');
+        } else {
+            alert('Customer saved successfully!');
+        }
+        navigate('/order');
+    };
+
+    // Local data for the table (order items)
+    const orders = orderData.orderItems.length > 0 
+        ? orderData.orderItems 
+        : [
+            { id: '1', sku: 'EZ-C8C-2MP', type: 'CCTV', quantity: 2, total: '80.00'},
+            { id: '2', sku: 'EZ-C8C-5MP', type: 'CCTV', quantity: 2, total: '80.00'},
+            { id: '3', sku: 'EZ-H1C', type: 'CCTV', quantity: 1, total: '40.00'},
+          ];
+
+    // ✅ ADDED: Calculate grand total from orders array
+    const grandTotal = orders.reduce((sum, item) => sum + parseFloat(item.total), 0);
 
     return (
         <div className="containersys min-h-screen bg-slate-50">
@@ -53,7 +122,6 @@ const Customer = ({
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
                         <div className="relative">
-                            {/* ✅ FIXED: Updated logo image path */}
                             <img src="/Pictures/Asiabite.png" alt="AsiaByte Logo" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
                             <div className="absolute -inset-1 bg-blue-600/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
@@ -64,7 +132,7 @@ const Customer = ({
 
             <main className="all-main-content max-w-7xl mx-auto p-6 md:p-8">
 
-                {/*Top Bar Info */}
+                {/*Top Bar Info - ✅ UPDATED: Dynamic title for order editing */}
                 <div className="addedit-banner-row flex justify-between items-center mb-6">
                     <div className="title-banner flex items-center bg-gradient-to-r from-blue-900 to-blue-700 rounded-lg overflow-hidden shadow-lg">
                         <button className="menu-btn p-3">
@@ -72,7 +140,9 @@ const Customer = ({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                             </svg>
                         </button>
-                        <h2 className="banner-title text-white font-serif text-xl px-6">Customer</h2>
+                        <h2 className="banner-title text-white text-xl px-6">
+                            {isEditingOrder ? 'Edit Order' : 'Customer'}
+                        </h2>
                     </div>
                     <div className="flex items-center gap-3">
                         <button 
@@ -88,29 +158,47 @@ const Customer = ({
 
                 {/* Form Card */}
                 <div className="form-section-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 mb-8 border border-slate-100 relative overflow-hidden">
-                    {/*<div className="watermark-bg">
-                        <svg viewBox="0 0 100 60" fill="none" className="w-full h-full text-[#00008B]">
-                            <path d="M30 30 C 10 30, 10 10, 30 10 C 45 10, 55 50, 70 50 C 90 50, 90 30, 70 30 C 55 30, 45 10, 30 10" stroke="currentColor" strokeWidth="8" strokeLinecap="round" />
-                        </svg>
-                    </div>*/}
-
                     <div className="form-grid grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
                         <div className="space-y-5">
                             <div>
                                 <label className="input-label text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Customer Name</label>
-                                <input type="text" placeholder="Enter Customer Name" className="form-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Enter Customer Name" 
+                                    className="form-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    value={customerFormData.customerName}
+                                    onChange={(e) => setCustomerFormData({...customerFormData, customerName: e.target.value})}
+                                />
                             </div>
                             <div>
                                 <label className="input-label text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Phone Number</label>
-                                <input type="text" placeholder="Enter Phone Number" className="form-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Enter Phone Number" 
+                                    className="form-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    value={customerFormData.phoneNumber}
+                                    onChange={(e) => setCustomerFormData({...customerFormData, phoneNumber: e.target.value})}
+                                />
                             </div>
                             <div>
                                 <label className="input-label text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Email</label>
-                                <input type="text" placeholder="Enter Email" className="form-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Enter Email" 
+                                    className="form-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    value={customerFormData.email}
+                                    onChange={(e) => setCustomerFormData({...customerFormData, email: e.target.value})}
+                                />
                             </div>
                             <div>
                                 <label className="input-label text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Address</label>
-                                <textarea placeholder="Enter Address" className="form-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" rows="3" />
+                                <textarea 
+                                    placeholder="Enter Address" 
+                                    className="form-input w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                                    rows="3"
+                                    value={customerFormData.address}
+                                    onChange={(e) => setCustomerFormData({...customerFormData, address: e.target.value})}
+                                />
                             </div>
                         </div>
 
@@ -118,7 +206,11 @@ const Customer = ({
                             <div>
                                 <label className="input-label text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Status</label>
                                 <div className="filter-wrapper relative">
-                                    <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none">
+                                    <select 
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none"
+                                        value={customerFormData.status}
+                                        onChange={(e) => setCustomerFormData({...customerFormData, status: e.target.value})}
+                                    >
                                         <option>Active</option>
                                         <option>Inactive</option>
                                         <option>Pending</option>
@@ -134,7 +226,12 @@ const Customer = ({
                             <div>
                                 <label className="input-label text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Sales Platform</label>
                                 <div className="filter-wrapper relative">
-                                    <select className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none">
+                                    <select 
+                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all appearance-none"
+                                        value={customerFormData.salesPlatform}
+                                        onChange={(e) => setCustomerFormData({...customerFormData, salesPlatform: e.target.value})}
+                                    >
+                                        <option value="">Select Platform</option>
                                         <option>Shopee</option>
                                         <option>Lazada</option>
                                         <option>TikTok</option>
@@ -150,13 +247,57 @@ const Customer = ({
 
                             <div>
                                 <label className="input-label text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Purchase Date / Stock Out</label>
-                                <input type="date" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"/>
+                                <input 
+                                    type="date" 
+                                    className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                    value={customerFormData.purchaseDate}
+                                    onChange={(e) => setCustomerFormData({...customerFormData, purchaseDate: e.target.value})}
+                                />
+                            </div>
+
+                            {/* File Upload Field below Purchase Date */}
+                            <div>
+                                <label className="input-label text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Upload Document</label>
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        id="fileUpload"
+                                        onChange={handleFileUpload}
+                                        className="hidden"
+                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                    />
+                                    <label
+                                        htmlFor="fileUpload"
+                                        className="flex items-center justify-between w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-100 transition-all duration-200 group"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <svg className="w-5 h-5 text-slate-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                            </svg>
+                                            <span className="text-sm text-slate-600">
+                                                {fileName ? fileName : 'Choose file'}
+                                            </span>
+                                        </div>
+                                        <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </label>
+                                </div>
+                                <p className="text-xs text-slate-400 mt-1">*Supported formats: PDF, DOC, DOCX, JPG, PNG (Max 5MB)</p>
+                                {selectedFile && (
+                                    <div className="mt-2 text-xs text-green-600 flex items-center gap-1">
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        File ready to upload: {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/*Tracking Number */}
+                {/*Tracking Number - ✅ UPDATED: Shows order tracking number when editing */}
                 <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 mb-6 border border-slate-100">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                         <div className="lg:w-2/3">
@@ -167,12 +308,21 @@ const Customer = ({
                                         type="text"
                                         placeholder="Enter Tracking Number"
                                         className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pl-10"
-                                        value={SKUs}
-                                        onChange={(e) => setSKUs(e.target.value)}
+                                        value={orderData.trackingNumber}
+                                        onChange={(e) => setOrderData({...orderData, trackingNumber: e.target.value})}
                                     />
-                                    <svg className="absolute left-3 top-3 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    <svg 
+                                        className="absolute left-3 top-3 w-4 h-4 text-slate-400"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <path 
+                                            strokeLinecap="round" 
+                                            strokeLinejoin="round" 
+                                            strokeWidth="2" 
+                                            d="M21 21l-4.35-4.35m1.85-5.65a7.5 7.5 0 11-15 0 7.5 7.5 0 0115 0z"
+                                        />
                                     </svg>
                                 </div>
                                 <button
@@ -203,8 +353,8 @@ const Customer = ({
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {orders.map((item) => (
-                                    <tr key={item.id} className="hover:bg-blue-50/50 transition-colors">
+                                {orders.map((item, index) => (
+                                    <tr key={index} className="hover:bg-blue-50/50 transition-colors">
                                         <td className="px-6 py-4 font-semibold text-blue-900">{item.sku}</td>
                                         <td className="px-6 py-4 text-slate-600">{item.type}</td>
                                         <td className="px-6 py-4 text-slate-600">{item.quantity}</td>
@@ -214,18 +364,31 @@ const Customer = ({
                             </tbody>
                         </table>
                     </div>
+                    
+                    {/* Grand Total Summary Below Table */}
+                    <div className="border-t border-slate-200 bg-gradient-to-r from-slate-50 to-white px-6 py-4">
+                        <div className="flex justify-end items-center gap-6">
+                            <div className="text-right">
+                                <span className="text-sm font-semibold text-slate-600 uppercase tracking-wider">Grand Total:</span>
+                            </div>
+                            <div className="bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 py-3 rounded-lg shadow-md">
+                                <span className="text-lg font-bold">RM {grandTotal.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <div>
-                        <label className="input-label text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Remark</label>
-                        <textarea placeholder="Enter Remarks" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" rows="3" />
-                    </div>
-
-                    <div>
-                        <label className="input-label text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Total</label>
-                        <input type="text" placeholder="Enter Total Amount" className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"/>
-                    </div>
+                {/* Remark section - Full width */}
+                <div className="bg-white rounded-xl shadow-lg border border-slate-100 p-6 mb-8">
+                    <label className="input-label text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Remark</label>
+                    <textarea 
+                        placeholder="Enter Remarks" 
+                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all" 
+                        rows="3"
+                        value={orderData.remark}
+                        onChange={(e) => setOrderData({...orderData, remark: e.target.value})}
+                    />
+                    <p className="text-xs text-slate-400 mt-2">*Additional notes or special instructions for this customer order</p>
                 </div>
 
                 {/* Action Buttons - Delete on Left, Save on Right */}
@@ -241,14 +404,17 @@ const Customer = ({
                         <span className="text-sm font-medium"></span>
                     </button>
 
-                    {/* Save Button - Right side */}
-                    <button className="save-btn-main bg-gradient-to-r from-blue-900 to-blue-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-3">
+                    {/* Save Button - Right side - ✅ UPDATED: Uses handleSave */}
+                    <button 
+                        onClick={handleSave}
+                        className="save-btn-main bg-gradient-to-r from-blue-900 to-blue-700 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-3"
+                    >
                         <svg className='w-5 h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'></path>
                             <polyline points='17 21 17 13 7 13 7 21' />
                             <polyline points='7 3 7 8 15 8' />
                         </svg>
-                        <span></span>
+                        <span>{isEditingOrder ? '' : ''}</span>
                     </button>
                 </div>
             </main>

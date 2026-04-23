@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FaHome, FaTachometerAlt, FaTruck, FaBox, FaShoppingCart, FaSignOutAlt, FaBars } from 'react-icons/fa';
+import { FaHome, FaTachometerAlt, FaTruck, FaBox, FaShoppingCart, FaSignOutAlt, FaBars, FaUserPlus } from 'react-icons/fa';
 import { NavLink, useNavigate } from 'react-router-dom';
 
 const Sidebar = () => {
@@ -7,25 +7,41 @@ const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   
   // Get user role from localStorage (set during login)
-  const userRole = localStorage.getItem("userRole") || "Staff";
+  const userRole = localStorage.getItem("role") || localStorage.getItem("userRole") || "staff";
+  const isAdminUser = userRole === "admin";
   
-  // ✅ FIXED: Changed Home path from "/" to "/home"
-  const menuItems = [
+  // Base menu items
+  const baseMenuItems = [
     { name: "Home", path: "/home", icon: <FaHome />, isParent: false },
     { name: "Dashboard", path: "/dashboard", icon: <FaTachometerAlt />, isParent: false },
     { name: "Supplier", path: "/invoice", icon: <FaTruck />, isParent: true },
     { name: "Product", path: "/product", icon: <FaBox />, isParent: false },
     { name: "Order", path: "/order", icon: <FaShoppingCart />, isParent: false },
   ];
+  
+  // ✅ ADDED: Admin-only menu item for Staff Registration
+  const adminMenuItems = [
+    { name: "Register Staff", path: "/registerstaff", icon: <FaUserPlus />, isParent: false },
+  ];
+  
+  // Combine menu items based on user role
+  const menuItems = isAdminUser ? [...baseMenuItems, ...adminMenuItems] : baseMenuItems;
 
   const handleLogout = () => {
+    localStorage.removeItem("role");
     localStorage.removeItem("userRole");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("loginRole");
+    localStorage.removeItem("rememberMe");
+    localStorage.removeItem("googleLogin");
     navigate('/login');
   };
 
   const formatRole = (role) => {
-    if (!role) return "";
-    return role.charAt(0).toUpperCase() + role.slice(1).toLowerCase();
+    if (!role) return "Staff";
+    const roleLower = role.toLowerCase();
+    if (roleLower === "admin") return "Admin";
+    return "Staff";
   };
 
   const closeSidebar = () => {
@@ -74,7 +90,6 @@ const Sidebar = () => {
         <div className="px-5 pt-6 pb-4 border-b border-white/10">
           <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/home')}>
             <div className="relative">
-              {/* ✅ FIXED: Updated logo image path */}
               <img 
                 src='/Pictures/Asiabite.png' 
                 alt='AsiaByte Logo' 
@@ -113,7 +128,6 @@ const Sidebar = () => {
                     }`
                   }
                 >
-                  {/* Active indicator bar */}
                   {({ isActive }) => (
                     <>
                       {isActive && (
@@ -125,8 +139,6 @@ const Sidebar = () => {
                         {item.icon}
                       </span>
                       <span className="text-sm font-medium tracking-wide">{item.name}</span>
-                      
-                      {/* Active badge for current page */}
                       {isActive && (
                         <span className="absolute right-3 w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
                       )}
@@ -159,7 +171,6 @@ const Sidebar = () => {
                   <p className="text-xs text-slate-400 truncate">{formatRole(userRole)}</p>
                 </div>
               </div>
-              
             </div>
           </div>
           
@@ -172,8 +183,6 @@ const Sidebar = () => {
               <FaSignOutAlt />
             </span>
             <span className="text-sm font-medium tracking-wide">Logout</span>
-            
-            {/* Hover gradient effect */}
             <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-500/0 via-red-500/0 to-red-500/0 group-hover:from-red-500/5 group-hover:to-red-500/5 transition-all duration-500"></div>
           </button>
           
@@ -188,17 +197,14 @@ const Sidebar = () => {
           .overflow-y-auto::-webkit-scrollbar {
             width: 4px;
           }
-          
           .overflow-y-auto::-webkit-scrollbar-track {
             background: rgba(255, 255, 255, 0.05);
             border-radius: 10px;
           }
-          
           .overflow-y-auto::-webkit-scrollbar-thumb {
             background: rgba(59, 130, 246, 0.4);
             border-radius: 10px;
           }
-          
           .overflow-y-auto::-webkit-scrollbar-thumb:hover {
             background: rgba(59, 130, 246, 0.6);
           }

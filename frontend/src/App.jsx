@@ -16,6 +16,7 @@ import ReportOrder from './ReportOrder'
 import Dashboard from './Dashboard'
 import AddEditPackage from './AddEditPackage'
 import AddEditPromo from './AddEditPromo'
+import RegisterStaff from './RegisterStaff'
 
 // ScrollToTop component that scrolls to top on route change
 function ScrollToTop() {
@@ -50,7 +51,8 @@ function App() {
         <Route path='/reportorder' element={<ReportOrder />}></Route>
         <Route path='/dashboard' element={<Dashboard />}></Route>
         <Route path='/addeditpackage' element={<AddEditPackage />}></Route>
-        <Route path='/addeditpromo' element={<AddEditPromo />}></Route>
+        <Route path='/addeditpromo' element={<AddEditPromo />}></Route> 
+        <Route path="/registerstaff" element={<RegisterStaff />} />
       </Routes>
     </BrowserRouter>
   )

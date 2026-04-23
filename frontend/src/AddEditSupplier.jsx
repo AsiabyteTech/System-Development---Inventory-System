@@ -149,10 +149,15 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
                     <input 
                       type="text" 
                       value={formData.phone}
-                      onChange={(e) => setFormData({...formData, phone: e.target.value})} 
-                      placeholder="e.g., +6012-3456789" 
+                      onChange={(e) => {
+                        // ✅ ADDED: Phone number validation - numbers only, max 12 characters
+                        const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 12);
+                        setFormData({...formData, phone: value});
+                      }} 
+                      placeholder="e.g., 60123456789" 
                       className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white" 
                     />
+                    <p className="text-xs text-gray-400 mt-1">*Numbers only (0-9), maximum 12 digits</p>
                   </div>
                 </div>
               </div>
