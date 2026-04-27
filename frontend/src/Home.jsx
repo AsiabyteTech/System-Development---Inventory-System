@@ -25,10 +25,10 @@ const Home = () => {
   const getImagePath = (img) => `/Pictures/${img}`;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* ✅ RESPONSIVE FIX: Header with better mobile padding */}
-      <header className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-slate-200/60 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 flex justify-between items-center gap-4">
+    <div className="min-h-screen bg-slate-50 flex flex-col overflow-x-hidden">
+      {/* ✅ RESPONSIVE FIX: Header with better mobile padding and no overflow */}
+      <header className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-slate-200/60 shadow-sm w-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 flex justify-between items-center gap-2 sm:gap-4">
           <div 
             className="flex items-center space-x-2 sm:space-x-3 group cursor-pointer flex-shrink-0" 
             onClick={() => navigate('/')}
@@ -37,88 +37,88 @@ const Home = () => {
               <img 
                 src="/Pictures/Asiabite.png" 
                 alt="AsiaByte Logo" 
-                className="h-8 sm:h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+                className="h-7 sm:h-8 md:h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute -inset-1 bg-blue-600/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
             <div>
-              <span className="text-lg sm:text-xl font-bold font-serif bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
+              <span className="text-base sm:text-lg md:text-xl font-bold font-serif bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
                 AsiaByte
               </span>
             </div>
           </div>
 
           {/* ✅ RESPONSIVE FIX: User section with better spacing */}
-          <div className="flex items-center space-x-3 sm:space-x-4">
-            <div className='hidden sm:flex flex-col items-end mr-1 sm:mr-2'>
+          <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
+            <div className='hidden sm:flex flex-col items-end mr-0 sm:mr-1 md:mr-2'>
               <span className='text-xs sm:text-sm font-semibold text-slate-800'>Zaty Raof</span>
               <span className='text-[10px] sm:text-xs text-blue-600/70'>{isAdmin() ? 'Administrator' : 'Staff'}</span>
             </div>
             <div className="relative flex items-center">
-              <button className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center">
-                <FiUser className="w-4 h-4 sm:w-5 sm:h-5" />
+              <button className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center">
+                <FiUser className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
               </button>
-              <span className='absolute -bottom-1 -right-1 w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 bg-green-500 border-2 border-white rounded-full animate-pulse'></span>
+              <span className='absolute -bottom-1 -right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3.5 md:h-3.5 bg-green-500 border-2 border-white rounded-full animate-pulse'></span>
             </div>
           </div>
         </div>
       </header>
 
-      {/* ✅ RESPONSIVE FIX: Hero Section with responsive padding */}
-      <section className="relative overflow-hidden">
-        <div className="hero-background">
+      {/* ✅ RESPONSIVE FIX: Hero Section with responsive padding and no overflow */}
+      <section className="relative overflow-hidden w-full">
+        <div className="hero-background w-full">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-900/50 via-blue-800/45 to-blue-700/40"></div>
         </div>
 
         {/* Animated gradient orbs - hidden on very small screens */}
-        <div className="hidden sm:block absolute top-20 left-10 w-48 h-48 sm:w-64 sm:h-64 bg-blue-400/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="hidden md:block absolute bottom-20 right-10 w-64 h-64 sm:w-80 sm:h-80 bg-purple-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="hidden sm:block absolute top-20 left-10 w-40 h-40 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-blue-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="hidden md:block absolute bottom-20 right-10 w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 bg-purple-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
         {/* ✅ RESPONSIVE FIX: Hero content with responsive text sizes and padding */}
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20 lg:py-28">
-          <div className="max-w-full sm:max-w-3xl animate-fade-in-up text-center sm:text-left">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-3 sm:mb-4 leading-tight">
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 md:py-16 lg:py-20 xl:py-28">
+          <div className="max-w-full sm:max-w-2xl md:max-w-3xl animate-fade-in-up text-center sm:text-left">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
               AsiaByte P&L Inventory Systems
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-blue-50/90 mb-6 sm:mb-8 max-w-2xl mx-auto sm:mx-0 leading-relaxed">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-blue-50/90 mb-4 sm:mb-6 md:mb-8 max-w-2xl mx-auto sm:mx-0 leading-relaxed">
               We specialize in networking, cloud services, security systems, and IT support tailored to your business needs.
             </p>
           </div>
         </div>
       </section>
 
-      {/* ✅ RESPONSIVE FIX: Partners Section - Better responsive layout */}
-      <section className="py-12 sm:py-16 bg-white">
+      {/* ✅ RESPONSIVE FIX: Partners Section - Better responsive layout with no overflow */}
+      <section className="py-8 sm:py-12 md:py-16 bg-white w-full overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-10">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 mb-2 sm:mb-3">
+          <div className="text-center mb-6 sm:mb-8 md:mb-10">
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-slate-800 mb-2 sm:mb-3">
               Clients & Partners
             </h2>
-            <p className="text-sm sm:text-base text-slate-500">Partnering with the best in the industry</p>
+            <p className="text-xs sm:text-sm md:text-base text-slate-500">Partnering with the best in the industry</p>
           </div>
           
-          <div className="relative">
+          <div className="relative w-full">
             {/* ✅ RESPONSIVE FIX: Gradient overlays with responsive widths */}
-            <div className="absolute left-0 top-0 bottom-0 w-8 sm:w-12 md:w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
-            <div className="absolute right-0 top-0 bottom-0 w-8 sm:w-12 md:w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-8 md:w-12 lg:w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-6 sm:w-8 md:w-12 lg:w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
             
-            <div className="overflow-hidden py-4">
-              <div className="flex gap-4 sm:gap-6 animate-scroll">
+            <div className="overflow-hidden py-3 sm:py-4 w-full">
+              <div className="flex gap-3 sm:gap-4 md:gap-5 lg:gap-6 animate-scroll">
                 {[...partners, ...partners].map((img, index) => (
                   <div 
                     key={`logo-${index}`} 
-                    className="flex-shrink-0 w-24 h-20 sm:w-28 sm:h-24 md:w-32 md:h-24 bg-white rounded-xl border-2 border-slate-200 hover:border-blue-500 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-visible"
+                    className="flex-shrink-0 w-20 h-16 sm:w-24 sm:h-20 md:w-28 md:h-24 lg:w-32 lg:h-24 bg-white rounded-xl border-2 border-slate-200 hover:border-blue-500 shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 group relative overflow-visible"
                   >
                     <img 
                       src={getImagePath(img)} 
                       alt={`Partner ${index + 1}`} 
-                      className="w-full h-full object-contain p-2 sm:p-3"
+                      className="w-full h-full object-contain p-1.5 sm:p-2 md:p-3"
                       onError={(e) => {
                         e.target.style.display = 'none';
                         e.target.parentElement.classList.add('flex', 'items-center', 'justify-center');
                       }}
                     />
-                    <span className="hidden group-hover:block text-[10px] sm:text-xs text-slate-500 font-medium text-center px-1 sm:px-2 absolute bottom-0 left-0 right-0 bg-white/90 rounded-b-xl py-1 truncate">
+                    <span className="hidden group-hover:block text-[8px] sm:text-[9px] md:text-[10px] lg:text-xs text-slate-500 font-medium text-center px-1 sm:px-2 absolute bottom-0 left-0 right-0 bg-white/90 rounded-b-xl py-0.5 sm:py-1 truncate">
                       {img.split('.')[0].replace(/[-_]/g, ' ').substring(0, 15).toUpperCase()}
                     </span>
                   </div>
@@ -129,73 +129,73 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ✅ RESPONSIVE FIX: Dashboard Navigation Cards - Responsive grid layout */}
-      <main className="py-12 sm:py-16 bg-slate-50">
+      {/* ✅ RESPONSIVE FIX: Dashboard Navigation Cards - Responsive grid layout with no overflow */}
+      <main className="py-8 sm:py-12 md:py-16 bg-slate-50 w-full overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-8 sm:mb-12">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2 sm:mb-3">Navigation</h2>
-            <p className="text-sm sm:text-base text-slate-500">Access your inventory management tools</p>
+          <div className="text-center mb-6 sm:mb-8 md:mb-12">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-800 mb-2 sm:mb-3">Navigation</h2>
+            <p className="text-xs sm:text-sm md:text-base text-slate-500">Access your inventory management tools</p>
           </div>
           
           {/* ✅ RESPONSIVE FIX: Responsive grid that stacks on mobile */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.9fr] gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.9fr] gap-4 sm:gap-5 md:gap-6 w-full">
             
             {/* Left Column - Responsive Cards Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
               
               {/* Dashboard Card */}
               <div 
-                className="group bg-blue-50 hover:bg-blue-100 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-blue-200 overflow-hidden cursor-pointer"
+                className="group bg-blue-50 hover:bg-blue-100 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-blue-200 overflow-hidden cursor-pointer w-full"
                 onClick={() => navigate('/dashboard')}
               >
-                <div className="p-4 sm:p-5 relative">
-                  <h3 className="text-base sm:text-lg font-bold text-slate-800">Dashboard</h3>
-                  <div className="absolute top-4 sm:top-5 right-4 sm:right-5">
-                    <div className="w-10 h-10 sm:w-14 sm:h-14 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-125 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
-                      <BsGraphUp className="w-5 h-5 sm:w-8 sm:h-8 text-blue-600" />
+                <div className="p-3 sm:p-4 md:p-5 relative">
+                  <h3 className="text-sm sm:text-base md:text-lg font-bold text-slate-800">Dashboard</h3>
+                  <div className="absolute top-3 sm:top-4 md:top-5 right-3 sm:right-4 md:right-5">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-14 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-125 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
+                      <BsGraphUp className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-8 text-blue-600" />
                     </div>
                   </div>
-                  <div className="mt-8 sm:mt-12 flex items-center text-xs sm:text-sm font-medium text-blue-600">
+                  <div className="mt-6 sm:mt-8 md:mt-10 lg:mt-12 flex items-center text-[11px] sm:text-xs md:text-sm font-medium text-blue-600">
                     View Reports
-                    <FiArrowRight className="ml-1 sm:ml-2 transition-transform group-hover:translate-x-1" />
+                    <FiArrowRight className="ml-1 sm:ml-2 transition-transform group-hover:translate-x-1 text-xs sm:text-sm" />
                   </div>
                 </div>
               </div>
 
               {/* Supplier Card */}
               <div 
-                className="group bg-emerald-50 hover:bg-emerald-100 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-emerald-200 overflow-hidden cursor-pointer"
+                className="group bg-emerald-50 hover:bg-emerald-100 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-emerald-200 overflow-hidden cursor-pointer w-full"
                 onClick={() => navigate('/invoice')}
               >
-                <div className="p-4 sm:p-5 relative">
-                  <h3 className="text-base sm:text-lg font-bold text-slate-800">Supplier</h3>
-                  <div className="absolute top-4 sm:top-5 right-4 sm:right-5">
-                    <div className="w-10 h-10 sm:w-14 sm:h-14 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-125 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
-                      <BsPeople className="w-5 h-5 sm:w-8 sm:h-8 text-emerald-600" />
+                <div className="p-3 sm:p-4 md:p-5 relative">
+                  <h3 className="text-sm sm:text-base md:text-lg font-bold text-slate-800">Supplier</h3>
+                  <div className="absolute top-3 sm:top-4 md:top-5 right-3 sm:right-4 md:right-5">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-14 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-125 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
+                      <BsPeople className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-8 text-emerald-600" />
                     </div>
                   </div>
-                  <div className="mt-8 sm:mt-12 flex items-center text-xs sm:text-sm font-medium text-emerald-600">
+                  <div className="mt-6 sm:mt-8 md:mt-10 lg:mt-12 flex items-center text-[11px] sm:text-xs md:text-sm font-medium text-emerald-600">
                     View Invoices
-                    <FiArrowRight className="ml-1 sm:ml-2 transition-transform group-hover:translate-x-1" />
+                    <FiArrowRight className="ml-1 sm:ml-2 transition-transform group-hover:translate-x-1 text-xs sm:text-sm" />
                   </div>
                 </div>
               </div>
 
               {/* Product Card - Full width on mobile */}
               <div 
-                className="sm:col-span-2 bg-purple-50 hover:bg-purple-100 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-purple-200 overflow-hidden cursor-pointer"
+                className="sm:col-span-2 bg-purple-50 hover:bg-purple-100 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-purple-200 overflow-hidden cursor-pointer w-full"
                 onClick={() => navigate('/product')}
               >
-                <div className="p-4 sm:p-5 relative">
-                  <h3 className="text-base sm:text-lg font-bold text-slate-800">Product</h3>
-                  <div className="absolute top-4 sm:top-5 right-4 sm:right-5">
-                    <div className="w-10 h-10 sm:w-14 sm:h-14 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-125 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
-                      <BsBoxSeam className="w-5 h-5 sm:w-8 sm:h-8 text-purple-600" />
+                <div className="p-3 sm:p-4 md:p-5 relative">
+                  <h3 className="text-sm sm:text-base md:text-lg font-bold text-slate-800">Product</h3>
+                  <div className="absolute top-3 sm:top-4 md:top-5 right-3 sm:right-4 md:right-5">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-14 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-125 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
+                      <BsBoxSeam className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-8 text-purple-600" />
                     </div>
                   </div>
-                  <div className="mt-8 sm:mt-12 flex items-center text-xs sm:text-sm font-medium text-purple-600">
+                  <div className="mt-6 sm:mt-8 md:mt-10 lg:mt-12 flex items-center text-[11px] sm:text-xs md:text-sm font-medium text-purple-600">
                     Check Stock Levels
-                    <FiArrowRight className="ml-1 sm:ml-2 transition-transform group-hover:translate-x-1" />
+                    <FiArrowRight className="ml-1 sm:ml-2 transition-transform group-hover:translate-x-1 text-xs sm:text-sm" />
                   </div>
                 </div>
               </div>
@@ -203,24 +203,24 @@ const Home = () => {
 
             {/* Right Column - Order Card */}
             <div 
-              className="group bg-amber-50 hover:bg-amber-100 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-amber-200 overflow-hidden cursor-pointer"
+              className="group bg-amber-50 hover:bg-amber-100 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-amber-200 overflow-hidden cursor-pointer w-full"
               onClick={() => navigate('/order')}
             >
-              <div className="p-4 sm:p-5 relative">
-                <h3 className="text-base sm:text-lg font-bold text-slate-800">Order</h3>
-                <div className="absolute top-4 sm:top-5 right-4 sm:right-5">
-                  <div className="w-10 h-10 sm:w-14 sm:h-14 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-125 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
-                    <FiShoppingCart className="w-5 h-5 sm:w-8 sm:h-8 text-amber-600" />
+              <div className="p-3 sm:p-4 md:p-5 relative">
+                <h3 className="text-sm sm:text-base md:text-lg font-bold text-slate-800">Order</h3>
+                <div className="absolute top-3 sm:top-4 md:top-5 right-3 sm:right-4 md:right-5">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-14 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-125 group-hover:-translate-x-1 group-hover:-translate-y-1 transition-all duration-300">
+                    <FiShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-8 text-amber-600" />
                   </div>
                 </div>
-                <div className="mt-8 sm:mt-12 flex flex-col gap-1 sm:gap-1.5">
-                  <div className="flex items-center text-xs sm:text-sm font-medium text-amber-600">
+                <div className="mt-6 sm:mt-8 md:mt-10 lg:mt-12 flex flex-col gap-1 sm:gap-1.5">
+                  <div className="flex items-center text-[11px] sm:text-xs md:text-sm font-medium text-amber-600">
                     Customer
-                    <FiArrowRight className="ml-1 sm:ml-2 transition-transform group-hover:translate-x-1" />
+                    <FiArrowRight className="ml-1 sm:ml-2 transition-transform group-hover:translate-x-1 text-xs sm:text-sm" />
                   </div>
-                  <div className="flex items-center text-xs sm:text-sm font-medium text-amber-600">
+                  <div className="flex items-center text-[11px] sm:text-xs md:text-sm font-medium text-amber-600">
                     Inventory
-                    <FiArrowRight className="ml-1 sm:ml-2 transition-transform group-hover:translate-x-1" />
+                    <FiArrowRight className="ml-1 sm:ml-2 transition-transform group-hover:translate-x-1 text-xs sm:text-sm" />
                   </div>
                 </div>
               </div>
@@ -230,10 +230,10 @@ const Home = () => {
       </main>
 
       {/* ✅ RESPONSIVE FIX: Footer with responsive padding */}
-      <footer className="bg-white border-t border-slate-200 py-4 sm:py-6 mt-auto">
+      <footer className="bg-white border-t border-slate-200 py-3 sm:py-4 md:py-6 mt-auto w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <p className="text-[10px] sm:text-xs text-slate-500">
+            <p className="text-[9px] sm:text-[10px] md:text-xs text-slate-500">
               © 2026 AsiaByte. All rights reserved.
             </p>
           </div>
