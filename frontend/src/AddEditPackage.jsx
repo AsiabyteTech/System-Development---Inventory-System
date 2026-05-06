@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import './App.css';
 
@@ -7,11 +7,46 @@ const AddEditPackage = () => {
     const [selectedImage, setSelectedImage] = useState(null);
 
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    
+    // ✅ ADDED: auto package ID state
+    const [packageId, setPackageId] = useState("");
+    
+    // ✅ ADDED: state for price input with validation
+    const [packagePrice, setPackagePrice] = useState("");
+    
+    // ✅ ADDED: state for reduction percentage
+    const [reduction, setReduction] = useState("");
+    
+    // ✅ ADDED: flag to track if price is manually overridden
+    const [isManualPrice, setIsManualPrice] = useState(false);
+
     const handleDelete = () => {
         console.log("Product Deleted");
         setShowDeleteConfirm(false);
         navigate('/dashboard')
     };
+
+    // ✅ ADDED: auto-generate package ID when component loads
+    useEffect(() => {
+        // In a real application, you would fetch the last ID from your backend
+        // For demo purposes, we'll simulate getting the last ID
+        const getLastPackageId = () => {
+            // This could be an API call to get the last package ID
+            // For now, we'll use localStorage to track the last ID
+            const lastId = localStorage.getItem('lastPackageId');
+            if (lastId) {
+                return parseInt(lastId) + 1;
+            }
+            return 1; // Start from 1 if no existing packages
+        };
+        
+        const newIdNumber = getLastPackageId();
+        const newId = `PCK${String(newIdNumber).padStart(2, '0')}`;
+        setPackageId(newId);
+        
+        // Store the current ID for next time
+        localStorage.setItem('lastPackageId', newIdNumber.toString());
+    }, []);
 
     const products = [
     { id: '1', image: '/Pictures/EZC8C.jpg', sku: 'EZ-C8C-2MP', type: 'CCTV', margin: '8.00', quantity: 7 },
@@ -38,6 +73,42 @@ const AddEditPackage = () => {
         return{ ...prev, [id]: newQty};
     });
   };
+
+  // ✅ CALC: total margin from selected quantities
+  const totalMargin = products.reduce((sum, item) => {
+    const qty = quantities[item.id] || 0;
+    return sum + (parseFloat(item.margin) * qty);
+  }, 0);
+
+  // ✅ CALC: final price after reduction
+  const reductionValue = (totalMargin * (parseFloat(reduction) || 0)) / 100;
+  const finalPrice = totalMargin - reductionValue;
+
+  // ✅ AUTO: update package price when margin or reduction changes (unless manually overridden)
+  useEffect(() => {
+    if (!isManualPrice && totalMargin > 0) {
+      setPackagePrice(finalPrice.toFixed(2));
+    } else if (!isManualPrice && totalMargin === 0) {
+      setPackagePrice("");
+    }
+  }, [totalMargin, reduction, isManualPrice]);
+
+  // ✅ Handle manual price input
+  const handlePriceChange = (e) => {
+    const value = e.target.value
+        .replace(/[^0-9.]/g, '')
+        .replace(/(\..*)\./g, '$1');
+    setPackagePrice(value);
+    setIsManualPrice(true);
+    
+    // If user clears the price, reset auto mode
+    if (value === '') {
+      setIsManualPrice(false);
+    }
+  };
+
+  // ✅ Check if any items are selected
+  const hasSelectedItems = totalMargin > 0;
 
     return (
         <div className="containersys min-h-screen bg-slate-50">
@@ -102,7 +173,14 @@ const AddEditPackage = () => {
                         <div className="space-y-4 sm:space-y-5">
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Package ID</label>
-                                <input type="text" placeholder="Enter Package ID" className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" />
+                                {/* ✅ UPDATED: auto-generated package ID (readonly) */}
+                                <input
+                                    type="text"
+                                    value={packageId}
+                                    readOnly
+                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed"
+                                />
+                                <p className="text-[10px] text-slate-400 mt-1">*Auto-generated, cannot be edited</p>
                             </div>
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Package Name</label>
@@ -110,7 +188,46 @@ const AddEditPackage = () => {
                             </div>
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Price (RM)</label>
-                                <input type="text" placeholder="Enter Price" className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" />
+                                {/* ✅ UPDATED: number-only input for price with validation and auto-update */}
+                                <input
+                                    type="text"
+                                    value={packagePrice}
+                                    onChange={handlePriceChange}
+                                    placeholder="0.00"
+                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                                />
+                                <p className="text-[10px] text-slate-400 mt-1">
+                                    {hasSelectedItems && !isManualPrice 
+                                        ? '*Auto-calculated from margin and reduction' 
+                                        : '*Numbers only (0-9 and decimal point)'}
+                                </p>
+                            </div>
+                            
+                            {/* ✅ ADDED: Reduction Percentage Input */}
+                            <div>
+                                <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Reduction (%)</label>
+                                <input
+                                    type="text"
+                                    value={reduction}
+                                    onChange={(e) => {
+                                        const value = e.target.value.replace(/[^0-9]/g, '');
+                                        if (value === '' || parseInt(value) <= 100) {
+                                            setReduction(value);
+                                            // When user starts using reduction, auto mode is re-enabled for price
+                                            if (isManualPrice) {
+                                                setIsManualPrice(false);
+                                            }
+                                        }
+                                    }}
+                                    placeholder="Enter reduction percentage (0-100)"
+                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                                    disabled={!hasSelectedItems}
+                                />
+                                <p className="text-[10px] text-slate-400 mt-1">
+                                    {!hasSelectedItems 
+                                        ? '*Select products to enable reduction' 
+                                        : '*Numbers only (0-100)'}
+                                </p>
                             </div>
                         </div>
 
@@ -125,6 +242,46 @@ const AddEditPackage = () => {
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Remark</label>
                                 <textarea type="text" placeholder="Enter Remarks" className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" rows="3" />
                             </div>
+                            
+                            {/* ✅ ADDED: Pricing Summary Card */}
+                            {hasSelectedItems && (
+                                <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
+                                    <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Pricing Summary
+                                    </h4>
+                                    <div className="space-y-2 text-sm">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-slate-600">Total Margin:</span>
+                                            <span className="font-semibold text-slate-800">RM {totalMargin.toFixed(2)}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-slate-600">Reduction:</span>
+                                            <span className="font-semibold text-slate-800">{reduction || 0}%</span>
+                                        </div>
+                                        {reduction && reduction > 0 && (
+                                            <div className="flex justify-between items-center text-red-600">
+                                                <span className="text-slate-600">Discount Amount:</span>
+                                                <span className="font-semibold">- RM {reductionValue.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between items-center pt-2 border-t border-blue-200">
+                                            <span className="font-semibold text-slate-700">Final Price:</span>
+                                            <span className="font-bold text-blue-900 text-lg">RM {finalPrice.toFixed(2)}</span>
+                                        </div>
+                                    </div>
+                                    {isManualPrice && (
+                                        <p className="text-[10px] text-amber-600 mt-2 flex items-center gap-1">
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                            </svg>
+                                            Manual price mode active
+                                        </p>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -170,6 +327,12 @@ const AddEditPackage = () => {
                                                         className="qty-btn w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-lg text-blue-900 font-bold hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-sm sm:text-base"
                                                         disabled={quantities[item.id] >= item.quantity}>+</button>
                                                 </div>
+                                                {/* ✅ ADDED: Show individual product contribution to margin */}
+                                                {quantities[item.id] > 0 && (
+                                                    <div className="text-[10px] text-green-600 mt-1">
+                                                        +RM {(parseFloat(item.margin) * quantities[item.id]).toFixed(2)}
+                                                    </div>
+                                                )}
                                             </td>
                                         </tr>
                                     ))}

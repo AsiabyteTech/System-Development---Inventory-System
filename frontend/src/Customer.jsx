@@ -18,6 +18,10 @@ const Customer = ({
     const editOrderData = location.state?.editOrderData;
     const isEditingOrder = !!editOrderData;
     
+    // ✅ ADDED: Receive cart data from Inventory page
+    const incomingItems = location.state?.orderItems || [];
+    const incomingTracking = location.state?.trackingNumber || '';
+    
     // ✅ ADDED: State for customer form data (preloaded from order if editing)
     const [customerFormData, setCustomerFormData] = useState({
         customerName: '',
@@ -67,6 +71,18 @@ const Customer = ({
         }
     }, [isEditingOrder, editOrderData]);
     
+    // ✅ ADDED: Update orderData when data comes from Inventory page
+    useEffect(() => {
+        if (incomingItems.length > 0) {
+            setOrderData(prev => ({
+                ...prev,
+                trackingNumber: incomingTracking || prev.trackingNumber,
+                orderItems: incomingItems
+            }));
+            console.log('✅ Updated orderData from Inventory:', incomingItems);
+        }
+    }, [incomingItems, incomingTracking]);
+    
     const handleDelete = () => {
         console.log("Customer/Order Deleted");
         setShowDeleteConfirm(false);
@@ -95,8 +111,26 @@ const Customer = ({
         }
         navigate('/order');
     };
+    
+    // ✅ ADDED: Function to handle navigation to AddEditStock with data
+    const handleOpenStock = () => {
+        // Prepare data for AddEditStock
+        const stockData = {
+            trackingNumber: orderData.trackingNumber,
+            customerName: customerFormData.customerName,
+            sku: orderData.orderItems.length > 0 ? orderData.orderItems.map(item => item.sku).join(', ') : '',
+        };
+        
+        // Store in localStorage to pass to AddEditStock
+        localStorage.setItem('pendingStockData', JSON.stringify(stockData));
+        
+        // Navigate to Stock page (you'll need to open the modal there)
+        // For now, we'll just alert and log
+        console.log('Data to pass to AddEditStock:', stockData);
+        alert('Stock data prepared. Navigate to Stock page to view.');
+    };
 
-    // Local data for the table (order items)
+    // Local data for the table (order items) - now uses orderData.orderItems
     const orders = orderData.orderItems.length > 0 
         ? orderData.orderItems 
         : [
@@ -105,8 +139,17 @@ const Customer = ({
             { id: '3', sku: 'EZ-H1C', type: 'CCTV', quantity: 1, total: '40.00'},
           ];
 
-    // ✅ ADDED: Calculate grand total from orders array
+    // ✅ ADDED: Calculate grand total from orders array (auto-updates when orders change)
     const grandTotal = orders.reduce((sum, item) => sum + parseFloat(item.total), 0);
+
+    // ✅ ADDED: Function to handle inventory navigation with tracking number
+    const handleInventoryNavigation = () => {
+        navigate('/inventory', {
+            state: {
+                trackingNumber: orderData.trackingNumber
+            }
+        });
+    };
 
     return (
         <div className="containersys min-h-screen bg-slate-50 overflow-x-hidden">
@@ -177,13 +220,18 @@ const Customer = ({
                             </div>
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Phone Number</label>
+                                {/* ✅ UPDATED: phone number validation - numbers only, max 12 digits */}
                                 <input 
                                     type="text" 
-                                    placeholder="Enter Phone Number" 
+                                    placeholder="e.g., 60123456789" 
                                     className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
                                     value={customerFormData.phoneNumber}
-                                    onChange={(e) => setCustomerFormData({...customerFormData, phoneNumber: e.target.value})}
+                                    onChange={(e) => {
+                                        const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 12);
+                                        setCustomerFormData({...customerFormData, phoneNumber: value});
+                                    }}
                                 />
+                                <p className="text-[10px] sm:text-xs text-slate-400 mt-1">*Numbers only (0-9), maximum 12 digits</p>
                             </div>
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Email</label>
@@ -330,8 +378,9 @@ const Customer = ({
                                         />
                                     </svg>
                                 </div>
+                                {/* ✅ UPDATED: Pass tracking number to Inventory page */}
                                 <button
-                                    onClick={() => navigate('/inventory')}
+                                    onClick={handleInventoryNavigation}
                                     className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 flex items-center justify-center self-start sm:self-auto"
                                     title="View Inventory"
                                 >
@@ -372,7 +421,7 @@ const Customer = ({
                         </div>
                     </div>
                     
-                    {/* ✅ RESPONSIVE FIX: Grand Total Summary - responsive */}
+                    {/* ✅ RESPONSIVE FIX: Grand Total Summary - auto-updates */}
                     <div className="border-t border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 sm:px-6 py-3 sm:py-4">
                         <div className="flex flex-col sm:flex-row justify-end items-end sm:items-center gap-3 sm:gap-6">
                             <div className="text-right">
@@ -400,15 +449,27 @@ const Customer = ({
 
                 {/* ✅ RESPONSIVE FIX: Action Buttons - responsive */}
                 <div className="flex justify-between items-center gap-4 w-full">
-                    <button 
-                        className="flex items-center gap-1 sm:gap-2 text-red-600 hover:text-red-700 px-4 sm:px-6 py-2 sm:py-3 transition-all duration-200 hover:scale-105 font-semibold text-sm sm:text-base"
-                        onClick={() => setShowDeleteConfirm(true)}
-                    >
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        <span className="text-sm font-medium"></span>
-                    </button>
+                    <div className="flex gap-2">
+                        <button 
+                            className="flex items-center gap-1 sm:gap-2 text-red-600 hover:text-red-700 px-4 sm:px-6 py-2 sm:py-3 transition-all duration-200 hover:scale-105 font-semibold text-sm sm:text-base"
+                            onClick={() => setShowDeleteConfirm(true)}
+                        >
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span className="text-sm font-medium"></span>
+                        </button>
+                        {/* ✅ ADDED: Stock button to pass data to AddEditStock */}
+                        <button 
+                            onClick={handleOpenStock}
+                            className="flex items-center gap-1 sm:gap-2 text-blue-600 hover:text-blue-700 px-4 sm:px-6 py-2 sm:py-3 transition-all duration-200 hover:scale-105 font-semibold text-sm sm:text-base"
+                        >
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                            </svg>
+                            <span>Stock</span>
+                        </button>
+                    </div>
 
                     <button 
                         onClick={handleSave}

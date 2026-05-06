@@ -18,7 +18,26 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
         setFormData(supplier);
         setImagePreview(supplier.logo || null);
       } else {
-        setFormData({ id: '', name: '', address: '', pic: '', phone: '', logo: '' });
+        // ✅ ADDED: auto supplier ID generation (SUP001 format) for ADD mode only
+        const getLastSupplierId = () => {
+          const lastId = localStorage.getItem("lastSupplierId");
+          return lastId ? parseInt(lastId) + 1 : 1;
+        };
+
+        const newIdNumber = getLastSupplierId();
+        const newId = `SUP${String(newIdNumber).padStart(3, '0')}`;
+        
+        setFormData({ 
+          id: newId, 
+          name: '', 
+          address: '', 
+          pic: '', 
+          phone: '', 
+          logo: '' 
+        });
+        
+        // Store the current ID for next time
+        localStorage.setItem("lastSupplierId", newIdNumber.toString());
         setImagePreview(null);
       }
     }
@@ -97,32 +116,36 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
                 <div className="space-y-3 sm:space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Supplier ID</label>
+                    {/* ✅ UPDATED: Supplier ID is now read-only (auto-generated) */}
+                    {/* ✅ UI FIX: removed default black outline */}
                     <input 
                       type="text" 
                       value={formData.id} 
-                      onChange={(e) => setFormData({...formData, id: e.target.value})}
-                      placeholder="e.g., SUP-001" 
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                      readOnly
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg bg-gray-100 text-gray-600 cursor-not-allowed text-sm focus:outline-none" 
                     />
+                    <p className="text-[10px] sm:text-xs text-gray-400 mt-1">*Auto-generated, cannot be edited</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Supplier Name</label>
+                    {/* ✅ UI FIX: removed default black outline */}
                     <input 
                       type="text" 
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})} 
                       placeholder="Enter company name" 
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Supplier Address</label>
+                    {/* ✅ UI FIX: removed default black outline */}
                     <textarea 
                       value={formData.address}
                       onChange={(e) => setFormData({...formData, address: e.target.value})} 
                       placeholder="Enter full address" 
                       rows="3"
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white resize-none text-sm" 
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white resize-none text-sm" 
                     />
                   </div>
                 </div>
@@ -138,16 +161,18 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
                 <div className="space-y-3 sm:space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Person In Charge</label>
+                    {/* ✅ UI FIX: removed default black outline */}
                     <input 
                       type="text" 
                       value={formData.pic}
                       onChange={(e) => setFormData({...formData, pic: e.target.value})} 
                       placeholder="Enter PIC name" 
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                    {/* ✅ UI FIX: removed default black outline */}
                     <input 
                       type="text" 
                       value={formData.phone}
@@ -156,7 +181,7 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
                         setFormData({...formData, phone: value});
                       }} 
                       placeholder="e.g., 60123456789" 
-                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
                     />
                     <p className="text-[10px] sm:text-xs text-gray-400 mt-1">*Numbers only (0-9), maximum 12 digits</p>
                   </div>
@@ -238,7 +263,7 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
           {mode === 'edit' ? (
             <button 
-              className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group text-sm" 
+              className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group text-sm focus:outline-none" 
               onClick={() => setShowDeleteConfirm(true)}
             >
               <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -252,12 +277,12 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
           <div className="flex gap-2 sm:gap-3">
             <button 
               onClick={onClose} 
-              className="px-4 sm:px-6 py-1.5 sm:py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 font-medium text-sm"
+              className="px-4 sm:px-6 py-1.5 sm:py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               Cancel
             </button>
             <button 
-              className="save-btn-main bg-blue-800 text-white px-6 sm:px-8 py-1.5 sm:py-2 rounded-md flex items-center gap-2 text-sm" 
+              className="save-btn-main bg-blue-800 text-white px-6 sm:px-8 py-1.5 sm:py-2 rounded-md flex items-center gap-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" 
               onClick={() => {
                 console.log("Saving this data:", formData);
                 onClose();
@@ -287,13 +312,13 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
                 </p>
                 <div className="flex gap-3 w-full">
                   <button 
-                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium text-sm"
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                     onClick={() => setShowDeleteConfirm(false)}
                   >
                     Cancel
                   </button>
                   <button 
-                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 font-medium shadow-lg text-sm"
+                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 font-medium shadow-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
                     onClick={handleDelete}
                   >
                     Yes, Delete

@@ -8,55 +8,99 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  const [email, setEmail] = useState('');
+  // ✅ UPDATED: Replace email with staffId
+  const [staffId, setStaffId] = useState('');
   const [password, setPassword] = useState('');
   
-  // ✅ ADDED: State for role selection on login
-  const [selectedRole, setSelectedRole] = useState('admin');
+  // ✅ UPDATED: Role selection is now automatic based on staffId prefix
+  // Manual role toggle has been removed - role is auto-detected
   
   // Modal state for Privacy Policy and Terms of Service
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
 
-  // Handle login with email/password and role selection
+  // ✅ ADDED: Helper function to detect role from staff ID
+  const detectRoleFromStaffId = (id) => {
+    if (id.startsWith('AD')) {
+      return 'admin';
+    } else if (id.startsWith('SF')) {
+      return 'staff';
+    }
+    return null;
+  };
+
+  // Handle login with staffId/password and auto role detection
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage('');
     
+    // ✅ UPDATED: Validate staffId and password
+    if (!staffId || !password) {
+      setErrorMessage('Please enter both Staff ID and password.');
+      setIsLoading(false);
+      return;
+    }
+    
+    // ✅ ADDED: Auto detect role from staff ID
+    const detectedRole = detectRoleFromStaffId(staffId);
+    
+    if (!detectedRole) {
+      setErrorMessage('Invalid Staff ID format. Please contact your administrator for further assistance.');
+      setIsLoading(false);
+      return;
+    }
+    
     setTimeout(() => {
-      if (email && password) {
-        // ✅ UPDATED: Store selected role in localStorage
-        localStorage.setItem("role", selectedRole);
-        localStorage.setItem("userEmail", email);
-        localStorage.setItem("loginRole", selectedRole);
-        localStorage.setItem("userRole", selectedRole === 'admin' ? 'Admin' : 'Staff');
+      // For demo purposes - in real app, validate against backend
+      if (staffId && password) {
+        // ✅ UPDATED: Store detected role in localStorage
+        localStorage.setItem("role", detectedRole);
+        localStorage.setItem("staffId", staffId); // ✅ UPDATED: Store staffId instead of email
+        localStorage.setItem("loginRole", detectedRole);
+        localStorage.setItem("userRole", detectedRole === 'admin' ? 'Admin' : 'Staff');
         if (rememberMe) {
           localStorage.setItem("rememberMe", "true");
         }
         
-        console.log(`User logged in as: ${selectedRole}`);
+        console.log(`User logged in as: ${detectedRole} with Staff ID: ${staffId}`);
         navigate('/dashboard');
       } else {
-        setErrorMessage('Invalid email or password. Please try again.');
+        // ✅ UPDATED: Error message for invalid credentials
+        setErrorMessage('Invalid Staff ID or password. Please try again.');
       }
       setIsLoading(false);
     }, 1000);
   };
 
-  // Handle Google login with role selection
+  // ✅ UPDATED: Handle Google login with role selection (now uses staff ID format)
   const handleGoogleLogin = () => {
     setIsLoading(true);
     setErrorMessage('');
     
+    // Simulate Google authentication
     setTimeout(() => {
-      localStorage.setItem("role", selectedRole);
-      localStorage.setItem("userEmail", `${selectedRole}@gmail.com`);
-      localStorage.setItem("googleLogin", "true");
-      localStorage.setItem("loginRole", selectedRole);
-      localStorage.setItem("userRole", selectedRole === 'admin' ? 'Admin' : 'Staff');
+      // ✅ UPDATED: For demo, use role from URL param or default to staff
+      // In a real app, you might have a different logic for Google login
+      const urlParams = new URLSearchParams(window.location.search);
+      const roleParam = urlParams.get('role');
+      let detectedRole = 'staff';
       
-      console.log(`User logged in via Google as: ${selectedRole}`);
+      if (roleParam === 'admin') {
+        detectedRole = 'admin';
+      } else if (roleParam === 'staff') {
+        detectedRole = 'staff';
+      }
+      
+      const fakeStaffId = detectedRole === 'admin' ? 'AD01' : 'SF01';
+      
+      localStorage.setItem("role", detectedRole);
+      localStorage.setItem("staffId", fakeStaffId); // ✅ UPDATED: Store staffId
+      localStorage.setItem("googleLogin", "true");
+      localStorage.setItem("loginRole", detectedRole);
+      localStorage.setItem("userRole", detectedRole === 'admin' ? 'Admin' : 'Staff');
+      
+      console.log(`User logged in via Google as: ${detectedRole} with Staff ID: ${fakeStaffId}`);
       navigate('/dashboard');
       setIsLoading(false);
     }, 1000);
@@ -86,20 +130,181 @@ const Login = () => {
     );
   };
 
-  const privacyPolicyContent = (/* content unchanged */) => (
+  const privacyPolicyContent = (
     <>
       <div className="space-y-4">
-        <div><h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">1. Information We Collect</h4><p className="text-xs sm:text-sm leading-relaxed">AsiaByte P&L Inventory System collects information you provide directly to us...</p></div>
-        <p className="text-xs text-slate-400 italic mt-4">Effective Date: January 1, 2026</p>
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">1. Information We Collect</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">AsiaByte P&L Inventory System collects the following information to provide and improve our services:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li><strong>Personal Information:</strong> Full name, email address, Staff ID, and role information</li>
+            <li><strong>Account Credentials:</strong> Securely hashed password for system access</li>
+            <li><strong>Usage Data:</strong> Inventory management activities, order history, and system interactions</li>
+            <li><strong>Device Information:</strong> Browser type, IP address, and access timestamps for security purposes</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">2. How We Use Your Information</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">Your information is used for the following purposes:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Authenticating your identity and providing secure system access</li>
+            <li>Managing inventory, orders, and supplier relationships</li>
+            <li>Generating reports and analytics for business insights</li>
+            <li>Communicating important system updates and notifications</li>
+            <li>Improving system performance and user experience</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">3. Data Security & Protection</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We implement industry-standard security measures to protect your data:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>End-to-end encryption for sensitive data transmission</li>
+            <li>Secure password hashing (never stored in plain text)</li>
+            <li>Regular security audits and vulnerability assessments</li>
+            <li>Role-based access controls to prevent unauthorized data access</li>
+            <li>Automatic session timeout after periods of inactivity</li>
+          </ul>
+          <p className="text-xs sm:text-sm leading-relaxed mt-2">We do NOT sell, trade, or rent your personal information to third parties.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">4. User Rights & Control</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">You have the following rights regarding your data:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li><strong>Access:</strong> Request a copy of your personal data</li>
+            <li><strong>Correction:</strong> Update or correct inaccurate information</li>
+            <li><strong>Deletion:</strong> Request account deletion (subject to business retention policies)</li>
+            <li><strong>Restriction:</strong> Limit how your data is processed</li>
+          </ul>
+          <p className="text-xs sm:text-sm leading-relaxed mt-2">To exercise these rights, contact your system administrator.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">5. Data Retention</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We retain your personal information only as long as necessary to fulfill the purposes outlined in this policy, including legal, accounting, or reporting requirements. Inactive accounts may be archived after 12 months of inactivity.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">6. Cookies & Tracking Technologies</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We use cookies and similar technologies to enhance your experience, remember your preferences, and analyze system usage. You can control cookie settings through your browser preferences, though disabling cookies may affect system functionality.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">7. Policy Updates</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We may update this Privacy Policy periodically to reflect changes in our practices or legal requirements. Material changes will be communicated via email or system notification. The effective date will be updated accordingly.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">8. Contact Information</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">For questions about this Privacy Policy or your data, please contact:</p>
+          <p className="text-xs sm:text-sm leading-relaxed mt-1"><strong>Email:</strong> privacy@asiabyte.com</p>
+          <p className="text-xs sm:text-sm leading-relaxed"><strong>Phone:</strong> +60 3-1234 5678</p>
+          <p className="text-xs sm:text-sm leading-relaxed"><strong>Address:</strong> 12-1, Jalan PJS 7/19, Bandar Sunway, 47500 Subang Jaya, Selangor, Malaysia</p>
+        </div>
+        
+        <p className="text-xs text-slate-400 italic mt-4">Effective Date: April 1, 2026</p>
       </div>
     </>
   );
 
-  const termsContent = (/* content unchanged */) => (
+  // ✅ UPDATED: Expanded Terms of Service content
+  const termsContent = (
     <>
       <div className="space-y-4">
-        <div><h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">1. Acceptance of Terms</h4><p className="text-xs sm:text-sm leading-relaxed">By accessing or using AsiaByte P&L Inventory System, you agree to be bound by these Terms of Service...</p></div>
-        <p className="text-xs text-slate-400 italic mt-4">Last Updated: January 1, 2026</p>
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">1. Acceptance of Terms</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">By accessing or using the AsiaByte P&L Inventory System, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the system.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">2. Account Registration & Security</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">You must provide accurate and complete information when creating an account. You are responsible for:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Maintaining the confidentiality of your login credentials</li>
+            <li>All activities that occur under your account</li>
+            <li>Immediately notifying AsiaByte of any unauthorized account access</li>
+            <li>Ensuring your password meets security requirements (minimum 8 characters, including uppercase, lowercase, numbers, and special characters)</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">3. User Responsibilities</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">As a user of the AsiaByte Inventory System, you agree to:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Use the system only for legitimate business purposes</li>
+            <li>Maintain accurate and up-to-date inventory records</li>
+            <li>Follow proper procedures for stock intake, orders, and returns</li>
+            <li>Report any system errors or security vulnerabilities promptly</li>
+            <li>Respect the confidentiality of other users' data</li>
+            <li>Comply with all applicable laws and regulations</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">4. Prohibited Activities</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">The following activities are strictly prohibited:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Attempting to gain unauthorized access to other accounts or data</li>
+            <li>Uploading malicious code, viruses, or harmful software</li>
+            <li>Manipulating inventory data to falsify records</li>
+            <li>Using the system for any illegal or fraudulent activities</li>
+            <li>Sharing your account credentials with unauthorized personnel</li>
+            <li>Attempting to bypass security measures or access restrictions</li>
+            <li>Interfering with system performance or availability</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">5. Role-Based Access & Permissions</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">Access to system features is determined by your assigned role:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li><strong>Admin:</strong> Full system access, including user management, reporting, and configuration</li>
+            <li><strong>Staff:</strong> Access to inventory and order management, limited administrative functions</li>
+          </ul>
+          <p className="text-xs sm:text-sm leading-relaxed mt-2">You may not attempt to access features beyond your authorized role.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">6. Intellectual Property</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">All content, features, and functionality of the AsiaByte Inventory System, including but not limited to software, design, logos, and trademarks, are owned by AsiaByte and are protected by intellectual property laws. You may not copy, modify, distribute, or reverse engineer any part of the system without express written consent.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">7. Limitation of Liability</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">To the maximum extent permitted by law, AsiaByte shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or business interruption, resulting from your use of or inability to use the system.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">8. Termination of Access</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">AsiaByte reserves the right to suspend or terminate your account immediately, without prior notice, for conduct that violates these terms, poses a security risk, or is harmful to other users or the system. Upon termination, your access to the system will be revoked, and your data may be archived or deleted in accordance with our data retention policy.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">9. Data Backup & Recovery</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">While AsiaByte performs regular system backups, users are encouraged to maintain their own records of critical data. AsiaByte is not responsible for data loss resulting from system failures, user errors, or unauthorized access.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">10. Modification of Terms</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">AsiaByte reserves the right to modify these terms at any time. Material changes will be communicated via email or system notification. Your continued use of the system after any changes constitutes acceptance of the new terms.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">11. Governing Law</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">These terms shall be governed by and construed in accordance with the laws of Malaysia, without regard to its conflict of law provisions. Any disputes arising from these terms or your use of the system shall be subject to the exclusive jurisdiction of the courts of Malaysia.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">12. Contact Information</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">For questions about these Terms of Service, please contact:</p>
+          <p className="text-xs sm:text-sm leading-relaxed mt-1"><strong>Email:</strong> legal@asiabyte.com</p>
+          <p className="text-xs sm:text-sm leading-relaxed"><strong>Phone:</strong> +60 3-1234 5678</p>
+          <p className="text-xs sm:text-sm leading-relaxed"><strong>Address:</strong> 12-1, Jalan PJS 7/19, Bandar Sunway, 47500 Subang Jaya, Selangor, Malaysia</p>
+        </div>
+        
+        <p className="text-xs text-slate-400 italic mt-4">Last Updated: April 1, 2026</p>
       </div>
     </>
   );
@@ -168,48 +373,10 @@ const Login = () => {
             <header className="card-header mb-6">
               {/* ✅ RESPONSIVE FIX: Responsive text sizes */}
               <h2 className="text-xl sm:text-2xl font-bold text-slate-800">Welcome Back</h2>
-              <p className="text-slate-500 font-medium mt-1 text-sm sm:text-base">Please enter your details to sign in.</p>
+              <p className="text-slate-500 font-medium mt-1 text-sm sm:text-base">Please enter your Staff ID and password to sign in.</p>
             </header>
 
-            {/* ✅ ADDED: Role Selection Section - responsive buttons */}
-            <div className="role-selection mb-6">
-              <label className="block text-sm font-semibold text-slate-700 mb-2">Login as</label>
-              <div className="role-toggle bg-slate-100 rounded-lg p-1 flex flex-col sm:flex-row gap-1">
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('admin')}
-                  className={`flex-1 py-2.5 px-4 rounded-md font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base ${
-                    selectedRole === 'admin'
-                      ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md'
-                      : 'text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Admin
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRole('staff')}
-                  className={`flex-1 py-2.5 px-4 rounded-md font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm sm:text-base ${
-                    selectedRole === 'staff'
-                      ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md'
-                      : 'text-slate-600 hover:bg-slate-200'
-                  }`}
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                  </svg>
-                  Staff
-                </button>
-              </div>
-              <p className="text-xs text-slate-400 mt-2">
-                {selectedRole === 'admin' 
-                  ? 'Administrator access: Full system control and management' 
-                  : 'Staff access: Limited to inventory and order management'}
-              </p>
-            </div>
+            {/* ✅ UPDATED: Removed manual role selection - now auto-detected from Staff ID */}
 
             {/* Error message - responsive */}
             {errorMessage && (
@@ -220,14 +387,25 @@ const Login = () => {
             )}
 
             <form className="auth-form space-y-5" onSubmit={handleLogin}>
+              {/* ✅ UPDATED: Replace Email field with Staff ID field */}
               <div className="input-group">
-                <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
+                <label htmlFor="staffId" className="block text-sm font-semibold text-slate-700 mb-2">Staff ID</label>
                 <div className="input-wrapper relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg className='w-5 h-5 text-slate-400 flex-shrink-0' viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z'></path><polyline points='22,6 12,13 2,6'></polyline></svg>
+                    <svg className='w-5 h-5 text-slate-400 flex-shrink-0' viewBox='0 0 24 24' fill='none' stroke='currentColor'>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
                   </div>
-                  <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@company.com" className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-slate-800 placeholder:text-slate-400 text-base" required />
+                  <input 
+                    type="text" 
+                    id="staffId" 
+                    value={staffId} 
+                    onChange={(e) => setStaffId(e.target.value.toUpperCase())} 
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-slate-800 placeholder:text-slate-400 text-base" 
+                    required 
+                  />
                 </div>
+                <p className="text-xs text-slate-400 mt-1"></p>
               </div>
 
               <div className="input-group">
@@ -258,9 +436,9 @@ const Login = () => {
                 {isLoading ? (
                   <>
                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    Signing In as {selectedRole === 'admin' ? 'Admin' : 'Staff'}...
+                    Signing In...
                   </>
-                ) : `Sign In as ${selectedRole === 'admin' ? 'Admin' : 'Staff'}`}
+                ) : 'Sign In'}
               </button>
             </form>
 

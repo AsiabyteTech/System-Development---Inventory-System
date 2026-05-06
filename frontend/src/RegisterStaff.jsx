@@ -4,8 +4,12 @@ import './App.css';
 const RegisterStaff = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  
+  // ✅ ADDED: New state fields for staff registration
+  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
-  // ✅ ADDED: No admin code field for staff registration
+  const [staffId, setStaffId] = useState('');
+  
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +43,18 @@ const RegisterStaff = () => {
     checkPasswordStrength(newPassword);
   };
 
-  // ✅ ADDED: Staff-only form submission - no admin code required
+  // ✅ ADDED: Staff ID validation handler
+  const handleStaffIdChange = (e) => {
+    let value = e.target.value;
+    // Remove any special characters, allow only letters and numbers
+    value = value.replace(/[^A-Za-z0-9]/g, '');
+    // Limit to 10 characters
+    if (value.length <= 10) {
+      setStaffId(value.toUpperCase());
+    }
+  };
+
+  // ✅ UPDATED: Form submission with fullName and staffId validation
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -51,8 +66,16 @@ const RegisterStaff = () => {
       return;
     }
     
-    if (!email || !password || !confirmPassword) {
+    // ✅ UPDATED: Include fullName and staffId in validation
+    if (!fullName || !email || !staffId || !password || !confirmPassword) {
       setErrorMessage('Please fill in all required fields.');
+      setIsLoading(false);
+      return;
+    }
+    
+    // Staff ID format validation
+    if (!/^[A-Za-z0-9]+$/.test(staffId)) {
+      setErrorMessage('Staff ID must contain only letters and numbers.');
       setIsLoading(false);
       return;
     }
@@ -70,23 +93,29 @@ const RegisterStaff = () => {
       return;
     }
     
-    // ✅ ADDED: Staff registration - no admin code validation needed
+    // ✅ UPDATED: Staff registration with fullName and staffId
     setTimeout(() => {
-      console.log('Staff registration submitted', { email, password });
+      console.log('Staff registration submitted', { fullName, staffId, email, password });
+      
+      // ✅ UPDATED: Store staff information in localStorage
       localStorage.setItem("role", "staff");
       localStorage.setItem("userEmail", email);
+      localStorage.setItem("userName", fullName);
+      localStorage.setItem("staffId", staffId);
       localStorage.setItem("isStaffRegistered", "true");
       setIsLoading(false);
       alert('Staff registration successful! The new staff member can now login.');
       // Clear form after successful registration
+      setFullName('');
       setEmail('');
+      setStaffId('');
       setPassword('');
       setConfirmPassword('');
       setAgreeToTerms(false);
     }, 1000);
   };
 
-  // ✅ ADDED: Google registration as staff
+  // ✅ UPDATED: Google registration with fullName and staffId
   const handleGoogleRegister = () => {
     setIsLoading(true);
     setErrorMessage('');
@@ -95,11 +124,15 @@ const RegisterStaff = () => {
       console.log('Google registration initiated as staff');
       localStorage.setItem("role", "staff");
       localStorage.setItem("userEmail", "staff@gmail.com");
+      localStorage.setItem("userName", "Google User");
+      localStorage.setItem("staffId", "STAFF001");
       localStorage.setItem("googleRegister", "true");
       localStorage.setItem("isStaffRegistered", "true");
       setIsLoading(false);
       alert('Staff registration successful! The new staff member can now login.');
+      setFullName('');
       setEmail('');
+      setStaffId('');
       setPassword('');
       setConfirmPassword('');
       setAgreeToTerms(false);
@@ -130,21 +163,212 @@ const RegisterStaff = () => {
     );
   };
 
-  const privacyPolicyContent = (/* content unchanged */) => (
+  // ✅ UPDATED: Expanded Privacy Policy content
+  const privacyPolicyContent = (
     <>
       <div className="space-y-4">
-        <div><h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">1. Information We Collect</h4><p className="text-xs sm:text-sm leading-relaxed">AsiaByte P&L Inventory System collects information you provide directly to us...</p></div>
-        <div><h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">2. How We Use Your Information</h4><p className="text-xs sm:text-sm leading-relaxed">We use the information we collect to provide, maintain, and improve our services...</p></div>
-        <p className="text-xs text-slate-400 italic mt-4">Effective Date: January 1, 2026</p>
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">1. Information We Collect</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">AsiaByte P&L Inventory System collects the following information to provide and manage staff accounts:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li><strong>Full Name:</strong> For identification and communication purposes</li>
+            <li><strong>Email Address:</strong> For account login, notifications, and password recovery</li>
+            <li><strong>Staff ID:</strong> Unique identifier for tracking staff activities and access permissions</li>
+            <li><strong>Role Information:</strong> Determines system access level (Staff)</li>
+            <li><strong>Account Activity:</strong> Login timestamps and system usage for audit purposes</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">2. How We Use Your Information</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">Staff information is used for legitimate business purposes including:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Authenticating staff access to the inventory system</li>
+            <li>Tracking inventory movements and order management</li>
+            <li>Generating audit trails for accountability</li>
+            <li>Communicating system updates, policy changes, and important notifications</li>
+            <li>Managing staff permissions and role-based access control</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">3. Data Protection & Security</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We implement industry-standard security measures to protect staff data:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Encrypted data transmission (SSL/TLS)</li>
+            <li>Secure password storage using industry-standard hashing</li>
+            <li>Role-based access controls limiting data exposure</li>
+            <li>Regular security audits and vulnerability assessments</li>
+            <li>Access logs maintained for security monitoring</li>
+          </ul>
+          <p className="text-xs sm:text-sm leading-relaxed mt-2">Staff data is never sold, rented, or shared with external parties without explicit consent or legal requirement.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">4. Staff Responsibilities</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">Staff members are responsible for:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Maintaining the confidentiality of their login credentials</li>
+            <li>Reporting any security concerns or unauthorized access immediately</li>
+            <li>Using the system only for legitimate business purposes</li>
+            <li>Ensuring accuracy of inventory data they enter or modify</li>
+            <li>Complying with company policies and system usage guidelines</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">5. Data Retention</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">Staff account information is retained for as long as the staff member is employed and has an active account. Upon employment termination, accounts may be deactivated and data retained for legal and audit requirements for up to 7 years.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">6. Staff Rights</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">Staff members have the right to:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li><strong>Access:</strong> Request a copy of their personal data</li>
+            <li><strong>Correction:</strong> Update inaccurate or outdated information</li>
+            <li><strong>Deletion:</strong> Request account deletion (subject to business retention policies)</li>
+            <li><strong>Restriction:</strong> Limit how their data is processed (contact system administrator)</li>
+          </ul>
+          <p className="text-xs sm:text-sm leading-relaxed mt-2">To exercise these rights, contact your system administrator or HR department.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">7. Policy Updates</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">This Privacy Policy may be updated periodically to reflect changes in our practices or legal requirements. Staff will be notified of material changes via email or system notification.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">8. Contact Information</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">For questions about this Privacy Policy or staff data handling, please contact:</p>
+          <p className="text-xs sm:text-sm leading-relaxed mt-1"><strong>Email:</strong> privacy@asiabyte.com</p>
+          <p className="text-xs sm:text-sm leading-relaxed"><strong>Phone:</strong> +60 3-1234 5678</p>
+          <p className="text-xs sm:text-sm leading-relaxed"><strong>Address:</strong> 12-1, Jalan PJS 7/19, Bandar Sunway, 47500 Subang Jaya, Selangor, Malaysia</p>
+        </div>
+        
+        <p className="text-xs text-slate-400 italic mt-4">Effective Date: April 1, 2026</p>
       </div>
     </>
   );
 
-  const termsContent = (/* content unchanged */) => (
+  // ✅ UPDATED: Expanded Terms of Service content
+  const termsContent = (
     <>
       <div className="space-y-4">
-        <div><h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">1. Acceptance of Terms</h4><p className="text-xs sm:text-sm leading-relaxed">By accessing or using AsiaByte P&L Inventory System, you agree to be bound by these Terms of Service...</p></div>
-        <p className="text-xs text-slate-400 italic mt-4">Last Updated: January 1, 2026</p>
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">1. Account Registration & Security</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">Staff members must provide accurate and complete information during registration. You are responsible for:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Safeguarding your login credentials and not sharing them with others</li>
+            <li>All activities that occur under your staff account</li>
+            <li>Immediately reporting any unauthorized account access to your supervisor or system administrator</li>
+            <li>Maintaining password security and following password complexity requirements</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">2. Staff Responsibilities</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">As a staff member of AsiaByte's Inventory System, you agree to:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Use the system only for legitimate business purposes</li>
+            <li>Maintain accurate and up-to-date inventory records</li>
+            <li>Follow proper procedures for stock intake, orders, and returns</li>
+            <li>Report any system errors, bugs, or security vulnerabilities promptly to your supervisor</li>
+            <li>Complete required training on system usage and security protocols</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">3. Proper System Usage</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">Staff members must use the inventory system responsibly. The system is designed for:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Managing product inventory and stock levels</li>
+            <li>Processing customer orders and tracking shipments</li>
+            <li>Managing supplier relationships and purchase orders</li>
+            <li>Generating business reports and analytics</li>
+          </ul>
+          <p className="text-xs sm:text-sm leading-relaxed mt-2">Staff members shall not use the system for personal business, unauthorized modifications, or accessing data beyond their authorized role.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">4. Prohibited Activities</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">The following activities are strictly prohibited and may result in account termination or disciplinary action:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Sharing your account credentials with unauthorized personnel</li>
+            <li>Attempting to access features or data beyond your assigned role</li>
+            <li>Manipulating inventory data to falsify records or commit fraud</li>
+            <li>Uploading malicious code, viruses, or harmful software</li>
+            <li>Using the system for any illegal or unauthorized purposes</li>
+            <li>Disclosing confidential business information without authorization</li>
+            <li>Interfering with system performance or availability</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">5. Admin Authority & Account Management</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">System administrators have the authority to:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Create, modify, or disable staff accounts as needed</li>
+            <li>Review audit logs and monitor system usage for compliance</li>
+            <li>Reset passwords and enforce security policies</li>
+            <li>Suspend accounts for security concerns or policy violations</li>
+            <li>Terminate accounts for staff who have left the organization or violated terms</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">6. Data Accuracy & Integrity</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">Staff members are accountable for the accuracy of data they enter or modify. Any intentional falsification of records, inventory manipulation, or fraudulent activities will result in immediate account termination and may lead to disciplinary action including termination of employment and legal consequences.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">7. Confidentiality & Data Protection</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">Staff members must maintain the confidentiality of business information accessed through the system, including but not limited to:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Supplier pricing and contract details</li>
+            <li>Customer information and order history</li>
+            <li>Internal inventory levels and business strategies</li>
+            <li>Financial data and profit margins</li>
+          </ul>
+          <p className="text-xs sm:text-sm leading-relaxed mt-2">Unauthorized disclosure of confidential information may result in disciplinary action up to and including termination.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">8. Termination of Access</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">Staff access to the system may be terminated immediately for:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Violation of these Terms of Service</li>
+            <li>Security breaches or unauthorized access attempts</li>
+            <li>Employment termination or change in role</li>
+            <li>Inactivity for an extended period (12+ months)</li>
+            <li>Request from management or HR</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">9. Limitation of Liability</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">To the maximum extent permitted by law, AsiaByte shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the system, including but not limited to loss of data, business interruption, or financial losses.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">10. Modification of Terms</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">AsiaByte reserves the right to modify these terms at any time. Staff will be notified of material changes via email or system notification. Continued use of the system after changes constitutes acceptance of the new terms.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">11. Governing Law</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">These terms shall be governed by and construed in accordance with the laws of Malaysia. Any disputes arising from these terms or your use of the system shall be subject to the exclusive jurisdiction of the courts of Malaysia.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">12. Contact Information</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">For questions about these Terms of Service, please contact:</p>
+          <p className="text-xs sm:text-sm leading-relaxed mt-1"><strong>Email:</strong> legal@asiabyte.com</p>
+          <p className="text-xs sm:text-sm leading-relaxed"><strong>Phone:</strong> +60 3-1234 5678</p>
+          <p className="text-xs sm:text-sm leading-relaxed"><strong>Address:</strong> 12-1, Jalan PJS 7/19, Bandar Sunway, 47500 Subang Jaya, Selangor, Malaysia</p>
+        </div>
+        
+        <p className="text-xs text-slate-400 italic mt-4">Last Updated: April 1, 2026</p>
       </div>
     </>
   );
@@ -205,7 +429,7 @@ const RegisterStaff = () => {
           </div>
         </div>
 
-        {/* ✅ RESPONSIVE FIX: Registration Form Section - responsive sizing */}
+        {/* ✅ UPDATED: Registration Form Section with new fields */}
         <div className="form-section w-full max-w-md lg:max-w-md xl:max-w-lg mx-auto lg:mx-0 animate-fade-in-up animation-delay-400">
           <div className="auth-card bg-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 p-6 sm:p-8 relative overflow-hidden">
             <div className="card-accent-bar absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 to-teal-600"></div>
@@ -225,6 +449,29 @@ const RegisterStaff = () => {
             )}
 
             <form className="auth-form space-y-5" onSubmit={handleSubmit}>
+              
+              {/* ✅ ADDED: Full Name field */}
+              <div className="input-group">
+                <label htmlFor="fullName" className="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
+                <div className="input-wrapper relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg className='w-5 h-5 text-slate-400 flex-shrink-0' viewBox='0 0 24 24' fill='none' stroke='currentColor'>
+                      <path d='M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'></path>
+                    </svg>
+                  </div>
+                  <input 
+                    type='text' 
+                    id='fullName' 
+                    placeholder='Enter full name' 
+                    value={fullName} 
+                    onChange={(e) => setFullName(e.target.value)} 
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-slate-800 placeholder:text-slate-400 text-base" 
+                    required 
+                  />
+                </div>
+              </div>
+              
+              {/* Email Field */}
               <div className="input-group">
                 <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">Email</label>
                 <div className="input-wrapper relative">
@@ -234,6 +481,29 @@ const RegisterStaff = () => {
                   <input type='email' id='email' placeholder='staff@company.com' value={email} onChange={(e) => setEmail(e.target.value)} className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-slate-800 placeholder:text-slate-400 text-base" required />
                 </div>
                 <p className="text-xs text-slate-400 mt-1">Enter the staff member's email address.</p>
+              </div>
+
+              {/* ✅ ADDED: Staff ID field with validation */}
+              <div className="input-group">
+                <label htmlFor="staffId" className="block text-sm font-semibold text-slate-700 mb-2">Staff ID</label>
+                <div className="input-wrapper relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <svg className='w-5 h-5 text-slate-400 flex-shrink-0' viewBox='0 0 24 24' fill='none' stroke='currentColor'>
+                      <path d='M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0h4'></path>
+                    </svg>
+                  </div>
+                  <input 
+                    type='text' 
+                    id='staffId' 
+                    placeholder='e.g., SF01' 
+                    value={staffId} 
+                    onChange={handleStaffIdChange} 
+                    maxLength={10}
+                    className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-slate-800 placeholder:text-slate-400 text-base" 
+                    required 
+                  />
+                </div>
+                <p className="text-xs text-slate-400 mt-1">*Letters and numbers only, maximum 10 characters</p>
               </div>
 
               {/* Password Field with Strength Indicator */}

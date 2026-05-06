@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import './App.css';
 
 const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [formData, setFormData] = useState({
         id: '',
@@ -19,24 +20,56 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
         //remark: ''
     });
 
+    // ✅ ADDED: Check for pending stock data from localStorage (passed from Customer)
+    useEffect(() => {
+        const pendingStockData = localStorage.getItem('pendingStockData');
+        if (pendingStockData) {
+            const parsedData = JSON.parse(pendingStockData);
+            console.log('✅ Received pending stock data:', parsedData);
+            
+            setFormData(prev => ({
+                ...prev,
+                trackingNumber: parsedData.trackingNumber || prev.trackingNumber,
+                customerName: parsedData.customerName || prev.customerName,
+                sku: parsedData.sku || prev.sku
+            }));
+            
+            // Clear after using
+            localStorage.removeItem('pendingStockData');
+        }
+    }, []);
+
+    // ✅ ADDED: Also check for direct location state (if navigated directly)
+    useEffect(() => {
+        if (location.state) {
+            console.log('✅ Received stock data from location state:', location.state);
+            setFormData(prev => ({
+                ...prev,
+                trackingNumber: location.state.trackingNumber || prev.trackingNumber,
+                customerName: location.state.customerName || prev.customerName,
+            }));
+        }
+    }, [location.state]);
+
     useEffect(() => {
         if (isOpen) {
             if (mode === 'edit' && stock) {
                 setFormData(stock);
             } else {
-                setFormData({
+                setFormData(prev => ({
+                    ...prev,
                     id: '',
                     sku: 'EZ-C8C-2MP',
                     serialNumber: '',
                     refNo: 'PO-001',
                     stockDate: '',
-                    trackingNumber: '',
+                    //trackingNumber: '', // Keep existing if any
                     //status: '',
                     promo: '',
                     package: '',
-                    customerName: '',
+                    //customerName: '', // Keep existing if any
                     //remark: ''
-                });
+                }));
             }
         }
     }, [stock, isOpen, mode]);
@@ -206,7 +239,7 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                 </div>
                             </div>
 
-                            {/* Section 4: Customer Information */}
+                            {/* Section 4: Customer Information - ✅ Auto-filled from Customer page */}
                             <div className="bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-200">
                                 <h3 className="text-sm font-semibold text-gray-700 mb-3 sm:mb-4 flex items-center gap-2">
                                     <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
