@@ -21,6 +21,33 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
         status: 'active'
     });
 
+    // ✅ ADDED: SKU autocomplete state
+    const [showSkuDropdown, setShowSkuDropdown] = useState(false);
+    
+    // ✅ ADDED: SKU options from existing product data
+    const skuOptions = [
+        "EZ-C8C-2MP",
+        "EZ-C8C-5MP",
+        "EZ-H1C",
+        "EZ-TY1-PRO",
+        "EZ-H6C-PRO",
+        "EZ-H9C-DL",
+        "EZ-C6N",
+        "TP-C200",
+        "TP-C500",
+        "HS-SD-64G"
+    ];
+
+    // ✅ ADDED: Filtered SKU options based on user input (startsWith matching)
+    const filteredSkuOptions = formData.sku
+        ? skuOptions.filter((sku) =>
+            sku.toLowerCase().startsWith(formData.sku.toLowerCase())
+          )
+        : [];
+
+    // ✅ ADDED: Limit to 3 suggestions and make scrollable
+    const displaySkuOptions = filteredSkuOptions.slice(0, 3);
+
     useEffect(() => {
         if (isOpen) {
             if (mode === 'edit' && product) {
@@ -69,6 +96,34 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
         }
     };
 
+    // ✅ UPDATED: Handle SKU input change with autocomplete
+    const handleSkuChange = (e) => {
+        const value = e.target.value;
+        setFormData({ ...formData, sku: value });
+        setShowSkuDropdown(true);
+    };
+
+    // ✅ ADDED: Handle SKU selection from dropdown
+    const handleSkuSelect = (selectedSku) => {
+        setFormData({ ...formData, sku: selectedSku });
+        setShowSkuDropdown(false);
+    };
+
+    // ✅ UPDATED: Numbers-only validation for price fields
+    const handlePriceChange = (field, value) => {
+        const sanitizedValue = value
+            .replace(/[^0-9.]/g, "") // Remove non-numeric characters except decimal
+            .replace(/(\..*)\./g, "$1"); // Allow only one decimal point
+        setFormData({ ...formData, [field]: sanitizedValue });
+    };
+
+    // ✅ ADDED: Handle SKU input blur to close dropdown
+    const handleSkuBlur = () => {
+        setTimeout(() => {
+            setShowSkuDropdown(false);
+        }, 200);
+    };
+
     if (!isOpen) return null;
 
     const Watermark = () => (
@@ -107,7 +162,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                     </div>
                     <button 
                         onClick={onClose} 
-                        className="hover:bg-gray-100 p-1.5 sm:p-2 rounded-full transition-all duration-200"
+                        className="hover:bg-gray-100 p-1.5 sm:p-2 rounded-full transition-all duration-200 focus:outline-none"
                     >
                         <svg className="w-5 h-5 sm:w-6 sm:h-6 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
@@ -131,13 +186,31 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                 <div className="space-y-3 sm:space-y-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">SKU (Stock Keeping Unit)</label>
-                                        <input 
-                                            type="text" 
-                                            value={formData.sku} 
-                                            onChange={(e) => setFormData({...formData, sku: e.target.value})}
-                                            placeholder="e.g., EZ-C8C-2MP" 
-                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
-                                        />
+                                        {/* ✅ ADDED: SKU input with autocomplete dropdown */}
+                                        <div className="relative">
+                                            <input 
+                                                type="text" 
+                                                value={formData.sku} 
+                                                onChange={handleSkuChange}
+                                                onBlur={handleSkuBlur}
+                                                placeholder="e.g., EZ-C8C-2MP" 
+                                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                                            />
+                                            {/* ✅ ADDED: SKU autocomplete dropdown - limited to 3 suggestions, scrollable */}
+                                            {showSkuDropdown && displaySkuOptions.length > 0 && (
+                                                <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-[120px] overflow-y-auto">
+                                                    {displaySkuOptions.map((sku) => (
+                                                        <div
+                                                            key={sku}
+                                                            className="px-3 sm:px-4 py-2 hover:bg-blue-50 cursor-pointer transition-colors text-sm"
+                                                            onClick={() => handleSkuSelect(sku)}
+                                                        >
+                                                            {sku}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
@@ -146,7 +219,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                             value={formData.productName}
                                             onChange={(e) => setFormData({...formData, productName: e.target.value})}
                                             placeholder="Enter product name" 
-                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm"
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm"
                                         />
                                     </div>
                                     <div>
@@ -156,7 +229,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                             value={formData.type}
                                             onChange={(e) => setFormData({...formData, type: e.target.value})}
                                             placeholder="e.g., CCTV, Accessory" 
-                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
                                         />
                                     </div>
                                     <div>
@@ -166,7 +239,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                             onChange={(e) => setFormData({...formData, productDetails: e.target.value})}
                                             placeholder="Enter product description, specifications, etc." 
                                             rows="3"
-                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white resize-none text-sm" 
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white resize-none text-sm" 
                                         />
                                     </div>
                                     <div>
@@ -175,7 +248,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                             <select 
                                                 value={formData.status}
                                                 onChange={(e) => setFormData({...formData, status: e.target.value})}
-                                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white appearance-none text-sm"
+                                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white appearance-none text-sm"
                                             >
                                                 <option value="active">Active</option>
                                                 <option value="inactive">Inactive</option>
@@ -204,12 +277,13 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Vendor Price (RM)</label>
                                         <div className="relative">
                                             <span className="absolute left-3 top-2 sm:top-2.5 text-gray-500 text-sm">RM</span>
+                                            {/* ✅ UPDATED: Numbers-only validation for Vendor Price */}
                                             <input 
                                                 type="text" 
                                                 value={formData.vendorPrice}
-                                                onChange={(e) => setFormData({...formData, vendorPrice: e.target.value})}
+                                                onChange={(e) => handlePriceChange('vendorPrice', e.target.value)}
                                                 placeholder="0.00" 
-                                                className="w-full pl-8 sm:pl-10 pr-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                                                className="w-full pl-8 sm:pl-10 pr-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
                                             />
                                         </div>
                                     </div>
@@ -217,24 +291,26 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Selling Price (RM)</label>
                                         <div className="relative">
                                             <span className="absolute left-3 top-2 sm:top-2.5 text-gray-500 text-sm">RM</span>
+                                            {/* ✅ UPDATED: Numbers-only validation for Selling Price */}
                                             <input 
                                                 type="text" 
                                                 value={formData.sellingPrice}
-                                                onChange={(e) => setFormData({...formData, sellingPrice: e.target.value})}
+                                                onChange={(e) => handlePriceChange('sellingPrice', e.target.value)}
                                                 placeholder="0.00" 
-                                                className="w-full pl-8 sm:pl-10 pr-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                                                className="w-full pl-8 sm:pl-10 pr-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
                                             />
                                         </div>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Margin (%)</label>
                                         <div className="relative">
+                                            {/* ✅ UPDATED: Numbers-only validation for Margin */}
                                             <input 
                                                 type="text" 
                                                 value={formData.margin}
-                                                onChange={(e) => setFormData({...formData, margin: e.target.value})}
+                                                onChange={(e) => handlePriceChange('margin', e.target.value)}
                                                 placeholder="8.00" 
-                                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
                                             />
                                             <span className="absolute right-3 top-2 sm:top-2.5 text-gray-500 text-sm">%</span>
                                         </div>
@@ -258,7 +334,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                             value={formData.quantity}
                                             onChange={(e) => setFormData({...formData, quantity: e.target.value})}
                                             placeholder="0" 
-                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
                                         />
                                     </div>
                                     <div>
@@ -268,7 +344,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                             value={formData.reservedQuantity}
                                             onChange={(e) => setFormData({...formData, reservedQuantity: e.target.value})}
                                             placeholder="0" 
-                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
                                         />
                                     </div>
                                 </div>
@@ -356,7 +432,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                 <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
                     {mode === 'edit' ? (
                         <button 
-                            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group text-sm" 
+                            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-red-500 text-sm" 
                             onClick={() => setShowDeleteConfirm(true)}
                         >
                             <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -370,12 +446,12 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                     <div className="flex gap-2 sm:gap-3">
                         <button 
                             onClick={onClose} 
-                            className="px-4 sm:px-6 py-1.5 sm:py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 font-medium text-sm"
+                            className="px-4 sm:px-6 py-1.5 sm:py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                         >
                             Cancel
                         </button>
                         <button 
-                            className="save-btn-main bg-blue-800 text-white px-6 sm:px-8 py-1.5 sm:py-2 rounded-md flex items-center gap-2 text-sm" 
+                            className="save-btn-main bg-blue-800 text-white px-6 sm:px-8 py-1.5 sm:py-2 rounded-md flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm" 
                             onClick={() => {
                                 console.log("Saving product:", formData);
                                 onClose();
@@ -405,13 +481,13 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                 </p>
                                 <div className="flex gap-3 w-full">
                                     <button 
-                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium text-sm"
+                                        className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                         onClick={() => setShowDeleteConfirm(false)}
                                     >
                                         Cancel
                                     </button>
                                     <button 
-                                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 font-medium shadow-lg text-sm"
+                                        className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 font-medium shadow-lg focus:outline-none focus:ring-2 focus:ring-red-300 text-sm"
                                         onClick={handleDelete}
                                     >
                                         Yes, Delete

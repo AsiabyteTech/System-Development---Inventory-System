@@ -64,15 +64,29 @@ const Home = () => {
         </div>
       </header>
 
-      {/* ✅ RESPONSIVE FIX: Hero Section with responsive padding and no overflow */}
+      {/* ✅ UPDATED: Hero Section with background image and improved overlay */}
       <section className="relative overflow-hidden w-full">
-        <div className="hero-background w-full">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/50 via-blue-800/45 to-blue-700/40"></div>
-        </div>
+        {/* ✅ ADDED: Hero background image */}
+        <div 
+          className="hero-background w-full absolute inset-0"
+          style={{
+            backgroundImage: "url('/Pictures/hero0.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundAttachment: "fixed"
+          }}
+        ></div>
+        
+        {/* ✅ UPDATED: Darker overlay for better text readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/85 via-blue-900/75 to-slate-900/80"></div>
+        
+        {/* ✅ ADDED: Subtle inner shadow for depth */}
+        <div className="absolute inset-0 shadow-inner pointer-events-none"></div>
 
         {/* Animated gradient orbs - hidden on very small screens */}
-        <div className="hidden sm:block absolute top-20 left-10 w-40 h-40 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-blue-400/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="hidden md:block absolute bottom-20 right-10 w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 bg-purple-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="hidden sm:block absolute top-20 left-10 w-40 h-40 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-blue-400/15 rounded-full blur-3xl animate-pulse"></div>
+        <div className="hidden md:block absolute bottom-20 right-10 w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 bg-purple-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
         {/* ✅ RESPONSIVE FIX: Hero content with responsive text sizes and padding */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 md:py-16 lg:py-20 xl:py-28">
@@ -80,7 +94,7 @@ const Home = () => {
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
               AsiaByte P&L Inventory Systems
             </h1>
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-blue-50/90 mb-4 sm:mb-6 md:mb-8 max-w-2xl mx-auto sm:mx-0 leading-relaxed">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-blue-50/95 mb-4 sm:mb-6 md:mb-8 max-w-2xl mx-auto sm:mx-0 leading-relaxed">
               We specialize in networking, cloud services, security systems, and IT support tailored to your business needs.
             </p>
           </div>
