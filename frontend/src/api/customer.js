@@ -1,91 +1,103 @@
-// Customer CRUD
-
 import apiClient from './client';
+import { CUSTOMER_ENDPOINTS } from '../constants/apiEndpoints';
 
 export const customersAPI = {
-  // List all customer
-  getAll: async (params = { page: 1, status: null }) => {
-    const response = await apiClient.get('/customer', { params });
-    return response.data;
-  },
-  
-  // Create new order
-  create: async (orderData) => {
-    const response = await apiClient.post('/order', orderData);
-    return response.data;
-  },
-  
-  // Track by tracking number
-  track: async (trackingNumber) => {
-    const response = await apiClient.get(`/order/track/${trackingNumber}`);
-    return response.data;
-  },
-  
-  // Update order status
-  updateStatus: async (trackingNumber, status) => {
-    const response = await apiClient.put(`/order/${trackingNumber}/status`, {
-      status, // pending, processing, packing, shipped, delivered, cancelled
-    });
-    return response.data;
-  },
-  
-  // Fulfill order (generate pick list)
-  fulfill: async (trackingNumber) => {
-    const response = await apiClient.post(`/order/${trackingNumber}/fulfill`);
-    return response.data;
-  },
-  
-  // Process return with evidence
-  processReturn: async (trackingNumber, returnData) => {
-    const formData = new FormData();
-    formData.append('reason', returnData.reason);
-    formData.append('sku', returnData.sku);
-    formData.append('quantity', returnData.quantity);
-    formData.append('description', returnData.description);
-    
-    // Append multiple evidence files
-    returnData.evidence_files.forEach(file => {
-      formData.append('evidence_files', file);
-    });
-    
-    const response = await apiClient.post(`/order/${trackingNumber}/return`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return response.data;
-  },
+    /**
+     * List all customers
+     * @param {Object} params - { page, limit, search }
+     */
+    getAll: async (params = {}) => {
+        const response = await apiClient.get(CUSTOMER_ENDPOINTS.BASE, { params });
+        return response.data;
+    },
 
-  // Get single product by SKU
-  getBySKU: async (sku) => {
-    const response = await apiClient.get(`/product/${sku}`);
-    return response.data;
-  },
-  
-  // Create order (Admin only)
-  create: async (customerData) => {
-    const formData = new FormData();
-    Object.keys(customerData).forEach(key => {
-      if (key === 'image' && customerData[key]) {
-        formData.append('product_image', customerData[key]);
-      } else {
-        formData.append(key, customerData[key]);
-      }
-    });
-    
-    const response = await apiClient.post('/product', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return response.data;
-  },
-  
-  // Update order (Admin only)
-  update: async (trackingNumber, customerData) => {
-    const response = await apiClient.put(`/customer/${trackingNumber}`, customerData);
-    return response.data;
-  },
-  
-  // Delete product (Admin only)
-  delete: async (sku) => {
-    const response = await apiClient.delete(`/product/${sku}`);
-    return response.data;
-  },
+    /**
+     * Get single customer by ID
+     * @param {number} id - Customer ID
+     */
+    getById: async (id) => {
+        const response = await apiClient.get(CUSTOMER_ENDPOINTS.GET_BY_ID(id));
+        return response.data;
+    },
+
+    /**
+     * Get customer by email or phone
+     * @param {string} identifier - Email or phone number
+     */
+    getByIdentifier: async (identifier) => {
+        const response = await apiClient.get(`${CUSTOMER_ENDPOINTS.BASE}/search`, {
+            params: { q: identifier },
+        });
+        return response.data;
+    },
+
+    /**
+     * Create new customer
+     * @param {Object} customerData - { name, email, phone, address }
+     */
+    create: async (customerData) => {
+        const response = await apiClient.post(CUSTOMER_ENDPOINTS.BASE, customerData);
+        return response.data;
+    },
+
+    /**
+     * Update customer
+     * @param {number} id - Customer ID
+     * @param {Object} customerData - Updated data
+     */
+    update: async (id, customerData) => {
+        const response = await apiClient.put(CUSTOMER_ENDPOINTS.GET_BY_ID(id), customerData);
+        return response.data;
+    },
+
+    /**
+     * Delete customer (soft delete)
+     * @param {number} id - Customer ID
+     */
+    delete: async (id) => {
+        const response = await apiClient.delete(CUSTOMER_ENDPOINTS.GET_BY_ID(id));
+        return response.data;
+    },
+
+    /**
+     * Get customer order history
+     * @param {number} id - Customer ID
+     * @param {Object} params - { page, limit, status }
+     */
+    getOrderHistory: async (id, params = {}) => {
+        const response = await apiClient.get(`${CUSTOMER_ENDPOINTS.GET_BY_ID(id)}/orders`, { params });
+        return response.data;
+    },
+
+    /**
+     * Add order to customer (link existing order)
+     * @param {number} customerId - Customer ID
+     * @param {string} orderId - Order ID
+     */
+    addOrder: async (customerId, orderId) => {
+        const response = await apiClient.post(`${CUSTOMER_ENDPOINTS.GET_BY_ID(customerId)}/orders`, {
+            order_id: orderId,
+        });
+        return response.data;
+    },
+
+    /**
+     * Get customer with complete details including orders and returns
+     * @param {number} id - Customer ID
+     */
+    getCustomerProfile: async (id) => {
+        const [customer, orders] = await Promise.all([
+            customersAPI.getById(id),
+            customersAPI.getOrderHistory(id),
+        ]);
+        
+        return {
+            ...customer,
+            orders: orders.items || [],
+            total_orders: orders.total || 0,
+            total_spent: orders.total_spent || 0,
+        };
+    },
 };
+
+export default customersAPI;
