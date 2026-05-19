@@ -43,4 +43,75 @@ export const productsAPI = {
     const response = await apiClient.delete(`/product/${sku}`);
     return response.data;
   },
+  
+  // Add stock info endpoint
+  getStockInfo: async (sku) => {
+    const response = await apiClient.get(`/product/${sku}/stock`);
+    return response.data;
+  },
+  
+  // Add dashboard summary
+  getSummary: async () => {
+    const response = await apiClient.get('/product/dashboard/summary');
+    return response.data;
+  },
+
+  // Fix create with image
+  create: async (productData) => {
+    const formData = new FormData();
+    
+    // Map frontend fields to backend expected fields
+    const backendData = {
+      sku: productData.sku,
+      product_name: productData.product_name,
+      product_type: productData.product_type,
+      description: productData.description,
+      cost_price: productData.cost_price,
+      selling_price: productData.selling_price,
+      quantity_balance: productData.initial_stock || 0,  // Add initial stock
+      status: productData.status || 'ACTIVE'
+    };
+
+    Object.keys(backendData).forEach(key => {
+      if (backendData[key] !== undefined && backendData[key] !== null) {
+        formData.append(key, backendData[key]);
+      }
+    });
+    
+    if (productData.image) {
+      formData.append('product_image', productData.image);
+    }
+    
+    const response = await apiClient.post('/product', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  // Fix update - should also handle stock adjustments
+  update: async (sku, productData) => {
+    // Separate stock movement from product updates
+    const updateData = {
+      product_name: productData.product_name,
+      product_type: productData.product_type,
+      description: productData.description,
+      cost_price: productData.cost_price,
+      selling_price: productData.selling_price,
+      status: productData.status
+    };
+    
+  const response = await apiClient.put(`/product/${sku}`, updateData);
+
+  // Handle stock adjustment separately if needed
+    if (productData.stock_adjustment) {
+      await apiClient.post(`/product/${sku}/adjust-stock`, {
+        quantity: productData.stock_adjustment,
+        reason: productData.adjustment_reason
+      });
+    }
+    
+    return response.data;
+  }
+
+    
 };
