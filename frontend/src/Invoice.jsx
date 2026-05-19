@@ -1,20 +1,19 @@
+// ✅ REFACTORED: imports organized
 import React, { useState } from 'react';
-import Sidebar from './components/Sidebar';
-import {Outlet} from 'react-router';
+import { Outlet } from 'react-router';
 import { useNavigate } from 'react-router-dom';
-import AddEditInvoiceModal from './AddEditInvoice';
 import './App.css';
-// ✅ ADDED: role helper import
+import './styles/animations.css';
+
+// ✅ REFACTORED: component imports
+import Sidebar from './components/Sidebar';
+import AddEditInvoiceModal from './AddEditInvoice';
 import { isAdmin } from "./shared/role";
 
-const Invoice = ({ 
-  /*onBack, 
-  onNavigateToSupplier, 
-  onNavigateToAddInvoice,
-  onNavigateToEditInvoice */
-}) => {
+const Invoice = ({}) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMonth, setSelectedMonth] = useState('');
   const [modalMode, setModalMode] = useState('add');
   const [IsModalOpen, setIsModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
@@ -39,10 +38,27 @@ const Invoice = ({
     }
   ];
 
-  const filteredInvoices = invoices.filter(invoice => 
-    invoice.refNo.toLowerCase().includes(searchTerm.toLowerCase())  ||
-    invoice.supplier.toLowerCase().includes(searchTerm.toLowerCase()) 
-  );
+  // ✅ FIXED: Apply both search and month filters
+  const filteredInvoices = invoices.filter(invoice => {
+    // Search filter
+    const matchesSearch = searchTerm === '' ||
+      invoice.refNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.supplier.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Month filter - check if date starts with selected month (YYYY-MM)
+    let matchesMonth = true;
+    if (selectedMonth) {
+      matchesMonth = invoice.date.startsWith(selectedMonth);
+    }
+    
+    return matchesSearch && matchesMonth;
+  });
+
+  // ✅ FIXED: Reset all filters
+  const resetFilters = () => {
+    setSelectedMonth('');
+    setSearchTerm('');
+  };
 
   const openAddModal = () => {
     setModalMode('add');
@@ -59,18 +75,18 @@ const Invoice = ({
   return (
     <div className="flex min-h-screen bg-slate-50 overflow-x-hidden">
       <Sidebar />
-      {/* ✅ RESPONSIVE FIX: Main content area with proper overflow control */}
+      {/* Main content area with proper overflow control */}
       <div className='flex-1 min-w-0 ml-16 md:ml-64 transition-all duration-300 overflow-x-hidden'>
         <main className="all-main-content w-full max-w-full px-3 sm:px-4 md:px-6 py-4 sm:py-6">
           
-          {/* ✅ RESPONSIVE FIX: Page Title Banner - full width, no overflow */}
+          {/* Page Title Banner */}
           <div className="page-banner flex justify-center items-center mb-4 sm:mb-6 w-full">
             <h2 className="bg-[#00008B] text-white px-6 sm:px-8 md:px-12 py-1.5 sm:py-2 rounded-full text-base sm:text-lg md:text-xl font-bold shadow-md whitespace-nowrap">Invoice</h2>
           </div>
 
-          {/* ✅ RESPONSIVE FIX: Stats Cards Row - responsive grid, no overflow */}
+          {/* Stats Cards Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 w-full">
-            {/* Supplier Card */}
+            {/* Supplier Card - Clickable to navigate to supplier page */}
             <button 
               onClick={() => navigate('/supplier')}
               className="group bg-gradient-to-br from-blue-900 to-blue-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden text-left w-full"
@@ -117,7 +133,7 @@ const Invoice = ({
           
           <p className="text-[10px] sm:text-xs text-slate-400 mb-3 sm:mb-4 md:mb-6 font-medium italic">*Recent</p>
 
-          {/* ✅ RESPONSIVE FIX: Search & Add Section - responsive stack */}
+          {/* Search & Add Section */}
           <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 border border-slate-100 w-full">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 md:gap-6">
               <div className="w-full md:flex-1">
@@ -136,7 +152,10 @@ const Invoice = ({
                       <line x1="21" y1="21" x2="16.65" y2="16.65" strokeWidth="2"></line>
                     </svg>
                   </div>
-                  <button className="px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap">
+                  <button 
+                    onClick={() => setSearchTerm(searchTerm)} // Trigger re-filter (already handled by onChange)
+                    className="px-3 sm:px-4 py-2 sm:py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 hover:scale-105 flex items-center justify-center gap-1 sm:gap-2 text-xs sm:text-sm whitespace-nowrap"
+                  >
                     <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <circle cx="11" cy="11" r="8" strokeWidth="2"></circle>
                       <line x1="21" y1="21" x2="16.65" y2="16.65" strokeWidth="2"></line>
@@ -147,7 +166,7 @@ const Invoice = ({
                 <p className="text-[10px] sm:text-xs text-slate-400 mt-1 sm:mt-2">*Reference No, Supplier Name</p>
               </div>
               
-              {/* ✅ ADDED: role-based condition - Add button only for admin */}
+              {/* Add button only for admin */}
               <div className="flex items-center justify-start md:justify-end">
                 {isAdmin() && (
                   <button 
@@ -164,7 +183,7 @@ const Invoice = ({
             </div>
           </div>
 
-          {/* ✅ RESPONSIVE FIX: Filter Toolbar - responsive wrapping */}
+          {/* ✅ FIXED: Filter Toolbar with working month filter and reset button */}
           <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-6 w-full">
             <div className="flex items-center gap-1 sm:gap-2 bg-white rounded-lg shadow-sm border border-slate-200 p-1">
               <button className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors">
@@ -174,18 +193,28 @@ const Invoice = ({
               </button>
               <span className="text-xs sm:text-sm text-slate-400">|</span>
               <div className="filter-group px-1 sm:px-2">
-                <input type="month" className="border-0 bg-transparent text-xs sm:text-sm text-slate-600 focus:outline-none w-full max-w-[140px] sm:max-w-full"/>
+                <input 
+                  type="month" 
+                  className="border-0 bg-transparent text-xs sm:text-sm text-slate-600 focus:outline-none w-full max-w-[140px] sm:max-w-full cursor-pointer"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                />
               </div>
             </div>
             
-            <button className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors border border-red-100">
+            {/* ✅ FIXED: Reset button with onClick handler */}
+            <button 
+              onClick={resetFilters}
+              className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors border border-red-100"
+            >
               <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
               </svg>
+              <span className="hidden sm:inline"></span>
             </button>
           </div>
 
-          {/* ✅ RESPONSIVE FIX: Invoice Table - ONLY table may scroll horizontally */}
+          {/* Invoice Table */}
           <div className="bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden w-full">
             {filteredInvoices.length > 0 ? (
               <div className="w-full overflow-x-auto">
@@ -253,7 +282,7 @@ const Invoice = ({
                 </table>
               </div>
             ) : (
-              /* No Results Found State - Modern Design */
+              /* No Results Found State */
               <div className="flex flex-col items-center justify-center py-8 sm:py-12 md:py-20 px-4 w-full">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-slate-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
                   <svg className='w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 text-slate-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -261,12 +290,12 @@ const Invoice = ({
                   </svg>
                 </div>
                 <h3 className="text-base sm:text-lg md:text-xl font-bold text-slate-700 mb-1 sm:mb-2 text-center">No invoices found</h3>
-                <p className="text-xs sm:text-sm md:text-base text-slate-500 mb-3 sm:mb-4 text-center">Try searching for a different Reference No or Supplier</p>
+                <p className="text-xs sm:text-sm md:text-base text-slate-500 mb-3 sm:mb-4 text-center">Try adjusting your search or filter criteria</p>
                 <button 
-                  onClick={() => setSearchTerm('')} 
+                  onClick={resetFilters}
                   className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:shadow-lg transition-all duration-200 hover:scale-105 text-xs sm:text-sm"
                 >
-                  Clear Search
+                  Clear All Filters
                 </button>
               </div>
             )}

@@ -1,11 +1,13 @@
+// ✅ REFACTORED: imports organized
 import React, { useState } from 'react';
 import './App.css';
+import './styles/animations.css';
 
 const RegisterStaff = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
-  // ✅ ADDED: New state fields for staff registration
+  // State fields for staff registration
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [staffId, setStaffId] = useState('');
@@ -43,7 +45,7 @@ const RegisterStaff = () => {
     checkPasswordStrength(newPassword);
   };
 
-  // ✅ ADDED: Staff ID validation handler
+  // Staff ID validation handler
   const handleStaffIdChange = (e) => {
     let value = e.target.value;
     // Remove any special characters, allow only letters and numbers
@@ -54,7 +56,7 @@ const RegisterStaff = () => {
     }
   };
 
-  // ✅ UPDATED: Form submission with fullName and staffId validation
+  // Form submission with fullName and staffId validation
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -66,7 +68,6 @@ const RegisterStaff = () => {
       return;
     }
     
-    // ✅ UPDATED: Include fullName and staffId in validation
     if (!fullName || !email || !staffId || !password || !confirmPassword) {
       setErrorMessage('Please fill in all required fields.');
       setIsLoading(false);
@@ -93,11 +94,10 @@ const RegisterStaff = () => {
       return;
     }
     
-    // ✅ UPDATED: Staff registration with fullName and staffId
+    // Staff registration with fullName and staffId
     setTimeout(() => {
       console.log('Staff registration submitted', { fullName, staffId, email, password });
       
-      // ✅ UPDATED: Store staff information in localStorage
       localStorage.setItem("role", "staff");
       localStorage.setItem("userEmail", email);
       localStorage.setItem("userName", fullName);
@@ -115,7 +115,7 @@ const RegisterStaff = () => {
     }, 1000);
   };
 
-  // ✅ UPDATED: Google registration with fullName and staffId
+  // Google registration with fullName and staffId
   const handleGoogleRegister = () => {
     setIsLoading(true);
     setErrorMessage('');
@@ -163,7 +163,6 @@ const RegisterStaff = () => {
     );
   };
 
-  // ✅ UPDATED: Expanded Privacy Policy content
   const privacyPolicyContent = (
     <>
       <div className="space-y-4">
@@ -251,7 +250,6 @@ const RegisterStaff = () => {
     </>
   );
 
-  // ✅ UPDATED: Expanded Terms of Service content
   const termsContent = (
     <>
       <div className="space-y-4">
@@ -384,10 +382,10 @@ const RegisterStaff = () => {
         <div className="absolute top-3/4 left-1/3 w-1.5 h-1.5 bg-white rounded-full animate-float animation-delay-1000 opacity-40"></div>
       </div>
 
-      {/* ✅ RESPONSIVE FIX: Main container with proper padding and overflow control */}
+      {/* Main container with proper padding and overflow control */}
       <main className="auth-container w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-12 flex flex-col lg:flex-row items-center justify-center min-h-screen relative z-10">
         
-        {/* ✅ RESPONSIVE FIX: Left brand section - responsive sizing */}
+        {/* Left brand section - responsive sizing */}
         <div className="brand-section w-full lg:flex-1 mb-8 lg:mb-0 lg:pr-8 xl:pr-16">
           <div className="brand-header mb-6 sm:mb-8 md:mb-10 animate-fade-in-up flex justify-center lg:justify-start">
             <div className="brand-icon-box w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-xl transform transition-all duration-300 hover:scale-105 border border-white/30">
@@ -395,7 +393,7 @@ const RegisterStaff = () => {
             </div>
           </div>
           <div className="brand-content text-center lg:text-left animate-fade-in-up animation-delay-200">
-            {/* ✅ RESPONSIVE FIX: Responsive text sizes */}
+            {/* Responsive text sizes */}
             <h1 className="hero-text mb-4 sm:mb-6">
               <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold bg-gradient-to-r from-white via-white to-cyan-200 bg-clip-text text-transparent block leading-tight">
                 AsiaByte
@@ -405,7 +403,7 @@ const RegisterStaff = () => {
               </span>
             </h1>
             
-            {/* ✅ RESPONSIVE FIX: Responsive card width */}
+            {/* Responsive card width */}
             <div className="relative mt-4 sm:mt-6 max-w-full sm:max-w-md mx-auto lg:mx-0">
               <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl blur-xl opacity-75"></div>
               <div className="relative bg-gradient-to-r from-white/15 to-white/5 backdrop-blur-md rounded-xl p-4 sm:p-5 border border-white/20 shadow-2xl transform transition-all duration-300 hover:scale-105">
@@ -429,13 +427,12 @@ const RegisterStaff = () => {
           </div>
         </div>
 
-        {/* ✅ UPDATED: Registration Form Section with new fields */}
+        {/* Registration Form Section with new fields */}
         <div className="form-section w-full max-w-md lg:max-w-md xl:max-w-lg mx-auto lg:mx-0 animate-fade-in-up animation-delay-400">
           <div className="auth-card bg-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 p-6 sm:p-8 relative overflow-hidden">
             <div className="card-accent-bar absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 to-teal-600"></div>
             
             <header className="card-header mb-6">
-              {/* ✅ RESPONSIVE FIX: Responsive text sizes */}
               <h2 className="text-xl sm:text-2xl font-bold text-slate-800">Staff Registration</h2>
               <p className="text-slate-500 font-medium mt-1 text-sm sm:text-base">Create a new staff account for your team member.</p>
             </header>
@@ -450,7 +447,7 @@ const RegisterStaff = () => {
 
             <form className="auth-form space-y-5" onSubmit={handleSubmit}>
               
-              {/* ✅ ADDED: Full Name field */}
+              {/* Full Name field */}
               <div className="input-group">
                 <label htmlFor="fullName" className="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
                 <div className="input-wrapper relative">
@@ -483,7 +480,7 @@ const RegisterStaff = () => {
                 <p className="text-xs text-slate-400 mt-1">Enter the staff member's email address.</p>
               </div>
 
-              {/* ✅ ADDED: Staff ID field with validation */}
+              {/* Staff ID field with validation */}
               <div className="input-group">
                 <label htmlFor="staffId" className="block text-sm font-semibold text-slate-700 mb-2">Staff ID</label>
                 <div className="input-wrapper relative">
@@ -518,7 +515,7 @@ const RegisterStaff = () => {
                     {showPassword ? <svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'></path><line x1='1' y1='1' x2='23' y2='23'></line></svg> : <svg className='w-5 h-5' viewBox='0 0 24 24' fill='none' stroke='currentColor'><path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'></path><circle cx='12' cy='12' r='3'></circle></svg>}
                   </button>
                 </div>
-                {/* ✅ RESPONSIVE FIX: Password strength indicator - responsive text */}
+                {/* Password strength indicator - responsive text */}
                 {password && (
                   <div className="mt-2 space-y-1">
                     <div className="text-xs font-semibold text-slate-600 mb-1">Password Requirements:</div>
@@ -586,7 +583,7 @@ const RegisterStaff = () => {
             </footer>
           </div>
           
-          {/* ✅ RESPONSIVE FIX: Legal links - responsive spacing */}
+          {/* Legal links - responsive spacing */}
           <div className="legal-links flex justify-center gap-4 sm:gap-6 mt-6 text-xs sm:text-sm">
             <button onClick={() => setShowPrivacyModal(true)} className="text-white/80 hover:text-white font-medium transition-all duration-200 hover:scale-105">Privacy Policy</button>
             <button onClick={() => setShowTermsModal(true)} className="text-white/80 hover:text-white font-medium transition-all duration-200 hover:scale-105">Terms of Service</button>
@@ -596,8 +593,6 @@ const RegisterStaff = () => {
 
       <Modal isOpen={showPrivacyModal} onClose={() => setShowPrivacyModal(false)} title="Privacy Policy" content={privacyPolicyContent} />
       <Modal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} title="Terms of Service" content={termsContent} />
-
-      <style>{`@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes scaleIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}@keyframes shake{0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-2px)}20%,40%,60%,80%{transform:translateX(2px)}}@keyframes blob{0%{transform:translate(0px,0px) scale(1)}33%{transform:translate(30px,-50px) scale(1.1)}66%{transform:translate(-20px,20px) scale(0.9)}100%{transform:translate(0px,0px) scale(1)}}@keyframes float{0%{transform:translateY(0px)}50%{transform:translateY(-20px)}100%{transform:translateY(0px)}}.animate-fade-in-up{animation:fadeInUp 0.6s ease-out forwards}.animate-fadeIn{animation:fadeIn 0.2s ease-out}.animate-scaleIn{animation:scaleIn 0.2s ease-out}.animate-shake{animation:shake 0.5s ease-in-out}.animate-blob{animation:blob 7s infinite}.animate-float{animation:float 6s ease-in-out infinite}.animation-delay-200{animation-delay:0.2s;opacity:0;animation-fill-mode:forwards}.animation-delay-400{animation-delay:0.4s;opacity:0;animation-fill-mode:forwards}.animation-delay-1000{animation-delay:1s}.animation-delay-1500{animation-delay:1.5s}.animation-delay-2000{animation-delay:2s}.animation-delay-2500{animation-delay:2.5s}.animation-delay-3000{animation-delay:3s}.animation-delay-4000{animation-delay:4s}`}</style>
     </div>
   );
 };

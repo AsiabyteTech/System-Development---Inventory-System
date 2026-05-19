@@ -1,13 +1,19 @@
+// ✅ REFACTORED: imports organized and cleaned
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { FiShoppingCart, FiArrowRight, FiUser } from 'react-icons/fi';
 import { BsGraphUp, BsBoxSeam, BsPeople } from 'react-icons/bs';
-// ✅ ADDED: role-based condition import
+
+// ✅ REFACTORED: role import path corrected
 import { isAdmin } from "./shared/role";
+
+// ✅ REFACTORED: CSS imports - animations moved to dedicated file
 import "./App.css";
+import "./styles/animations.css";
 
 const Home = () => {
   const navigate = useNavigate();
+  
   const partners = [
     "ruckus-networks-logo.png",
     "dahua.png",
@@ -21,12 +27,11 @@ const Home = () => {
     "hiksemi.png",
   ];
 
-  // ✅ FIXED: Updated image path to use public folder
   const getImagePath = (img) => `/Pictures/${img}`;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col overflow-x-hidden">
-      {/* ✅ RESPONSIVE FIX: Header with better mobile padding and no overflow */}
+      {/* Header Section */}
       <header className="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-slate-200/60 shadow-sm w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 flex justify-between items-center gap-2 sm:gap-4">
           <div 
@@ -48,7 +53,6 @@ const Home = () => {
             </div>
           </div>
 
-          {/* ✅ RESPONSIVE FIX: User section with better spacing */}
           <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
             <div className='hidden sm:flex flex-col items-end mr-0 sm:mr-1 md:mr-2'>
               <span className='text-xs sm:text-sm font-semibold text-slate-800'>Zaty Raof</span>
@@ -64,9 +68,8 @@ const Home = () => {
         </div>
       </header>
 
-      {/* ✅ UPDATED: Hero Section with background image and improved overlay */}
+      {/* Hero Section */}
       <section className="relative overflow-hidden w-full">
-        {/* ✅ ADDED: Hero background image */}
         <div 
           className="hero-background w-full absolute inset-0"
           style={{
@@ -78,17 +81,12 @@ const Home = () => {
           }}
         ></div>
         
-        {/* ✅ UPDATED: Darker overlay for better text readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-slate-900/85 via-blue-900/75 to-slate-900/80"></div>
-        
-        {/* ✅ ADDED: Subtle inner shadow for depth */}
         <div className="absolute inset-0 shadow-inner pointer-events-none"></div>
 
-        {/* Animated gradient orbs - hidden on very small screens */}
         <div className="hidden sm:block absolute top-20 left-10 w-40 h-40 sm:w-48 sm:h-48 md:w-64 md:h-64 bg-blue-400/15 rounded-full blur-3xl animate-pulse"></div>
         <div className="hidden md:block absolute bottom-20 right-10 w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 bg-purple-400/15 rounded-full blur-3xl animate-pulse delay-1000"></div>
 
-        {/* ✅ RESPONSIVE FIX: Hero content with responsive text sizes and padding */}
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 md:py-16 lg:py-20 xl:py-28">
           <div className="max-w-full sm:max-w-2xl md:max-w-3xl animate-fade-in-up text-center sm:text-left">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white mb-2 sm:mb-3 md:mb-4 leading-tight">
@@ -101,7 +99,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ✅ RESPONSIVE FIX: Partners Section - Better responsive layout with no overflow */}
+      {/* Partners Section */}
       <section className="py-8 sm:py-12 md:py-16 bg-white w-full overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-6 sm:mb-8 md:mb-10">
@@ -112,7 +110,6 @@ const Home = () => {
           </div>
           
           <div className="relative w-full">
-            {/* ✅ RESPONSIVE FIX: Gradient overlays with responsive widths */}
             <div className="absolute left-0 top-0 bottom-0 w-6 sm:w-8 md:w-12 lg:w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
             <div className="absolute right-0 top-0 bottom-0 w-6 sm:w-8 md:w-12 lg:w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
             
@@ -143,7 +140,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ✅ RESPONSIVE FIX: Dashboard Navigation Cards - Responsive grid layout with no overflow */}
+      {/* Navigation Cards Section */}
       <main className="py-8 sm:py-12 md:py-16 bg-slate-50 w-full overflow-x-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-6 sm:mb-8 md:mb-12">
@@ -151,10 +148,9 @@ const Home = () => {
             <p className="text-xs sm:text-sm md:text-base text-slate-500">Access your inventory management tools</p>
           </div>
           
-          {/* ✅ RESPONSIVE FIX: Responsive grid that stacks on mobile */}
           <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_0.9fr] gap-4 sm:gap-5 md:gap-6 w-full">
             
-            {/* Left Column - Responsive Cards Grid */}
+            {/* Left Column */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-5">
               
               {/* Dashboard Card */}
@@ -195,7 +191,7 @@ const Home = () => {
                 </div>
               </div>
 
-              {/* Product Card - Full width on mobile */}
+              {/* Product Card */}
               <div 
                 className="sm:col-span-2 bg-purple-50 hover:bg-purple-100 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-purple-200 overflow-hidden cursor-pointer w-full"
                 onClick={() => navigate('/product')}
@@ -243,7 +239,7 @@ const Home = () => {
         </div>
       </main>
 
-      {/* ✅ RESPONSIVE FIX: Footer with responsive padding */}
+      {/* Footer */}
       <footer className="bg-white border-t border-slate-200 py-3 sm:py-4 md:py-6 mt-auto w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
@@ -253,41 +249,6 @@ const Home = () => {
           </div>
         </div>
       </footer>
-
-      {/* Animation styles - unchanged */}
-      <style jsx>{`
-        @keyframes fadeInUp {
-          from {
-            opacity: 0;
-            transform: translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        .animate-fade-in-up {
-          animation: fadeInUp 0.6s ease-out forwards;
-        }
-        
-        @keyframes scroll {
-          0% {
-            transform: translateX(0);
-          }
-          100% {
-            transform: translateX(-50%);
-          }
-        }
-        
-        .animate-scroll {
-          animation: scroll 30s linear infinite;
-        }
-        
-        .animate-scroll:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
     </div>
   );
 };

@@ -461,7 +461,40 @@ const Login = () => {
                 <button onClick={() => navigate('/Register')} className="text-blue-600 hover:text-blue-700 font-semibold ml-1 hover:underline transition-colors">Sign up now</button>
               </p>
             </footer>
-          </div>
+          </div>u+uuu+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          
           
           {/* ✅ RESPONSIVE FIX: Legal links - responsive spacing */}
           <div className="legal-links flex justify-center gap-4 sm:gap-6 mt-6 text-xs sm:text-sm">

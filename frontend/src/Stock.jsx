@@ -1,8 +1,12 @@
+// ✅ REFACTORED: imports organized
 import React, { useState } from 'react';
-import Sidebar from './components/Sidebar';
 import { useNavigate } from 'react-router-dom';
-import AddEditStockModal from './AddEditStock';
 import './App.css';
+import './styles/animations.css';
+
+// ✅ REFACTORED: component imports
+import Sidebar from './components/Sidebar';
+import AddEditStockModal from './AddEditStock';
 
 const Stock = ({}) => {
   const navigate = useNavigate();
@@ -61,12 +65,6 @@ const Stock = ({}) => {
     // Note: searchTerm is not reset here as it has its own clear button
   };
 
-  /*const openAddModal = () => {
-    setModalMode('add');
-    setSelectedStock(null);
-    setIsModalOpen(true);
-  };*/
-
   const openEditModal = (stock) => {
     setModalMode('edit');
     setSelectedStock(stock);
@@ -76,16 +74,16 @@ const Stock = ({}) => {
   return (
     <div className="flex min-h-screen bg-slate-50 overflow-x-hidden">
       <Sidebar />
-      {/* ✅ RESPONSIVE FIX: Main content area with proper overflow control */}
+      {/* Main content area with proper overflow control */}
       <div className='flex-1 min-w-0 ml-16 md:ml-64 transition-all duration-300 overflow-x-hidden'>
         <main className="all-main-content w-full max-w-full px-3 sm:px-4 md:px-6 py-4 sm:py-6">
           
-          {/* ✅ RESPONSIVE FIX: Page Title Banner - full width, no overflow */}
+          {/* Page Title Banner */}
           <div className="page-banner flex justify-center items-center mb-4 sm:mb-6 w-full">
             <h2 className="bg-[#00008B] text-white px-6 sm:px-8 md:px-12 py-1.5 sm:py-2 rounded-full text-base sm:text-lg md:text-xl font-bold shadow-md whitespace-nowrap">Stock</h2>
           </div>
 
-          {/* ✅ RESPONSIVE FIX: Stats Cards Row - responsive grid */}
+          {/* Stats Cards Row */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 w-full">
             {/* Reserved Card - Blue gradient */}
             <div className="group bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden w-full">
@@ -130,7 +128,7 @@ const Stock = ({}) => {
           
           <p className="text-[10px] sm:text-xs text-slate-400 mb-3 sm:mb-4 md:mb-6 font-medium italic">*Current stock status</p>
 
-          {/* ✅ RESPONSIVE FIX: Search Section - responsive stack */}
+          {/* Search Section */}
           <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 border border-slate-100 w-full">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 md:gap-6">
               <div className="w-full md:flex-1">
@@ -161,12 +159,12 @@ const Stock = ({}) => {
               </div>
               
               <div className="flex items-center justify-start md:justify-end">
-                {/* Add button commented out as in original */}
+                {/* Add button area - kept as original */}
               </div>
             </div>
           </div>
 
-          {/* ✅ RESPONSIVE FIX: Filter Toolbar - responsive wrapping */}
+          {/* Filter Toolbar */}
           <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-6 w-full">
             <div className="flex items-center gap-1 sm:gap-2 bg-white rounded-lg shadow-sm border border-slate-200 p-1">
               <button className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors">
@@ -185,7 +183,7 @@ const Stock = ({}) => {
               </div>
             </div>
             
-            {/* Status Filter - responsive */}
+            {/* Status Filter */}
             <div className="relative min-w-[90px] sm:min-w-[100px]">
               <select 
                 className="w-full bg-white border border-slate-200 text-xs sm:text-sm px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg appearance-none focus:outline-none cursor-pointer hover:border-blue-300 transition-colors"
@@ -213,7 +211,7 @@ const Stock = ({}) => {
             </button>
           </div>
 
-          {/* ✅ RESPONSIVE FIX: Stock Table - ONLY table may scroll horizontally */}
+          {/* Stock Table */}
           <div className="bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden w-full">
             {filteredStocks.length > 0 ? (
               <div className="w-full overflow-x-auto">
@@ -262,7 +260,7 @@ const Stock = ({}) => {
                 </table>
               </div>
             ) : (
-              /* ✅ RESPONSIVE FIX: No Results Found State - responsive */
+              /* No Results Found State */
               <div className="flex flex-col items-center justify-center py-8 sm:py-12 md:py-20 px-4 w-full">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-slate-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
                   <svg className='w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 text-slate-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
