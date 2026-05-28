@@ -1,0 +1,230 @@
+/* ✅ REFACTORED: MOVED FROM ReportOrder.jsx inline styles */
+/* Professional Print Styles for Business Reports */
+
+@media print {
+    @page {
+        size: A4;
+        margin: 1.5cm;
+    }
+    
+    body {
+        background: white !important;
+        font-size: 11pt;
+        line-height: 1.4;
+        color: #1a1a1a;
+    }
+    
+    /* ===== PRINT-ONLY REPORT HEADER ===== */
+    .print-report-header {
+        display: block !important;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #1e3a8a;
+        padding-bottom: 15px;
+    }
+    
+    .print-header-content {
+        text-align: center;
+    }
+    
+    .print-header-content h1 {
+        font-size: 18pt;
+        font-weight: 700;
+        color: #1e3a8a;
+        margin: 0 0 5px 0;
+        letter-spacing: 1px;
+    }
+    
+    .print-header-content h2 {
+        font-size: 14pt;
+        font-weight: 600;
+        color: #374151;
+        margin: 0 0 12px 0;
+    }
+    
+    .print-header-details {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        font-size: 10pt;
+        margin-top: 8px;
+    }
+    
+    .print-detail-row {
+        display: inline-flex;
+        gap: 6px;
+    }
+    
+    .print-label {
+        font-weight: 600;
+        color: #4b5563;
+    }
+    
+    .print-value {
+        color: #1f2937;
+    }
+    
+    /* ===== PRINT-ONLY SUMMARY SECTION ===== */
+    .print-summary-section {
+        display: block !important;
+        margin-bottom: 20px;
+    }
+    
+    .print-section-title {
+        font-size: 12pt;
+        font-weight: 600;
+        color: #374151;
+        margin: 0 0 10px 0;
+        padding-bottom: 5px;
+        border-bottom: 1px solid #d1d5db;
+    }
+    
+    .print-section-title-container {
+        display: block !important;
+        margin-top: 15px;
+        margin-bottom: 10px;
+    }
+    
+    .print-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 15px;
+        margin-top: 10px;
+    }
+    
+    .print-summary-item {
+        border: 1px solid #e5e7eb;
+        padding: 8px 12px;
+        border-radius: 4px;
+        background: #f9fafb;
+    }
+    
+    .print-summary-label {
+        font-size: 9pt;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    
+    .print-summary-value {
+        font-size: 14pt;
+        font-weight: 700;
+        color: #1f2937;
+    }
+    
+    /* ===== PROFESSIONAL TABLE STYLES ===== */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 9pt;
+        margin-top: 8px;
+    }
+    
+    th {
+        background: #f3f4f6 !important;
+        color: #111827 !important;
+        font-weight: 700 !important;
+        padding: 6px 8px !important;
+        border: 1px solid #d1d5db !important;
+        text-transform: uppercase;
+        font-size: 8pt;
+        letter-spacing: 0.5px;
+    }
+    
+    td {
+        padding: 5px 8px !important;
+        border: 1px solid #e5e7eb !important;
+        font-size: 9pt;
+        color: #374151;
+    }
+    
+    /* Zebra striping for better readability */
+    tbody tr:nth-child(even) {
+        background-color: #f9fafb;
+    }
+    
+    /* ===== PRINT FOOTER ===== */
+    .print-footer {
+        display: block !important;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin-bottom: 0.8cm;
+        font-size: 8pt;
+        color: #6b7280;
+    }
+    
+    .print-footer-line {
+        border-top: 1px solid #d1d5db;
+        margin-bottom: 6px;
+    }
+    
+    .print-footer-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    /* ===== HIDE ALL WEB-ONLY ELEMENTS ===== */
+    .print\:hidden {
+        display: none !important;
+    }
+    
+    /* Remove shadows and gradients */
+    .shadow-lg, .shadow-xl, .shadow-2xl {
+        box-shadow: none !important;
+    }
+    
+    .bg-gradient-to-r, .bg-gradient-to-br {
+        background: transparent !important;
+    }
+    
+    /* Hide status badges - show plain text */
+    .rounded-full, .bg-green-50, .bg-yellow-50, .bg-blue-50 {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        font-weight: normal !important;
+    }
+    
+    /* Remove hover effects */
+    .hover\:bg-blue-50\/50:hover {
+        background: transparent !important;
+    }
+    
+    /* Ensure content doesn't overlap with footer */
+    .all-main-content {
+        margin-bottom: 1.5cm;
+    }
+    
+    /* Page break control */
+    table {
+        page-break-inside: avoid;
+    }
+    
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+    
+    /* Keep borders clean */
+    .border, .border-slate-100, .border-slate-200 {
+        border-color: #d1d5db !important;
+    }
+    
+    /* Page number counters */
+    .print-page-number:before {
+        content: counter(page);
+    }
+    
+    .print-total-pages:before {
+        content: counter(pages);
+    }
+    
+    /* Keep SKU details section visible in print when applicable */
+    .print\:block {
+        display: block !important;
+    }
+} 
