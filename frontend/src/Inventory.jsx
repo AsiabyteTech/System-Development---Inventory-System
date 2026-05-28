@@ -1,12 +1,14 @@
+// ✅ REFACTORED: imports organized
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './App.css';
+import './styles/animations.css';
 
-const Inventory = ({ onBack, onNavigateToCustomer }) => {
+const Inventory = ({}) => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // ✅ ADDED: Get tracking number from navigation state
+  // Get tracking number from navigation state
   const trackingNumber = location.state?.trackingNumber || '';
   
   const [products] = useState([
@@ -41,9 +43,9 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
     product.sku.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // ✅ ADDED: Function to handle navigation back to Customer with cart data
+  // Function to handle navigation back to Customer with cart data
   const handleBackToCustomer = () => {
-    // ✅ ADDED: Create selected items array from cart (quantities > 0)
+    // Create selected items array from cart (quantities > 0)
     const selectedItems = products
       .filter(product => quantities[product.id] > 0)
       .map(product => ({
@@ -55,7 +57,7 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
     
     console.log('Selected Items from Inventory:', selectedItems);
     
-    // ✅ ADDED: Navigate back to Customer with cart data and tracking number
+    // Navigate back to Customer with cart data and tracking number
     navigate('/customer', {
       state: {
         trackingNumber: trackingNumber,
@@ -66,7 +68,7 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
 
   return (
     <div className="min-h-screen bg-slate-50 overflow-x-hidden">
-      {/* ✅ UI IMPROVEMENT: Top Header Bar - modernized to match Product page */}
+      {/* Top Header Bar - modernized to match Product page */}
       <div className="top-info-bar bg-gradient-to-r from-blue-900 to-blue-800 text-white text-[10px] sm:text-xs py-2 px-3 sm:px-6 flex flex-wrap justify-between items-center gap-2">
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
           <span>📍</span>
@@ -78,7 +80,7 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
         </div>
       </div>
 
-      {/* ✅ UI IMPROVEMENT: Navigation - modernized to match Product page */}
+      {/* Navigation - modernized to match Product page */}
       <header className="bg-white border-b border-slate-200/60 shadow-sm py-2 sm:py-3 px-4 sm:px-6">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer" onClick={() => navigate('/')}>
@@ -93,7 +95,7 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
 
       <main className="all-main-content w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6">
         
-        {/* ✅ UI IMPROVEMENT: Page Title Banner - modernized to match Product page */}
+        {/* Page Title Banner - modernized to match Product page */}
         <div className="addedit-banner-row flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
           <div className="title-banner flex items-center bg-gradient-to-r from-blue-900 to-blue-700 rounded-lg overflow-hidden shadow-lg">
             <button className="menu-btn p-2 sm:p-3">
@@ -110,7 +112,7 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
           </button>
         </div>
 
-        {/* ✅ ADDED: Display tracking number below banner when passed from Customer page */}
+        {/* Display tracking number below banner when passed from Customer page */}
         {trackingNumber && (
           <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-3 mb-4 border border-blue-100">
             <p className="text-sm text-slate-600">
@@ -120,9 +122,7 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
           </div>
         )}
 
-        {/* ✅ REMOVED: extra Tracking Number button section that navigated to Customer page */}
-
-        {/* ✅ UI IMPROVEMENT: Search Section - modernized to match Product page */}
+        {/* Search Section - modernized to match Product page */}
         <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-3 sm:p-4 md:p-6 mb-6 border border-slate-100 w-full">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
             <div className="w-full md:flex-1">
@@ -157,12 +157,12 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
           </div>
         </div>
 
-        {/* ✅ UI IMPROVEMENT: Product Grid - modernized card layout matching Product page style */}
+        {/* Product Grid - modernized card layout matching Product page style */}
         <div className='w-full'>
           {filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
               {filteredProducts.map(product => {
-                // ✅ ADDED: Calculate live available quantity = original qtyLeft - selected quantity
+                // Calculate live available quantity = original qtyLeft - selected quantity
                 const availableQty = product.qtyLeft - (quantities[product.id] || 0);
                 
                 return (
@@ -190,7 +190,7 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
                         </div>
                         <div className="text-right">
                           <span className="text-xs text-slate-500">Available</span>
-                          {/* ✅ UPDATED: Display live available quantity that updates with selected quantity */}
+                          {/* Display live available quantity that updates with selected quantity */}
                           <p className="font-semibold text-emerald-600 text-base">{availableQty} units</p>
                         </div>
                       </div>
@@ -234,7 +234,7 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
               })}
             </div>
           ) : (
-            /* ✅ UI IMPROVEMENT: No Results Found State - modernized to match Product page */
+            /* No Results Found State - modernized to match Product page */
             <div className="flex flex-col items-center justify-center py-12 sm:py-20 px-4 w-full bg-white rounded-xl shadow-lg border border-slate-100">
               <div className="w-16 h-16 sm:w-20 sm:h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                 <svg className='w-8 h-8 sm:w-10 sm:h-10 text-slate-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
@@ -257,7 +257,7 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
           )}
         </div>
 
-        {/* ✅ UI IMPROVEMENT: Save Button - modernized with cart data passing */}
+        {/* Save Button - modernized with cart data passing */}
         <div className="flex justify-end mt-8">
           <button 
             onClick={handleBackToCustomer}
@@ -273,7 +273,7 @@ const Inventory = ({ onBack, onNavigateToCustomer }) => {
         </div>
       </main>
 
-      {/* ✅ UI IMPROVEMENT: Footer - modernized to match Product page */}
+      {/* Footer - modernized to match Product page */}
       <footer className="bg-gradient-to-r from-blue-900 to-blue-700 h-8 w-full flex items-center justify-center">
         <span className="text-white text-[10px] sm:text-xs">© 2026 AsiaByte. All rights reserved.</span>
       </footer>

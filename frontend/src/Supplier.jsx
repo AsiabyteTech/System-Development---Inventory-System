@@ -1,7 +1,11 @@
+// ✅ REFACTORED: imports organized
 import React, { useState, useRef, useEffect } from 'react';
-import {useNavigate} from "react-router-dom";
-import AddEditSupplierModal from './AddEditSupplier';
+import { useNavigate } from "react-router-dom";
 import './App.css';
+import './styles/animations.css';
+
+// ✅ REFACTORED: component imports
+import AddEditSupplierModal from './AddEditSupplier';
 import { isAdmin } from "./shared/role";
 
 const Supplier = () => {
@@ -102,7 +106,7 @@ const Supplier = () => {
 
   return (
     <div className="containersys min-h-screen bg-slate-50 overflow-x-hidden">
-      {/* ✅ RESPONSIVE FIX: Top Header Bar - wrap on mobile */}
+      {/* Top Header Bar - wrap on mobile */}
       <div className="top-info-bar bg-gradient-to-r from-blue-900 to-blue-800 text-white text-[10px] sm:text-xs py-2 px-3 sm:px-6 flex flex-wrap justify-between items-center gap-2">
         <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
           <span>📍</span>
@@ -114,7 +118,7 @@ const Supplier = () => {
         </div>
       </div>
 
-      {/* ✅ RESPONSIVE FIX: Navigation - responsive padding */}
+      {/* Navigation - responsive padding */}
       <header className="headersys bg-white border-b border-slate-200/60 shadow-sm py-2 sm:py-3 px-4 sm:px-6">
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer" onClick={() => navigate('/invoice')}>
@@ -129,7 +133,7 @@ const Supplier = () => {
 
       <main className="all-main-content w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6">
         
-        {/* ✅ RESPONSIVE FIX: Banner row - responsive layout */}
+        {/* Banner row - responsive layout */}
         <div className="addedit-banner-row flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
           <div className="title-banner flex items-center bg-gradient-to-r from-blue-900 to-blue-700 rounded-lg overflow-hidden shadow-lg">
             <div className="menu-btn p-2 sm:p-3">
@@ -148,7 +152,7 @@ const Supplier = () => {
           </div>
         </div>
 
-        {/* ✅ RESPONSIVE FIX: Stats Cards - responsive grid */}
+        {/* Stats Cards - responsive grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8 w-full">
           <div className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 overflow-hidden w-full">
             <div className="p-3 sm:p-4 md:p-6">
@@ -190,7 +194,7 @@ const Supplier = () => {
           </div>
         </div>
 
-        {/* ✅ RESPONSIVE FIX: Supplier Logo Selection Card - responsive */}
+        {/* Supplier Logo Selection Card - responsive */}
         <div className="form-section-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-slate-100 relative overflow-visible w-full">
           <div className="relative z-10">
             <div className="flex flex-col gap-4 sm:gap-6">
@@ -205,7 +209,7 @@ const Supplier = () => {
                 )}
               </div>
               
-              {/* ✅ RESPONSIVE FIX: Scrollable logo area - responsive arrows and container */}
+              {/* Scrollable logo area */}
               <div className="relative">
                 {showLeftArrow && (
                   <button
@@ -221,14 +225,9 @@ const Supplier = () => {
 
                 <div 
                   ref={logoScrollRef}
-                  className="flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto overflow-y-visible scroll-smooth py-3 sm:py-4 px-6 sm:px-8 md:px-10"
+                  className="supplier-logo-scroll flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto overflow-y-visible scroll-smooth py-3 sm:py-4 px-6 sm:px-8 md:px-10"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
-                  <style>{`
-                    .supplier-logo-scroll::-webkit-scrollbar {
-                      display: none;
-                    }
-                  `}</style>
                   {suppliers.map((s, idx) => (
                     <button 
                       key={s.id}
@@ -291,7 +290,7 @@ const Supplier = () => {
           </div>
         </div>
 
-        {/* ✅ RESPONSIVE FIX: Supplier Details Form - responsive grid */}
+        {/* Supplier Details Form - responsive grid */}
         <div className="form-section-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-slate-100 relative overflow-hidden w-full">
           <div className="relative z-10">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-slate-200">
@@ -359,7 +358,7 @@ const Supplier = () => {
 
       <AddEditSupplierModal isOpen={IsModalOpen} onClose={() => setIsModalOpen(false)} mode={modalMode} supplier={modalMode === 'edit' ? current : null}/>
 
-      {/* ✅ RESPONSIVE FIX: Footer */}
+      {/* Footer */}
       <footer className="bg-gradient-to-r from-blue-900 to-blue-700 h-8 w-full print:hidden flex items-center justify-center">
         <span className="text-white text-[10px] sm:text-xs">© 2026 AsiaByte. All rights reserved.</span>
       </footer>

@@ -1,35 +1,38 @@
+// ✅ REFACTORED: imports organized
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiPrinter } from 'react-icons/fi';
 import './App.css';
+import './styles/animations.css';
+import './styles/print.css';
 
-const ReportOrder = ({ onBack, onSave }) => {
+const ReportOrder = ({}) => {
 
     const navigate = useNavigate();
     
-    // ✅ ADDED: Filter type state (all, month, year, sku)
+    // Filter type state (all, month, year, sku)
     const [filterType, setFilterType] = useState('month');
     
-    // ✅ UPDATED: Date filter state - initialize with current month
+    // Date filter state - initialize with current month
     const [selectedMonth, setSelectedMonth] = useState(() => {
         const now = new Date();
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     });
     
-    // ✅ ADDED: Year filter state
+    // Year filter state
     const [selectedYear, setSelectedYear] = useState(() => {
         const now = new Date();
         return now.getFullYear().toString();
     });
     
-    // ✅ ADDED: SKU filter state
+    // SKU filter state
     const [selectedSKU, setSelectedSKU] = useState('');
     
-    // ✅ ADDED: State for price inputs with numbers-only validation
+    // State for price inputs with numbers-only validation
     const [initialVendorPrice, setInitialVendorPrice] = useState('');
     const [initialSellingPrice, setInitialSellingPrice] = useState('');
 
-    // ✅ UPDATED: Local data for the table with SKU and Supplier fields
+    // Local data for the table with SKU and Supplier fields
     const [reports] = useState([
         {
             id: '1',
@@ -96,13 +99,13 @@ const ReportOrder = ({ onBack, onSave }) => {
     // Filtered reports based on selected filter type
     const [filteredReports, setFilteredReports] = useState(reports);
 
-    // ✅ ADDED: Unique SKU dropdown options
+    // Unique SKU dropdown options
     const skuOptions = [...new Set(reports.map((report) => report.sku).filter(Boolean))];
 
-    // ✅ ADDED: Selected SKU details for display
+    // Selected SKU details for display
     const selectedSKUDetails = selectedSKU ? reports.find((report) => report.sku === selectedSKU) : null;
 
-    // ✅ UPDATED: Flexible filtering logic based on filter type
+    // Flexible filtering logic based on filter type
     useEffect(() => {
         let filtered = [...reports];
 
@@ -119,7 +122,7 @@ const ReportOrder = ({ onBack, onSave }) => {
                 return reportDate.getFullYear() === parseInt(selectedYear);
             });
         } else if (filterType === 'sku') {
-            // ✅ UPDATED: SKU filter using exact match from dropdown
+            // SKU filter using exact match from dropdown
             if (selectedSKU) {
                 filtered = reports.filter(report => report.sku === selectedSKU);
             } else {
@@ -138,7 +141,7 @@ const ReportOrder = ({ onBack, onSave }) => {
         return sum + 1250.50;
     }, 0);
 
-    // ✅ UPDATED: Format display text based on filter type
+    // Format display text based on filter type
     const getFilterDisplayText = () => {
         switch(filterType) {
             case 'month':
@@ -168,7 +171,7 @@ const ReportOrder = ({ onBack, onSave }) => {
         }
     };
 
-    // ✅ ADDED: Get current date for print header
+    // Get current date for print header
     const getCurrentDate = () => {
         const now = new Date();
         return now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -195,7 +198,7 @@ const ReportOrder = ({ onBack, onSave }) => {
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col print:bg-white">
-            {/* ✅ PRINT FIX: Professional Report Header - appears only in print */}
+            {/* PRINT FIX: Professional Report Header - appears only in print */}
             <div className="hidden print:block print-report-header">
                 <div className="print-header-content">
                     <h1>AsiaByte P&L Inventory System</h1>
@@ -213,7 +216,7 @@ const ReportOrder = ({ onBack, onSave }) => {
                 </div>
             </div>
 
-            {/* ✅ PRINT FIX: Compact Summary Section - appears only in print */}
+            {/* PRINT FIX: Compact Summary Section - appears only in print */}
             <div className="hidden print:block print-summary-section">
                 <h3 className="print-section-title">Summary</h3>
                 <div className="print-summary-grid">
@@ -232,7 +235,7 @@ const ReportOrder = ({ onBack, onSave }) => {
                 </div>
             </div>
 
-            {/* ✅ RESPONSIVE FIX: Top Header Bar - wrap on mobile (hidden in print) */}
+            {/* Top Header Bar - wrap on mobile (hidden in print) */}
             <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white text-[10px] sm:text-xs py-2 px-3 sm:px-6 flex flex-wrap justify-between items-center gap-2 print:hidden">
                 <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                     <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -262,13 +265,13 @@ const ReportOrder = ({ onBack, onSave }) => {
                 </div>
             </header>
 
-             <main className="all-main-content px-3 sm:px-6 py-4 sm:py-6">
-                {/* ✅ RESPONSIVE FIX: Banner row - responsive padding and gap (hidden in print) */}
+            <main className="all-main-content px-3 sm:px-6 py-4 sm:py-6">
+                {/* Banner row - responsive padding and gap (hidden in print) */}
                 <div className="addedit-banner-row flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0 mb-4 sm:mb-6 print:hidden">
                     <div className="title-banner">
                         <button className="menu-btn print:hidden">
                             <svg className="menu-icon w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                             </svg>
                         </button>
                         <h2 className="banner-title text-lg sm:text-xl print:text-black print:bg-transparent print:shadow-none print:px-0">Order Volume Report</h2>
@@ -375,7 +378,7 @@ const ReportOrder = ({ onBack, onSave }) => {
                                     />
                                 )}
                                 
-                                {/* ✅ UPDATED: SKU filter as dropdown instead of text input */}
+                                {/* SKU filter as dropdown instead of text input */}
                                 {filterType === 'sku' && (
                                     <select
                                         value={selectedSKU}
@@ -408,7 +411,7 @@ const ReportOrder = ({ onBack, onSave }) => {
                 </div>
                 <p className="text-[10px] sm:text-xs text-slate-400 mb-4 sm:mb-6 font-medium italic print:hidden">*Filter your orders by selecting a filter option above</p>
 
-                {/* ✅ UPDATED: SKU Details Section - Only shows when filter type is 'sku' AND a SKU is selected */}
+                {/* SKU Details Section - Only shows when filter type is 'sku' AND a SKU is selected */}
                 {filterType === 'sku' && selectedSKU && selectedSKUDetails && (
                     <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 print:block">
                         {/* SKU & Status Card */}
@@ -514,19 +517,18 @@ const ReportOrder = ({ onBack, onSave }) => {
                     </div>
                 )}
 
-                {/* ✅ PRINT FIX: Order Details Table Section Title */}
+                {/* PRINT FIX: Order Details Table Section Title */}
                 <div className="hidden print:block print-section-title-container">
                     <h3 className="print-section-title">Order Details</h3>
                 </div>
 
-                {/* ✅ UPDATED: Table with SKU column added back */}
+                {/* Table with SKU column */}
                 <div className="bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden print:shadow-none print:border print:border-gray-300">
                     <div className="overflow-x-auto">
                         <div className="min-w-[700px]">
                             <table className="w-full">
                                 <thead>
                                     <tr className="bg-gradient-to-r from-blue-900 to-blue-700 text-white print:bg-gray-100 print:text-gray-900">
-                                        {/* ✅ ADDED: SKU column header back */}
                                         <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider print:px-3 print:py-2">SKU</th>
                                         <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider print:px-3 print:py-2">Serial Number</th>
                                         <th className="px-3 sm:px-6 py-3 sm:py-4 text-left text-[10px] sm:text-xs font-semibold uppercase tracking-wider print:px-3 print:py-2">Reference No</th>
@@ -540,7 +542,6 @@ const ReportOrder = ({ onBack, onSave }) => {
                                     {filteredReports.length > 0 ? (
                                         filteredReports.map((item) => (
                                             <tr key={item.id} className="hover:bg-blue-50/50 transition-colors print:hover:bg-transparent">
-                                                {/* ✅ ADDED: SKU data cell back */}
                                                 <td className="px-3 sm:px-6 py-3 sm:py-4 font-semibold text-blue-900 text-sm sm:text-base print:text-gray-900 print:px-3 print:py-2 print:text-xs">{item.sku}</td>
                                                 <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-600 text-sm sm:text-base print:text-gray-700 print:px-3 print:py-2 print:text-xs">{item.serialNumber}</td>
                                                 <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-600 text-sm sm:text-base print:text-gray-700 print:px-3 print:py-2 print:text-xs">{item.refNo}</td>
@@ -556,7 +557,6 @@ const ReportOrder = ({ onBack, onSave }) => {
                                         ))
                                     ) : (
                                         <tr>
-                                            {/* ✅ UPDATED: Colspan to 7 for all columns including SKU */}
                                             <td colSpan="7" className="px-3 sm:px-6 py-8 sm:py-12 text-center text-slate-500 text-sm sm:text-base">
                                                 {filterType === 'sku' && !selectedSKU 
                                                     ? 'Please select a SKU from the dropdown to view orders'
@@ -601,7 +601,7 @@ const ReportOrder = ({ onBack, onSave }) => {
                 <span className="text-white text-[10px] sm:text-xs">© 2026 AsiaByte. All rights reserved.</span>
             </footer>
 
-            {/* ✅ PRINT FIX: Professional Print Footer with Page Numbers */}
+            {/* PRINT FIX: Professional Print Footer with Page Numbers */}
             <div className="hidden print:block print-footer">
                 <div className="print-footer-line"></div>
                 <div className="print-footer-content">
@@ -609,237 +609,6 @@ const ReportOrder = ({ onBack, onSave }) => {
                     <span>Page <span className="print-page-number"></span> of <span className="print-total-pages"></span></span>
                 </div>
             </div>
-
-            {/* ✅ UPDATED: Professional Print Styles for Business Report */}
-            <style jsx>{`
-                @media print {
-                    @page {
-                        size: A4;
-                        margin: 1.5cm;
-                    }
-                    
-                    body {
-                        background: white !important;
-                        font-size: 11pt;
-                        line-height: 1.4;
-                        color: #1a1a1a;
-                    }
-                    
-                    /* ===== PRINT-ONLY REPORT HEADER ===== */
-                    .print-report-header {
-                        display: block !important;
-                        margin-bottom: 20px;
-                        border-bottom: 2px solid #1e3a8a;
-                        padding-bottom: 15px;
-                    }
-                    
-                    .print-header-content {
-                        text-align: center;
-                    }
-                    
-                    .print-header-content h1 {
-                        font-size: 18pt;
-                        font-weight: 700;
-                        color: #1e3a8a;
-                        margin: 0 0 5px 0;
-                        letter-spacing: 1px;
-                    }
-                    
-                    .print-header-content h2 {
-                        font-size: 14pt;
-                        font-weight: 600;
-                        color: #374151;
-                        margin: 0 0 12px 0;
-                    }
-                    
-                    .print-header-details {
-                        display: flex;
-                        justify-content: center;
-                        gap: 30px;
-                        font-size: 10pt;
-                        margin-top: 8px;
-                    }
-                    
-                    .print-detail-row {
-                        display: inline-flex;
-                        gap: 6px;
-                    }
-                    
-                    .print-label {
-                        font-weight: 600;
-                        color: #4b5563;
-                    }
-                    
-                    .print-value {
-                        color: #1f2937;
-                    }
-                    
-                    /* ===== PRINT-ONLY SUMMARY SECTION ===== */
-                    .print-summary-section {
-                        display: block !important;
-                        margin-bottom: 20px;
-                    }
-                    
-                    .print-section-title {
-                        font-size: 12pt;
-                        font-weight: 600;
-                        color: #374151;
-                        margin: 0 0 10px 0;
-                        padding-bottom: 5px;
-                        border-bottom: 1px solid #d1d5db;
-                    }
-                    
-                    .print-section-title-container {
-                        display: block !important;
-                        margin-top: 15px;
-                        margin-bottom: 10px;
-                    }
-                    
-                    .print-summary-grid {
-                        display: grid;
-                        grid-template-columns: repeat(3, 1fr);
-                        gap: 15px;
-                        margin-top: 10px;
-                    }
-                    
-                    .print-summary-item {
-                        border: 1px solid #e5e7eb;
-                        padding: 8px 12px;
-                        border-radius: 4px;
-                        background: #f9fafb;
-                    }
-                    
-                    .print-summary-label {
-                        font-size: 9pt;
-                        font-weight: 600;
-                        color: #6b7280;
-                        text-transform: uppercase;
-                        letter-spacing: 0.5px;
-                        margin-bottom: 4px;
-                    }
-                    
-                    .print-summary-value {
-                        font-size: 14pt;
-                        font-weight: 700;
-                        color: #1f2937;
-                    }
-                    
-                    /* ===== PROFESSIONAL TABLE STYLES ===== */
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        font-size: 9pt;
-                        margin-top: 8px;
-                    }
-                    
-                    th {
-                        background: #f3f4f6 !important;
-                        color: #111827 !important;
-                        font-weight: 700 !important;
-                        padding: 6px 8px !important;
-                        border: 1px solid #d1d5db !important;
-                        text-transform: uppercase;
-                        font-size: 8pt;
-                        letter-spacing: 0.5px;
-                    }
-                    
-                    td {
-                        padding: 5px 8px !important;
-                        border: 1px solid #e5e7eb !important;
-                        font-size: 9pt;
-                        color: #374151;
-                    }
-                    
-                    /* Zebra striping for better readability */
-                    tbody tr:nth-child(even) {
-                        background-color: #f9fafb;
-                    }
-                    
-                    /* ===== PRINT FOOTER ===== */
-                    .print-footer {
-                        display: block !important;
-                        position: fixed;
-                        bottom: 0;
-                        left: 0;
-                        right: 0;
-                        margin-bottom: 0.8cm;
-                        font-size: 8pt;
-                        color: #6b7280;
-                    }
-                    
-                    .print-footer-line {
-                        border-top: 1px solid #d1d5db;
-                        margin-bottom: 6px;
-                    }
-                    
-                    .print-footer-content {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                    }
-                    
-                    /* ===== HIDE ALL WEB-ONLY ELEMENTS ===== */
-                    .print\\:hidden {
-                        display: none !important;
-                    }
-                    
-                    /* Remove shadows and gradients */
-                    .shadow-lg, .shadow-xl, .shadow-2xl {
-                        box-shadow: none !important;
-                    }
-                    
-                    .bg-gradient-to-r, .bg-gradient-to-br {
-                        background: transparent !important;
-                    }
-                    
-                    /* Hide status badges - show plain text */
-                    .rounded-full, .bg-green-50, .bg-yellow-50, .bg-blue-50 {
-                        background: transparent !important;
-                        border: none !important;
-                        padding: 0 !important;
-                        font-weight: normal !important;
-                    }
-                    
-                    /* Remove hover effects */
-                    .hover\\:bg-blue-50\\/50:hover {
-                        background: transparent !important;
-                    }
-                    
-                    /* Ensure content doesn't overlap with footer */
-                    .all-main-content {
-                        margin-bottom: 1.5cm;
-                    }
-                    
-                    /* Page break control */
-                    table {
-                        page-break-inside: avoid;
-                    }
-                    
-                    tr {
-                        page-break-inside: avoid;
-                        page-break-after: auto;
-                    }
-                    
-                    /* Keep borders clean */
-                    .border, .border-slate-100, .border-slate-200 {
-                        border-color: #d1d5db !important;
-                    }
-                    
-                    /* Page number counters */
-                    .print-page-number:before {
-                        content: counter(page);
-                    }
-                    
-                    .print-total-pages:before {
-                        content: counter(pages);
-                    }
-                    
-                    /* Keep SKU details section visible in print when applicable */
-                    .print\\:block {
-                        display: block !important;
-                    }
-                }
-            `}</style>
         </div>
     );
 };

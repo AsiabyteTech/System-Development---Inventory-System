@@ -1,6 +1,8 @@
+// ✅ REFACTORED: imports organized
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import './App.css';
+import './styles/animations.css';
 
 const AddEditPackage = () => {
     const navigate = useNavigate();
@@ -8,16 +10,16 @@ const AddEditPackage = () => {
 
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     
-    // ✅ ADDED: auto package ID state
+    // Auto package ID state
     const [packageId, setPackageId] = useState("");
     
-    // ✅ ADDED: state for price input with validation
+    // State for price input with validation
     const [packagePrice, setPackagePrice] = useState("");
     
-    // ✅ ADDED: state for reduction percentage
+    // State for reduction percentage
     const [reduction, setReduction] = useState("");
     
-    // ✅ ADDED: flag to track if price is manually overridden
+    // Flag to track if price is manually overridden
     const [isManualPrice, setIsManualPrice] = useState(false);
 
     const handleDelete = () => {
@@ -26,7 +28,7 @@ const AddEditPackage = () => {
         navigate('/dashboard')
     };
 
-    // ✅ ADDED: auto-generate package ID when component loads
+    // Auto-generate package ID when component loads
     useEffect(() => {
         // In a real application, you would fetch the last ID from your backend
         // For demo purposes, we'll simulate getting the last ID
@@ -49,70 +51,70 @@ const AddEditPackage = () => {
     }, []);
 
     const products = [
-    { id: '1', image: '/Pictures/EZC8C.jpg', sku: 'EZ-C8C-2MP', type: 'CCTV', margin: '8.00', quantity: 7 },
-    { id: '2', image: '/Pictures/C8C5MP.png', sku: 'EZ-C8C-5MP', type: 'CCTV', margin: '8.00', quantity: 2 },
-    { id: '3', image: '/Pictures/Ezviz-H1C front.jpg', sku: 'EZ-H1C', type: 'CCTV', margin: '8.00', quantity: 1 },
-    { id: '4', image: '/Pictures/ez ty1pro.jpg', sku: 'EZ-TY1-PRO', type: 'CCTV', margin: '8.00', quantity: 5 },
-    { id: '5', image: '/Pictures/ez h6cpro.png', sku: 'EZ-H6C-PRO', type: 'CCTV', margin: '8.00', quantity: 2 },
-    { id: '6', image: '/Pictures/H9c.png', sku: 'EZ-H9C-DL', type: 'CCTV', margin: '8.00', quantity: 4 },
-    { id: '7', image: '/Pictures/c6n.jpg', sku: 'EZ-C6N', type: 'CCTV', margin: '14.00', quantity: 1 },
-  ];
+        { id: '1', image: '/Pictures/EZC8C.jpg', sku: 'EZ-C8C-2MP', type: 'CCTV', margin: '8.00', quantity: 7 },
+        { id: '2', image: '/Pictures/C8C5MP.png', sku: 'EZ-C8C-5MP', type: 'CCTV', margin: '8.00', quantity: 2 },
+        { id: '3', image: '/Pictures/Ezviz-H1C front.jpg', sku: 'EZ-H1C', type: 'CCTV', margin: '8.00', quantity: 1 },
+        { id: '4', image: '/Pictures/ez ty1pro.jpg', sku: 'EZ-TY1-PRO', type: 'CCTV', margin: '8.00', quantity: 5 },
+        { id: '5', image: '/Pictures/ez h6cpro.png', sku: 'EZ-H6C-PRO', type: 'CCTV', margin: '8.00', quantity: 2 },
+        { id: '6', image: '/Pictures/H9c.png', sku: 'EZ-H9C-DL', type: 'CCTV', margin: '8.00', quantity: 4 },
+        { id: '7', image: '/Pictures/c6n.jpg', sku: 'EZ-C6N', type: 'CCTV', margin: '14.00', quantity: 1 },
+    ];
 
-  const [quantities, setQuantities] = useState(
-    products.reduce((acc, product) => ({ ...acc, [product.id]: 0}), {} )
-  );
+    const [quantities, setQuantities] = useState(
+        products.reduce((acc, product) => ({ ...acc, [product.id]: 0}), {} )
+    );
 
-  const updateQty = (id,delta) => {
-    setQuantities(prev => {
-        const currentQty = prev[id] || 0;
-        const product = products.find(p => p.id === id);
-        const newQty = currentQty + delta;
+    const updateQty = (id, delta) => {
+        setQuantities(prev => {
+            const currentQty = prev[id] || 0;
+            const product = products.find(p => p.id === id);
+            const newQty = currentQty + delta;
 
-        if (newQty < 0 || newQty > product.quantity) return prev;
+            if (newQty < 0 || newQty > product.quantity) return prev;
 
-        return{ ...prev, [id]: newQty};
-    });
-  };
+            return { ...prev, [id]: newQty };
+        });
+    };
 
-  // ✅ CALC: total margin from selected quantities
-  const totalMargin = products.reduce((sum, item) => {
-    const qty = quantities[item.id] || 0;
-    return sum + (parseFloat(item.margin) * qty);
-  }, 0);
+    // Calculate total margin from selected quantities
+    const totalMargin = products.reduce((sum, item) => {
+        const qty = quantities[item.id] || 0;
+        return sum + (parseFloat(item.margin) * qty);
+    }, 0);
 
-  // ✅ CALC: final price after reduction
-  const reductionValue = (totalMargin * (parseFloat(reduction) || 0)) / 100;
-  const finalPrice = totalMargin - reductionValue;
+    // Calculate final price after reduction
+    const reductionValue = (totalMargin * (parseFloat(reduction) || 0)) / 100;
+    const finalPrice = totalMargin - reductionValue;
 
-  // ✅ AUTO: update package price when margin or reduction changes (unless manually overridden)
-  useEffect(() => {
-    if (!isManualPrice && totalMargin > 0) {
-      setPackagePrice(finalPrice.toFixed(2));
-    } else if (!isManualPrice && totalMargin === 0) {
-      setPackagePrice("");
-    }
-  }, [totalMargin, reduction, isManualPrice]);
+    // Auto update package price when margin or reduction changes (unless manually overridden)
+    useEffect(() => {
+        if (!isManualPrice && totalMargin > 0) {
+            setPackagePrice(finalPrice.toFixed(2));
+        } else if (!isManualPrice && totalMargin === 0) {
+            setPackagePrice("");
+        }
+    }, [totalMargin, reduction, isManualPrice]);
 
-  // ✅ Handle manual price input
-  const handlePriceChange = (e) => {
-    const value = e.target.value
-        .replace(/[^0-9.]/g, '')
-        .replace(/(\..*)\./g, '$1');
-    setPackagePrice(value);
-    setIsManualPrice(true);
-    
-    // If user clears the price, reset auto mode
-    if (value === '') {
-      setIsManualPrice(false);
-    }
-  };
+    // Handle manual price input
+    const handlePriceChange = (e) => {
+        const value = e.target.value
+            .replace(/[^0-9.]/g, '')
+            .replace(/(\..*)\./g, '$1');
+        setPackagePrice(value);
+        setIsManualPrice(true);
+        
+        // If user clears the price, reset auto mode
+        if (value === '') {
+            setIsManualPrice(false);
+        }
+    };
 
-  // ✅ Check if any items are selected
-  const hasSelectedItems = totalMargin > 0;
+    // Check if any items are selected
+    const hasSelectedItems = totalMargin > 0;
 
     return (
         <div className="containersys min-h-screen bg-slate-50">
-            {/* ✅ RESPONSIVE FIX: Top Header Bar - wrap on mobile */}
+            {/* Top Header Bar - wrap on mobile */}
             <div className="top-info-bar bg-gradient-to-r from-blue-900 to-blue-800 text-white text-[10px] sm:text-xs py-2 px-3 sm:px-6 flex flex-wrap justify-between items-center gap-2">
                 <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                     <span>📍</span>
@@ -124,7 +126,7 @@ const AddEditPackage = () => {
                 </div>
             </div>
 
-            {/* ✅ RESPONSIVE FIX: Navigation - responsive padding and logo size */}
+            {/* Navigation - responsive padding and logo size */}
             <header className="headersys bg-white border-b border-slate-200/60 shadow-sm py-2 sm:py-3 px-4 sm:px-6">
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer" onClick={() => navigate('/')}>
@@ -138,7 +140,7 @@ const AddEditPackage = () => {
             </header>
 
             <main className="all-main-content max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
-                {/* ✅ RESPONSIVE FIX: Banner row - responsive padding and layout */}
+                {/* Banner row - responsive padding and layout */}
                 <div className="addedit-banner-row flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
                     <div className="title-banner flex items-center bg-gradient-to-r from-blue-900 to-blue-700 rounded-lg overflow-hidden shadow-lg">
                         <div className="menu-btn p-2 sm:p-3">
@@ -161,7 +163,7 @@ const AddEditPackage = () => {
                     </div>
                 </div>
 
-                {/* ✅ RESPONSIVE FIX: Form Card - responsive padding and grid */}
+                {/* Form Card - responsive padding and grid */}
                 <div className="form-section-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-slate-100 relative overflow-hidden">
                     <div className="watermark-bg absolute inset-0 opacity-5 pointer-events-none">
                         <svg viewBox="0 0 100 60" fill="none" className="w-full h-full text-[#00008B]">
@@ -173,7 +175,7 @@ const AddEditPackage = () => {
                         <div className="space-y-4 sm:space-y-5">
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Package ID</label>
-                                {/* ✅ UPDATED: auto-generated package ID (readonly) */}
+                                {/* Auto-generated package ID (readonly) */}
                                 <input
                                     type="text"
                                     value={packageId}
@@ -188,7 +190,7 @@ const AddEditPackage = () => {
                             </div>
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Price (RM)</label>
-                                {/* ✅ UPDATED: number-only input for price with validation and auto-update */}
+                                {/* Number-only input for price with validation and auto-update */}
                                 <input
                                     type="text"
                                     value={packagePrice}
@@ -203,7 +205,7 @@ const AddEditPackage = () => {
                                 </p>
                             </div>
                             
-                            {/* ✅ ADDED: Reduction Percentage Input */}
+                            {/* Reduction Percentage Input */}
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Reduction (%)</label>
                                 <input
@@ -243,7 +245,7 @@ const AddEditPackage = () => {
                                 <textarea type="text" placeholder="Enter Remarks" className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" rows="3" />
                             </div>
                             
-                            {/* ✅ ADDED: Pricing Summary Card */}
+                            {/* Pricing Summary Card */}
                             {hasSelectedItems && (
                                 <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
                                     <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
@@ -286,7 +288,7 @@ const AddEditPackage = () => {
                     </div>
                 </div>
 
-                {/* ✅ RESPONSIVE FIX: Table with horizontal scroll on mobile */}
+                {/* Table with horizontal scroll on mobile */}
                 <div className="table-wrapper bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden mb-6 sm:mb-8">
                     <div className="overflow-x-auto">
                         <div className="min-w-[700px]">
@@ -305,7 +307,12 @@ const AddEditPackage = () => {
                                     {products.map((item) => (
                                         <tr key={item.id} className="hover:bg-blue-50/50 transition-colors group">
                                             <td className="px-3 sm:px-6 py-3 sm:py-4">
-                                                <img src={item.image} alt="Product" className="w-10 h-10 sm:w-14 sm:h-14 object-cover rounded-lg shadow-sm cursor-pointer hover:scale-110 transition-transform duration-300" onClick={() => setSelectedImage(item.image)} />
+                                                <img 
+                                                    src={item.image} 
+                                                    alt="Product" 
+                                                    className="w-10 h-10 sm:w-14 sm:h-14 object-cover rounded-lg shadow-sm cursor-pointer hover:scale-110 transition-transform duration-300" 
+                                                    onClick={() => setSelectedImage(item.image)} 
+                                                />
                                             </td>
                                             <td className="px-3 sm:px-6 py-3 sm:py-4 font-semibold text-blue-900 text-xs sm:text-sm">{item.sku}</td>
                                             <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-500 text-xs sm:text-sm">{item.type}</td>
@@ -320,14 +327,22 @@ const AddEditPackage = () => {
                                                     <button
                                                         onClick={() => updateQty(item.id, -1)}
                                                         className="qty-btn w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-lg text-blue-900 font-bold hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-sm sm:text-base"
-                                                        disabled={quantities[item.id] === 0}>-</button>
-                                                    <span className="qty-display font-bold text-blue-900 min-w-[20px] sm:min-w-[24px] text-center text-sm sm:text-base">{quantities[item.id] || 0}</span>
+                                                        disabled={quantities[item.id] === 0}
+                                                    >
+                                                        -
+                                                    </button>
+                                                    <span className="qty-display font-bold text-blue-900 min-w-[20px] sm:min-w-[24px] text-center text-sm sm:text-base">
+                                                        {quantities[item.id] || 0}
+                                                    </span>
                                                     <button
                                                         onClick={() => updateQty(item.id, 1)}
                                                         className="qty-btn w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-lg text-blue-900 font-bold hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-sm sm:text-base"
-                                                        disabled={quantities[item.id] >= item.quantity}>+</button>
+                                                        disabled={quantities[item.id] >= item.quantity}
+                                                    >
+                                                        +
+                                                    </button>
                                                 </div>
-                                                {/* ✅ ADDED: Show individual product contribution to margin */}
+                                                {/* Show individual product contribution to margin */}
                                                 {quantities[item.id] > 0 && (
                                                     <div className="text-[10px] text-green-600 mt-1">
                                                         +RM {(parseFloat(item.margin) * quantities[item.id]).toFixed(2)}
@@ -342,7 +357,7 @@ const AddEditPackage = () => {
                     </div>
                 </div>
 
-                {/* ✅ RESPONSIVE FIX: Action Buttons - responsive spacing */}
+                {/* Action Buttons - responsive spacing */}
                 <div className="flex justify-between items-center gap-4">
                     <button 
                         className="flex items-center gap-1 sm:gap-2 text-red-600 hover:text-red-700 px-4 sm:px-6 py-2 sm:py-3 transition-all duration-200 hover:scale-105 font-semibold text-sm sm:text-base"
@@ -364,13 +379,17 @@ const AddEditPackage = () => {
                 </div>
             </main>
 
-            {/* ✅ RESPONSIVE FIX: Image Preview Modal - responsive sizing */}
+            {/* Image Preview Modal - responsive sizing */}
             {selectedImage && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-300"
-                onClick={() => setSelectedImage(null)}>
-                    <div className="relative max-w-[90%] sm:max-w-2xl w-full bg-white rounded-xl p-2 shadow-2xl animate-in zoom-in duration-300">
-                        <button className="absolute -top-8 sm:-top-10 -right-1 sm:-right-2 text-white hover:text-red-400 text-2xl sm:text-3xl font-bold"
-                        onClick={() => setSelectedImage(null)}>&times;</button>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fadeIn duration-300"
+                    onClick={() => setSelectedImage(null)}>
+                    <div className="relative max-w-[90%] sm:max-w-2xl w-full bg-white rounded-xl p-2 shadow-2xl animate-scaleIn duration-300">
+                        <button 
+                            className="absolute -top-8 sm:-top-10 -right-1 sm:-right-2 text-white hover:text-red-400 text-2xl sm:text-3xl font-bold"
+                            onClick={() => setSelectedImage(null)}
+                        >
+                            &times;
+                        </button>
                         <img src={selectedImage} alt="Preview" className="w-full h-auto max-h-[70vh] sm:max-h-[80vh] object-contain rounded-lg" />
                     </div>
                 </div>
@@ -391,10 +410,16 @@ const AddEditPackage = () => {
                                 This action cannot be undone. This will permanently delete this package from the system.
                             </p>
                             <div className="modal-actions flex gap-3">
-                                <button className="btn-cancel flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm" onClick={() => setShowDeleteConfirm(false)}>
+                                <button 
+                                    className="btn-cancel flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm" 
+                                    onClick={() => setShowDeleteConfirm(false)}
+                                >
                                     Cancel
                                 </button>
-                                <button className="btn-confirm-delete flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium shadow-lg shadow-red-500/20 text-sm" onClick={handleDelete}>
+                                <button 
+                                    className="btn-confirm-delete flex-1 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium shadow-lg shadow-red-500/20 text-sm" 
+                                    onClick={handleDelete}
+                                >
                                     Yes, Delete
                                 </button>
                             </div>
@@ -403,7 +428,7 @@ const AddEditPackage = () => {
                 </div>
             )}
 
-            {/* ✅ RESPONSIVE FIX: Footer */}
+            {/* Footer */}
             <footer className="bg-gradient-to-r from-blue-900 to-blue-700 h-8 w-full flex items-center justify-center">
                 <span className="text-white text-[10px] sm:text-xs">© 2026 AsiaByte. All rights reserved.</span>
             </footer>

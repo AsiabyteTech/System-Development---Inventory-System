@@ -1,6 +1,8 @@
+// ✅ REFACTORED: imports organized
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import './App.css';
+import './styles/animations.css';
 
 const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
     const navigate = useNavigate();
@@ -21,10 +23,10 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
         status: 'active'
     });
 
-    // ✅ ADDED: SKU autocomplete state
+    // SKU autocomplete state
     const [showSkuDropdown, setShowSkuDropdown] = useState(false);
     
-    // ✅ ADDED: SKU options from existing product data
+    // SKU options from existing product data
     const skuOptions = [
         "EZ-C8C-2MP",
         "EZ-C8C-5MP",
@@ -38,14 +40,14 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
         "HS-SD-64G"
     ];
 
-    // ✅ ADDED: Filtered SKU options based on user input (startsWith matching)
+    // Filtered SKU options based on user input (startsWith matching)
     const filteredSkuOptions = formData.sku
         ? skuOptions.filter((sku) =>
             sku.toLowerCase().startsWith(formData.sku.toLowerCase())
           )
         : [];
 
-    // ✅ ADDED: Limit to 3 suggestions and make scrollable
+    // Limit to 3 suggestions and make scrollable
     const displaySkuOptions = filteredSkuOptions.slice(0, 3);
 
     useEffect(() => {
@@ -96,20 +98,20 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
         }
     };
 
-    // ✅ UPDATED: Handle SKU input change with autocomplete
+    // Handle SKU input change with autocomplete
     const handleSkuChange = (e) => {
         const value = e.target.value;
         setFormData({ ...formData, sku: value });
         setShowSkuDropdown(true);
     };
 
-    // ✅ ADDED: Handle SKU selection from dropdown
+    // Handle SKU selection from dropdown
     const handleSkuSelect = (selectedSku) => {
         setFormData({ ...formData, sku: selectedSku });
         setShowSkuDropdown(false);
     };
 
-    // ✅ UPDATED: Numbers-only validation for price fields
+    // Numbers-only validation for price fields
     const handlePriceChange = (field, value) => {
         const sanitizedValue = value
             .replace(/[^0-9.]/g, "") // Remove non-numeric characters except decimal
@@ -117,7 +119,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
         setFormData({ ...formData, [field]: sanitizedValue });
     };
 
-    // ✅ ADDED: Handle SKU input blur to close dropdown
+    // Handle SKU input blur to close dropdown
     const handleSkuBlur = () => {
         setTimeout(() => {
             setShowSkuDropdown(false);
@@ -138,12 +140,12 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 overflow-x-hidden">
-            {/* ✅ RESPONSIVE FIX: Modal container with proper width control */}
+            {/* Modal container with proper width control */}
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative animate-fadeIn">
                 
                 <Watermark />
 
-                {/* ✅ RESPONSIVE FIX: Modal Header - responsive padding */}
+                {/* Modal Header - responsive padding */}
                 <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-white">
                     <div className="flex items-center gap-2 sm:gap-3">
                         <div className="bg-blue-800 p-2 sm:p-2.5 rounded-xl shadow-lg">
@@ -170,7 +172,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                     </button>
                 </div>
 
-                {/* ✅ RESPONSIVE FIX: Modal Body - responsive grid that stacks on mobile */}
+                {/* Modal Body - responsive grid that stacks on mobile */}
                 <div className="p-4 sm:p-6 overflow-y-auto">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                         {/* Left Column - Basic Info */}
@@ -186,7 +188,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                 <div className="space-y-3 sm:space-y-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">SKU (Stock Keeping Unit)</label>
-                                        {/* ✅ ADDED: SKU input with autocomplete dropdown */}
+                                        {/* SKU input with autocomplete dropdown */}
                                         <div className="relative">
                                             <input 
                                                 type="text" 
@@ -196,7 +198,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                                 placeholder="e.g., EZ-C8C-2MP" 
                                                 className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
                                             />
-                                            {/* ✅ ADDED: SKU autocomplete dropdown - limited to 3 suggestions, scrollable */}
+                                            {/* SKU autocomplete dropdown - limited to 3 suggestions, scrollable */}
                                             {showSkuDropdown && displaySkuOptions.length > 0 && (
                                                 <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-[120px] overflow-y-auto">
                                                     {displaySkuOptions.map((sku) => (
@@ -277,7 +279,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Vendor Price (RM)</label>
                                         <div className="relative">
                                             <span className="absolute left-3 top-2 sm:top-2.5 text-gray-500 text-sm">RM</span>
-                                            {/* ✅ UPDATED: Numbers-only validation for Vendor Price */}
+                                            {/* Numbers-only validation for Vendor Price */}
                                             <input 
                                                 type="text" 
                                                 value={formData.vendorPrice}
@@ -291,7 +293,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Selling Price (RM)</label>
                                         <div className="relative">
                                             <span className="absolute left-3 top-2 sm:top-2.5 text-gray-500 text-sm">RM</span>
-                                            {/* ✅ UPDATED: Numbers-only validation for Selling Price */}
+                                            {/* Numbers-only validation for Selling Price */}
                                             <input 
                                                 type="text" 
                                                 value={formData.sellingPrice}
@@ -304,7 +306,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Margin (%)</label>
                                         <div className="relative">
-                                            {/* ✅ UPDATED: Numbers-only validation for Margin */}
+                                            {/* Numbers-only validation for Margin */}
                                             <input 
                                                 type="text" 
                                                 value={formData.margin}
@@ -358,7 +360,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                             </div>
                         </div>
 
-                        {/* ✅ RESPONSIVE FIX: Right Column - Image Upload */}
+                        {/* Right Column - Image Upload */}
                         <div className="space-y-4 sm:space-y-5">
                             <div className="bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-200">
                                 <h3 className="text-sm font-semibold text-gray-700 mb-3 sm:mb-4 flex items-center gap-2">
@@ -428,7 +430,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                     </div>
                 </div>
 
-                {/* ✅ RESPONSIVE FIX: Modal Footer - responsive padding and buttons */}
+                {/* Modal Footer - responsive padding and buttons */}
                 <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
                     {mode === 'edit' ? (
                         <button 
@@ -465,7 +467,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                     </div>
                 </div>
 
-                {/* ✅ RESPONSIVE FIX: Delete Confirmation Modal - responsive */}
+                {/* Delete Confirmation Modal - responsive */}
                 {showDeleteConfirm && (
                     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
                         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 sm:p-6 animate-fadeIn">
@@ -498,23 +500,6 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                     </div>
                 )}
             </div>
-
-            {/* Animation styles */}
-            <style jsx>{`
-                @keyframes fadeIn {
-                    from {
-                        opacity: 0;
-                        transform: scale(0.95);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-                }
-                .animate-fadeIn {
-                    animation: fadeIn 0.2s ease-out;
-                }
-            `}</style>
         </div>
     );
 };

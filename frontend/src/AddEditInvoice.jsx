@@ -1,6 +1,8 @@
+// ✅ REFACTORED: imports organized
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
+import './styles/animations.css';
 
 const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
   const navigate = useNavigate();
@@ -26,7 +28,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
   const [currentProductSection, setCurrentProductSection] = useState(null);
   const [barcodeInputValue, setBarcodeInputValue] = useState('');
   
-  // ✅ UI FIX: State for file upload (matching Customer page)
+  // State for file upload (matching Customer page)
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileName, setFileName] = useState('');
 
@@ -84,15 +86,15 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
 
   if (!isOpen) return null;
 
-    const Watermark = () => (
-        <div className="absolute inset-0 pointer-events-none opacity-10 flex items-center justify-center overflow-hidden">
-            <img 
-                src="/Pictures/watermark.png"
-                alt="Watermark"
-                className="w-[450px] h-auto object-contain"
-            />
-        </div>
-    );
+  const Watermark = () => (
+    <div className="absolute inset-0 pointer-events-none opacity-10 flex items-center justify-center overflow-hidden">
+      <img 
+        src="/Pictures/watermark.png"
+        alt="Watermark"
+        className="w-[450px] h-auto object-contain"
+      />
+    </div>
+  );
 
   const handleDelete = () => {
     console.log("Invoice Deleted");
@@ -120,7 +122,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
     setSections(newSections);
   };
 
-  // ✅ FIXED: Proper product update function that updates both display and state
+  // Proper product update function that updates both display and state
   const updateProduct = (sectionIndex, value) => {
     const newSections = [...sections];
     newSections[sectionIndex].product = value;
@@ -129,7 +131,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
     setShowProductDropdown(false);
   };
 
-  // ✅ FIXED: Handle product input change - allows typing, deleting, editing
+  // Handle product input change - allows typing, deleting, editing
   const handleProductInputChange = (sectionIndex, value) => {
     // Update the search text for filtering
     setProductSearchText(value);
@@ -146,7 +148,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
     setSections([...sections, { product: '', serialNumbers: [''] }]);
   };
 
-  // ✅ UI FIX: Handle file upload with validation (matching Customer page style)
+  // Handle file upload with validation (matching Customer page style)
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const maxSize = 5 * 1024 * 1024; // 5MB
@@ -172,7 +174,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
     }
   };
 
-  // ✅ UPDATED: Enhanced barcode detection with continuous scanning
+  // Enhanced barcode detection with continuous scanning
   const handleBarcodeDetected = (barcode) => {
     if (!barcode.trim() || currentSectionIndex === null) return;
 
@@ -220,7 +222,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 overflow-x-hidden">
-      {/* ✅ RESPONSIVE FIX: Modal container with proper width and overflow control */}
+      {/* Modal container with proper width and overflow control */}
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative animate-fadeIn">
         
         <Watermark />
@@ -250,7 +252,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
           </button>
         </div>
         
-        {/* ✅ RESPONSIVE FIX: Modal Body with scroll and proper overflow */}
+        {/* Modal Body with scroll and proper overflow */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6">
           
           {/* Section 1: Basic Information Grid - responsive */}
@@ -381,11 +383,9 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                       <th className="p-3 sm:p-4 text-left font-medium">
                         Purchase Cost (RM)
                       </th>
-
                       <th className="p-3 sm:p-4 text-left font-medium">
                         Additional Cost (RM)
                       </th>
-
                       <th className="p-3 sm:p-4 text-left font-medium">
                         Total Cost (RM)
                       </th>
@@ -399,21 +399,21 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                           placeholder="0.00" 
                           className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
                         />
-                        </td>
+                       </td>
                       <td className="p-3 sm:p-4">
                         <input 
                           type="text" 
                           placeholder="0.00" 
                           className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
                         />
-                        </td>
+                       </td>
                       <td className="p-3 sm:p-4">
                         <input 
                           type="text" 
                           placeholder="0.00" 
                           className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
                         />
-                        </td>
+                       </td>
                     </tr>
                   </tbody>
                 </table>
@@ -432,7 +432,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                 <span className="text-xs font-normal text-gray-500">({section.serialNumbers.length} items)</span>
               </h3>
               
-              {/* ✅ FIXED: Product selection with proper autocomplete that allows typing, deleting, editing */}
+              {/* Product selection with proper autocomplete that allows typing, deleting, editing */}
               <div className="flex flex-col sm:flex-row gap-3 mb-4">
                 <div className="flex-1 relative">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
@@ -488,7 +488,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                         <th className="p-3 sm:p-4 w-12"></th>
                         <th className="p-3 sm:p-4 text-left font-medium text-gray-700">Serial Number</th>
                         <th className="p-3 sm:p-4 w-12"></th>
-                      </tr>
+                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
                       {section.serialNumbers.map((sn, serialIdx) => (
@@ -507,7 +507,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                             ) : (
                               <span className="text-gray-300 text-lg">•</span>
                             )}
-                            </td>
+                           </td>
                           <td className="p-3 sm:p-4">
                             <input 
                               type="text" 
@@ -516,7 +516,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                               value={sn}
                               onChange={(e) => updateSerialNumber(sectionIdx, serialIdx, e.target.value)}
                             />
-                            </td>
+                           </td>
                           <td className="p-3 sm:p-4 text-center">
                             {section.serialNumbers.length > 1 && (
                               <button 
@@ -529,11 +529,11 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                                 </svg>
                               </button>
                             )}
-                            </td>
-                          </tr>
+                           </td>
+                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                   </table>
                 </div>
               </div>
               
@@ -706,22 +706,6 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
           </div>
         )}
       </div>
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.2s ease-out;
-        }
-      `}</style>
     </div>
   );
 };

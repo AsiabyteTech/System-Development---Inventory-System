@@ -2785,3 +2785,59 @@ h3 {
     font-weight: 500;
     color: #0f172a;
 }
+
+/* ✅ REFACTORED: Status badge styles for Order page */
+.status-badge-pending {
+  background-color: #fffbeb;
+  color: #d97706;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-badge-delivery {
+  background-color: #eff6ff;
+  color: #2563eb;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-badge-complete {
+  background-color: #f0fdf4;
+  color: #16a34a;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+}
+
+.status-badge-default {
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Responsive status badges */
+@media (min-width: 640px) {
+  .status-badge-pending,
+  .status-badge-delivery,
+  .status-badge-complete,
+  .status-badge-default {
+    padding: 0.375rem 1rem;
+    font-size: 0.875rem;
+  }
+}

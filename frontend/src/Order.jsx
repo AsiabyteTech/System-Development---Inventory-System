@@ -1,25 +1,23 @@
+// ✅ REFACTORED: imports organized
 import React, { useState } from 'react';
-import Sidebar from './components/Sidebar';
-import {Outlet} from 'react-router';
+import { Outlet } from 'react-router';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
-// ✅ ADDED: role helper import
-import { isAdmin } from "./shared/role";
-// ✅ ADDED: import for file preview modal
-import FilePreviewModal from './components/FilePreviewModal';
+import './styles/animations.css';
 
-const Order = ({ 
-  onBack, 
-  onNavigateToAddOrder,
-  onNavigateToEditOrder
-}) => {
+// ✅ REFACTORED: component imports
+import Sidebar from './components/Sidebar';
+import FilePreviewModal from './components/FilePreviewModal';
+import { isAdmin } from "./shared/role";
+
+const Order = ({}) => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   
-  // ✅ ADDED: state for file preview modal
+  // State for file preview modal
   const [selectedFileOrder, setSelectedFileOrder] = useState(null);
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
 
@@ -162,16 +160,16 @@ const Order = ({
   return (
     <div className="flex min-h-screen bg-slate-50 overflow-x-hidden">
       <Sidebar />
-      {/* ✅ RESPONSIVE FIX: Main content area with proper overflow control */}
+      {/* Main content area with proper overflow control */}
       <div className='flex-1 min-w-0 ml-16 md:ml-64 transition-all duration-300 overflow-x-hidden'>
         <main className="all-main-content w-full max-w-full px-3 sm:px-4 md:px-6 py-4 sm:py-6">
           
-          {/* ✅ RESPONSIVE FIX: Page Title Banner - full width, no overflow */}
+          {/* Page Title Banner */}
           <div className="page-banner flex justify-center items-center mb-4 sm:mb-6 w-full">
             <h2 className="bg-[#00008B] text-white px-6 sm:px-8 md:px-12 py-1.5 sm:py-2 rounded-full text-base sm:text-lg md:text-xl font-bold shadow-md whitespace-nowrap">Order</h2>
           </div>
 
-          {/* ✅ RESPONSIVE FIX: Status Cards - responsive grid */}
+          {/* Status Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 mb-4 sm:mb-6 w-full">
             {/* Pending Card */}
             <div className="group bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden w-full">
@@ -180,7 +178,7 @@ const Order = ({
                   <div className="flex items-center gap-2 sm:gap-3">
                     <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform">
                       <svg className='w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
-                        <path strokeLinecap='round'strokeLinejoin='round' strokeWidth={2} d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <span className='text-[10px] sm:text-[11px] md:text-sm font-medium text-amber-100 uppercase tracking-wider'>PENDING</span>
@@ -237,7 +235,7 @@ const Order = ({
           
           <p className="text-[10px] sm:text-xs text-slate-400 mb-3 sm:mb-4 md:mb-6 font-medium italic">*Current order status</p>
 
-          {/* ✅ RESPONSIVE FIX: Search & Add Section - responsive stack */}
+          {/* Search & Add Section */}
           <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-3 sm:p-4 md:p-6 mb-4 sm:mb-6 border border-slate-100 w-full">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 md:gap-6">
               <div className="w-full md:flex-1">
@@ -283,7 +281,7 @@ const Order = ({
             </div>
           </div>
 
-          {/* ✅ RESPONSIVE FIX: Filter Toolbar - responsive wrapping */}
+          {/* Filter Toolbar */}
           <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3 mb-3 sm:mb-4 md:mb-6 w-full">
             <div className="flex items-center gap-1 sm:gap-2 bg-white rounded-lg shadow-sm border border-slate-200 p-1">
               <button className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors">
@@ -351,7 +349,7 @@ const Order = ({
             </button>
           </div>
 
-          {/* ✅ RESPONSIVE FIX: Order Table - ONLY table may scroll horizontally */}
+          {/* Order Table */}
           <div className="bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden w-full">
             {filteredOrders.length > 0 ? (
               <div className="w-full overflow-x-auto">
@@ -384,7 +382,7 @@ const Order = ({
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                               </svg>
                             </button>
-                            </td>
+                           </td>
                         )}
                         <td className="px-2 sm:px-3 md:px-6 py-2 sm:py-3 md:py-4">
                           <span className="font-semibold text-blue-900 text-xs sm:text-sm md:text-base">{item.trackingNumber}</span>
@@ -418,6 +416,7 @@ const Order = ({
                         </td>
                       </tr>
                     ))}
+                    {/* Empty rows for consistent table height */}
                     {filteredOrders.length > 0 && filteredOrders.length < 5 && 
                       [...Array(5 - filteredOrders.length)].map((_, i) => (
                         <tr key={`empty-${i}`} className="border-b border-slate-50 h-10 sm:h-12 md:h-14">
@@ -436,6 +435,7 @@ const Order = ({
                 </table>
               </div>
             ) : (
+              /* No Results Found State */
               <div className="flex flex-col items-center justify-center py-8 sm:py-12 md:py-20 px-4 w-full">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 bg-slate-100 rounded-full flex items-center justify-center mb-3 sm:mb-4">
                   <svg className='w-6 h-6 sm:w-8 sm:h-8 md:w-10 md:h-10 text-slate-400' fill='none' stroke='currentColor' viewBox='0 0 24 24'>

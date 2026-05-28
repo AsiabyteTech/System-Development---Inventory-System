@@ -1,12 +1,15 @@
+// ✅ REFACTORED: imports organized
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiPrinter } from 'react-icons/fi';
 import './App.css';
+import './styles/animations.css';
+import './styles/print.css';
 
-export const ProductValue = ({ onBack, onSave }) => {
+const ReportProductValue = () => {
     const navigate = useNavigate();
 
-    // ✅ UI MATCH: Filter type state (all, month, year, sku) - matches ReportOrder
+    // Filter type state (all, month, year, sku) - matches ReportOrder
     const [filterType, setFilterType] = useState('month');
     
     // Date filter state - initialize with current month
@@ -15,20 +18,20 @@ export const ProductValue = ({ onBack, onSave }) => {
         return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     });
     
-    // ✅ UI MATCH: Year filter state
+    // Year filter state
     const [selectedYear, setSelectedYear] = useState(() => {
         const now = new Date();
         return now.getFullYear().toString();
     });
     
-    // ✅ UI MATCH: SKU filter state
+    // SKU filter state
     const [selectedSKU, setSelectedSKU] = useState('');
     
-    // ✅ UI MATCH: State for price inputs with numbers-only validation
+    // State for price inputs with numbers-only validation
     const [initialVendorPrice, setInitialVendorPrice] = useState('');
     const [initialSellingPrice, setInitialSellingPrice] = useState('');
 
-    // ✅ UPDATED: Local data for the table with SKU field
+    // Local data for the table with SKU field
     const [stocks] = useState([
         {
             id: '1',
@@ -90,13 +93,13 @@ export const ProductValue = ({ onBack, onSave }) => {
     // Filtered stocks based on selected filter type
     const [filteredStocks, setFilteredStocks] = useState(stocks);
 
-    // ✅ UI MATCH: Unique SKU dropdown options
+    // Unique SKU dropdown options
     const skuOptions = [...new Set(stocks.map((stock) => stock.sku).filter(Boolean))];
 
-    // ✅ UI MATCH: Selected SKU details for display
+    // Selected SKU details for display
     const selectedSKUDetails = selectedSKU ? stocks.find((stock) => stock.sku === selectedSKU) : null;
 
-    // ✅ UI MATCH: Flexible filtering logic based on filter type (matches ReportOrder)
+    // Flexible filtering logic based on filter type (matches ReportOrder)
     useEffect(() => {
         let filtered = [...stocks];
 
@@ -126,7 +129,7 @@ export const ProductValue = ({ onBack, onSave }) => {
     // Calculate total product value based on filtered stocks
     const totalProductValue = filteredStocks.reduce((sum, item) => sum + parseFloat(item.price), 0);
     
-    // ✅ UI MATCH: Format display text based on filter type
+    // Format display text based on filter type
     const getFilterDisplayText = () => {
         switch(filterType) {
             case 'month':
@@ -156,7 +159,7 @@ export const ProductValue = ({ onBack, onSave }) => {
         }
     };
 
-    // ✅ UI MATCH: Get current date for print header
+    // Get current date for print header
     const getCurrentDate = () => {
         const now = new Date();
         return now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -169,7 +172,7 @@ export const ProductValue = ({ onBack, onSave }) => {
 
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col print:bg-white">
-            {/* ✅ UI MATCH: Professional Report Header - appears only in print */}
+            {/* Professional Report Header - appears only in print */}
             <div className="hidden print:block print-report-header">
                 <div className="print-header-content">
                     <h1>AsiaByte P&L Inventory System</h1>
@@ -187,7 +190,7 @@ export const ProductValue = ({ onBack, onSave }) => {
                 </div>
             </div>
 
-            {/* ✅ UI MATCH: Compact Summary Section - appears only in print */}
+            {/* Compact Summary Section - appears only in print */}
             <div className="hidden print:block print-summary-section">
                 <h3 className="print-section-title">Summary</h3>
                 <div className="print-summary-grid">
@@ -206,7 +209,7 @@ export const ProductValue = ({ onBack, onSave }) => {
                 </div>
             </div>
 
-            {/* ✅ UI MATCH: Top Header Bar - wrap on mobile (hidden in print) */}
+            {/* Top Header Bar - wrap on mobile (hidden in print) */}
             <div className="bg-gradient-to-r from-blue-900 to-blue-800 text-white text-[10px] sm:text-xs py-2 px-3 sm:px-6 flex flex-wrap justify-between items-center gap-2 print:hidden">
                 <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                     <svg className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -223,7 +226,7 @@ export const ProductValue = ({ onBack, onSave }) => {
                 </div>
             </div>
 
-            {/* ✅ UI MATCH: Navigation - Modernized (hidden in print) */}
+            {/* Navigation - Modernized (hidden in print) */}
             <header className="bg-white border-b border-slate-200/60 shadow-sm py-2 sm:py-3 px-4 sm:px-6 print:hidden">
                 <div className="flex items-center justify-between max-w-7xl mx-auto">
                     <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer" onClick={() => navigate('/')}>
@@ -237,7 +240,7 @@ export const ProductValue = ({ onBack, onSave }) => {
             </header>
 
             <main className="all-main-content px-3 sm:px-6 py-4 sm:py-6">
-                {/* ✅ UI MATCH: Banner row - responsive padding and gap (hidden in print) */}
+                {/* Banner row - responsive padding and gap (hidden in print) */}
                 <div className="addedit-banner-row flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0 mb-4 sm:mb-6 print:hidden">
                     <div className="title-banner">
                         <button className="menu-btn print:hidden">
@@ -261,7 +264,7 @@ export const ProductValue = ({ onBack, onSave }) => {
                     </div>
                 </div>
 
-                {/* ✅ UI MATCH: Stats Cards Row with dynamic display text (hidden in print) */}
+                {/* Stats Cards Row with dynamic display text (hidden in print) */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 print:hidden">
                     {/* Total Product Value Card */}
                     <div className="group bg-gradient-to-br from-blue-900 to-blue-700 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 overflow-hidden">
@@ -283,7 +286,7 @@ export const ProductValue = ({ onBack, onSave }) => {
                         </div>
                     </div>
 
-                    {/* ✅ UI MATCH: Filter Card with dynamic input based on filter type */}
+                    {/* Filter Card with dynamic input based on filter type */}
                     <div className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 border border-slate-100 overflow-hidden">
                         <div className="p-4 sm:p-6">
                             <div className="flex items-start justify-between mb-3 sm:mb-4">
@@ -329,7 +332,7 @@ export const ProductValue = ({ onBack, onSave }) => {
                                     />
                                 )}
                                 
-                                {/* ✅ UI MATCH: SKU filter as dropdown instead of text input */}
+                                {/* SKU filter as dropdown instead of text input */}
                                 {filterType === 'sku' && (
                                     <select
                                         value={selectedSKU}
@@ -362,7 +365,7 @@ export const ProductValue = ({ onBack, onSave }) => {
                 </div>
                 <p className="text-[10px] sm:text-xs text-slate-400 mb-4 sm:mb-6 font-medium italic print:hidden">*Filter your products by selecting a filter option above</p>
 
-                {/* ✅ UI MATCH: SKU Details Section - Only shows when filter type is 'sku' AND a SKU is selected */}
+                {/* SKU Details Section - Only shows when filter type is 'sku' AND a SKU is selected */}
                 {filterType === 'sku' && selectedSKU && selectedSKUDetails && (
                     <div className="space-y-4 sm:space-y-6 mb-6 sm:mb-8 print:block">
                         {/* SKU Information Card */}
@@ -468,12 +471,12 @@ export const ProductValue = ({ onBack, onSave }) => {
                     </div>
                 )}
 
-                {/* ✅ UI MATCH: Order Details Table Section Title (for print) */}
+                {/* Order Details Table Section Title (for print) */}
                 <div className="hidden print:block print-section-title-container">
                     <h3 className="print-section-title">Product Value Details</h3>
                 </div>
 
-                {/* ✅ UI MATCH: Table with SKU column */}
+                {/* Table with SKU column */}
                 <div className="bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden print:shadow-none print:border print:border-gray-300">
                     <div className="overflow-x-auto">
                         <div className="min-w-[700px]">
@@ -528,7 +531,7 @@ export const ProductValue = ({ onBack, onSave }) => {
                     </div>
                 </div>
 
-                {/* ✅ UI MATCH: Print Button (hidden in print) */}
+                {/* Print Button (hidden in print) */}
                 <div className="flex justify-center mt-6 sm:mt-8 print:hidden">
                     <button
                         onClick={handlePrint}
@@ -540,12 +543,12 @@ export const ProductValue = ({ onBack, onSave }) => {
                 </div>
             </main>
 
-            {/* ✅ UI MATCH: Footer (hidden in print) */}
+            {/* Footer (hidden in print) */}
             <footer className="bg-gradient-to-r from-blue-900 to-blue-700 h-8 w-full print:hidden flex items-center justify-center">
                 <span className="text-white text-[10px] sm:text-xs">© 2026 AsiaByte. All rights reserved.</span>
             </footer>
 
-            {/* ✅ UI MATCH: Professional Print Footer with Page Numbers */}
+            {/* Professional Print Footer with Page Numbers */}
             <div className="hidden print:block print-footer">
                 <div className="print-footer-line"></div>
                 <div className="print-footer-content">
@@ -553,231 +556,8 @@ export const ProductValue = ({ onBack, onSave }) => {
                     <span>Page <span className="print-page-number"></span> of <span className="print-total-pages"></span></span>
                 </div>
             </div>
-
-            {/* ✅ UI MATCH: Professional Print Styles for Business Report */}
-            <style jsx>{`
-                @media print {
-                    @page {
-                        size: A4;
-                        margin: 1.5cm;
-                    }
-                    
-                    body {
-                        background: white !important;
-                        font-size: 11pt;
-                        line-height: 1.4;
-                        color: #1a1a1a;
-                    }
-                    
-                    /* ===== PRINT-ONLY REPORT HEADER ===== */
-                    .print-report-header {
-                        display: block !important;
-                        margin-bottom: 20px;
-                        border-bottom: 2px solid #1e3a8a;
-                        padding-bottom: 15px;
-                    }
-                    
-                    .print-header-content {
-                        text-align: center;
-                    }
-                    
-                    .print-header-content h1 {
-                        font-size: 18pt;
-                        font-weight: 700;
-                        color: #1e3a8a;
-                        margin: 0 0 5px 0;
-                        letter-spacing: 1px;
-                    }
-                    
-                    .print-header-content h2 {
-                        font-size: 14pt;
-                        font-weight: 600;
-                        color: #374151;
-                        margin: 0 0 12px 0;
-                    }
-                    
-                    .print-header-details {
-                        display: flex;
-                        justify-content: center;
-                        gap: 30px;
-                        font-size: 10pt;
-                        margin-top: 8px;
-                    }
-                    
-                    .print-detail-row {
-                        display: inline-flex;
-                        gap: 6px;
-                    }
-                    
-                    .print-label {
-                        font-weight: 600;
-                        color: #4b5563;
-                    }
-                    
-                    .print-value {
-                        color: #1f2937;
-                    }
-                    
-                    /* ===== PRINT-ONLY SUMMARY SECTION ===== */
-                    .print-summary-section {
-                        display: block !important;
-                        margin-bottom: 20px;
-                    }
-                    
-                    .print-section-title {
-                        font-size: 12pt;
-                        font-weight: 600;
-                        color: #374151;
-                        margin: 0 0 10px 0;
-                        padding-bottom: 5px;
-                        border-bottom: 1px solid #d1d5db;
-                    }
-                    
-                    .print-section-title-container {
-                        display: block !important;
-                        margin-top: 15px;
-                        margin-bottom: 10px;
-                    }
-                    
-                    .print-summary-grid {
-                        display: grid;
-                        grid-template-columns: repeat(3, 1fr);
-                        gap: 15px;
-                        margin-top: 10px;
-                    }
-                    
-                    .print-summary-item {
-                        border: 1px solid #e5e7eb;
-                        padding: 8px 12px;
-                        border-radius: 4px;
-                        background: #f9fafb;
-                    }
-                    
-                    .print-summary-label {
-                        font-size: 9pt;
-                        font-weight: 600;
-                        color: #6b7280;
-                        text-transform: uppercase;
-                        letter-spacing: 0.5px;
-                        margin-bottom: 4px;
-                    }
-                    
-                    .print-summary-value {
-                        font-size: 14pt;
-                        font-weight: 700;
-                        color: #1f2937;
-                    }
-                    
-                    /* ===== PROFESSIONAL TABLE STYLES ===== */
-                    table {
-                        width: 100%;
-                        border-collapse: collapse;
-                        font-size: 9pt;
-                        margin-top: 8px;
-                    }
-                    
-                    th {
-                        background: #f3f4f6 !important;
-                        color: #111827 !important;
-                        font-weight: 700 !important;
-                        padding: 6px 8px !important;
-                        border: 1px solid #d1d5db !important;
-                        text-transform: uppercase;
-                        font-size: 8pt;
-                        letter-spacing: 0.5px;
-                    }
-                    
-                    td {
-                        padding: 5px 8px !important;
-                        border: 1px solid #e5e7eb !important;
-                        font-size: 9pt;
-                        color: #374151;
-                    }
-                    
-                    /* Zebra striping for better readability */
-                    tbody tr:nth-child(even) {
-                        background-color: #f9fafb;
-                    }
-                    
-                    /* ===== PRINT FOOTER ===== */
-                    .print-footer {
-                        display: block !important;
-                        position: fixed;
-                        bottom: 0;
-                        left: 0;
-                        right: 0;
-                        margin-bottom: 0.8cm;
-                        font-size: 8pt;
-                        color: #6b7280;
-                    }
-                    
-                    .print-footer-line {
-                        border-top: 1px solid #d1d5db;
-                        margin-bottom: 6px;
-                    }
-                    
-                    .print-footer-content {
-                        display: flex;
-                        justify-content: space-between;
-                        align-items: center;
-                    }
-                    
-                    /* ===== HIDE ALL WEB-ONLY ELEMENTS ===== */
-                    .print\\:hidden {
-                        display: none !important;
-                    }
-                    
-                    /* Remove shadows and gradients */
-                    .shadow-lg, .shadow-xl, .shadow-2xl {
-                        box-shadow: none !important;
-                    }
-                    
-                    .bg-gradient-to-r, .bg-gradient-to-br {
-                        background: transparent !important;
-                    }
-                    
-                    /* Remove hover effects */
-                    .hover\\:bg-blue-50\\/50:hover {
-                        background: transparent !important;
-                    }
-                    
-                    /* Ensure content doesn't overlap with footer */
-                    .all-main-content {
-                        margin-bottom: 1.5cm;
-                    }
-                    
-                    /* Page break control */
-                    table {
-                        page-break-inside: avoid;
-                    }
-                    
-                    tr {
-                        page-break-inside: avoid;
-                        page-break-after: auto;
-                    }
-                    
-                    /* Keep borders clean */
-                    .border, .border-slate-100, .border-slate-200 {
-                        border-color: #d1d5db !important;
-                    }
-                    
-                    /* Page number counters */
-                    .print-page-number:before {
-                        content: counter(page);
-                    }
-                    
-                    .print-total-pages:before {
-                        content: counter(pages);
-                    }
-                    
-                    /* Keep SKU details section visible in print when applicable */
-                    .print\\:block {
-                        display: block !important;
-                    }
-                }
-            `}</style>
         </div>
     );
 };
 
-export default ProductValue;
+export default ReportProductValue;

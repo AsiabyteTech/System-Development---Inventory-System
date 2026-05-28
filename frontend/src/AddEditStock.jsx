@@ -1,6 +1,8 @@
+// ✅ REFACTORED: imports organized
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import './App.css';
+import './styles/animations.css';
 
 const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
     const navigate = useNavigate();
@@ -13,14 +15,12 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
         refNo: '',
         stockDate: '',
         trackingNumber: '',
-        //status: '',
         promo: '',
         package: '',
         customerName: '',
-        //remark: ''
     });
 
-    // ✅ ADDED: Check for pending stock data from localStorage (passed from Customer)
+    // Check for pending stock data from localStorage (passed from Customer)
     useEffect(() => {
         const pendingStockData = localStorage.getItem('pendingStockData');
         if (pendingStockData) {
@@ -39,7 +39,7 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
         }
     }, []);
 
-    // ✅ ADDED: Also check for direct location state (if navigated directly)
+    // Also check for direct location state (if navigated directly)
     useEffect(() => {
         if (location.state) {
             console.log('✅ Received stock data from location state:', location.state);
@@ -63,12 +63,8 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                     serialNumber: '',
                     refNo: 'PO-001',
                     stockDate: '',
-                    //trackingNumber: '', // Keep existing if any
-                    //status: '',
                     promo: '',
                     package: '',
-                    //customerName: '', // Keep existing if any
-                    //remark: ''
                 }));
             }
         }
@@ -95,12 +91,12 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 overflow-x-hidden">
-            {/* ✅ RESPONSIVE FIX: Modal container with proper width control */}
+            {/* Modal container with proper width control */}
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative animate-fadeIn">
                 
                 <Watermark />
 
-                {/* ✅ RESPONSIVE FIX: Modal Header - responsive padding */}
+                {/* Modal Header - responsive padding */}
                 <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-white">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <div className="bg-blue-800 p-2 sm:p-2.5 rounded-xl shadow-lg flex-shrink-0">
@@ -127,7 +123,7 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                     </button>
                 </div>
 
-                {/* ✅ RESPONSIVE FIX: Modal Body - responsive grid that stacks on mobile */}
+                {/* Modal Body - responsive grid that stacks on mobile */}
                 <div className="p-4 sm:p-6 overflow-y-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                         {/* Left Column */}
@@ -239,7 +235,7 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                 </div>
                             </div>
 
-                            {/* Section 4: Customer Information - ✅ Auto-filled from Customer page */}
+                            {/* Section 4: Customer Information - Auto-filled from Customer page */}
                             <div className="bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-200">
                                 <h3 className="text-sm font-semibold text-gray-700 mb-3 sm:mb-4 flex items-center gap-2">
                                     <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -301,7 +297,7 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
 
                 {/* Modal Footer - Buttons removed (preserved as original) */}
 
-                {/* ✅ RESPONSIVE FIX: Delete Confirmation Modal - responsive */}
+                {/* Delete Confirmation Modal - responsive */}
                 {showDeleteConfirm && (
                     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
                         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 sm:p-6 animate-fadeIn">
@@ -334,23 +330,6 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                     </div>
                 )}
             </div>
-
-            {/* Animation styles */}
-            <style jsx>{`
-                @keyframes fadeIn {
-                    from {
-                        opacity: 0;
-                        transform: scale(0.95);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-                }
-                .animate-fadeIn {
-                    animation: fadeIn 0.2s ease-out;
-                }
-            `}</style>
         </div>
     );
 };

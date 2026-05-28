@@ -1,28 +1,26 @@
+// ✅ REFACTORED: imports organized
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import './App.css';
+import './styles/animations.css';
 
-const Customer = ({
-    onBack, 
-    onSave,
-    onNavigateToEditCustomer
-}) => {
+const Customer = ({}) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    // ✅ ADDED: State for file upload
+    // State for file upload
     const [selectedFile, setSelectedFile] = useState(null);
     const [fileName, setFileName] = useState('');
     
-    // ✅ ADDED: Check if we're editing an order from Order page
+    // Check if we're editing an order from Order page
     const editOrderData = location.state?.editOrderData;
     const isEditingOrder = !!editOrderData;
     
-    // ✅ ADDED: Receive cart data from Inventory page
+    // Receive cart data from Inventory page
     const incomingItems = location.state?.orderItems || [];
     const incomingTracking = location.state?.trackingNumber || '';
     
-    // ✅ ADDED: State for customer form data (preloaded from order if editing)
+    // State for customer form data (preloaded from order if editing)
     const [customerFormData, setCustomerFormData] = useState({
         customerName: '',
         phoneNumber: '',
@@ -33,7 +31,7 @@ const Customer = ({
         purchaseDate: '',
     });
     
-    // ✅ ADDED: State for order-specific data
+    // State for order-specific data
     const [orderData, setOrderData] = useState({
         trackingNumber: '',
         marginTotal: '',
@@ -44,7 +42,7 @@ const Customer = ({
         orderItems: []
     });
     
-    // ✅ ADDED: Preload data when editing an order
+    // Preload data when editing an order
     useEffect(() => {
         if (isEditingOrder && editOrderData) {
             // Preload customer form data
@@ -71,7 +69,7 @@ const Customer = ({
         }
     }, [isEditingOrder, editOrderData]);
     
-    // ✅ ADDED: Update orderData when data comes from Inventory page
+    // Update orderData when data comes from Inventory page
     useEffect(() => {
         if (incomingItems.length > 0) {
             setOrderData(prev => ({
@@ -89,9 +87,7 @@ const Customer = ({
         navigate('/order');
     };
 
-    const [SKUs, setSKUs] = useState(['']);
-
-    // ✅ ADDED: Handle file upload
+    // Handle file upload
     const handleFileUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -101,7 +97,7 @@ const Customer = ({
         }
     };
     
-    // ✅ ADDED: Handle save (could save customer + order together)
+    // Handle save (could save customer + order together)
     const handleSave = () => {
         console.log("Saving customer/order:", { customerFormData, orderData });
         if (isEditingOrder) {
@@ -112,7 +108,7 @@ const Customer = ({
         navigate('/order');
     };
     
-    // ✅ ADDED: Function to handle navigation to AddEditStock with data
+    // Function to handle navigation to AddEditStock with data
     const handleOpenStock = () => {
         // Prepare data for AddEditStock
         const stockData = {
@@ -139,10 +135,10 @@ const Customer = ({
             { id: '3', sku: 'EZ-H1C', type: 'CCTV', quantity: 1, total: '40.00'},
           ];
 
-    // ✅ ADDED: Calculate grand total from orders array (auto-updates when orders change)
+    // Calculate grand total from orders array (auto-updates when orders change)
     const grandTotal = orders.reduce((sum, item) => sum + parseFloat(item.total), 0);
 
-    // ✅ ADDED: Function to handle inventory navigation with tracking number
+    // Function to handle inventory navigation with tracking number
     const handleInventoryNavigation = () => {
         navigate('/inventory', {
             state: {
@@ -153,7 +149,7 @@ const Customer = ({
 
     return (
         <div className="containersys min-h-screen bg-slate-50 overflow-x-hidden">
-            {/* ✅ RESPONSIVE FIX: Top Header Bar - wrap on mobile */}
+            {/* Top Header Bar - wrap on mobile */}
             <div className="top-info-bar bg-gradient-to-r from-blue-900 to-blue-800 text-white text-[10px] sm:text-xs py-2 px-3 sm:px-6 flex flex-wrap justify-between items-center gap-2">
                 <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                     <span>📍</span>
@@ -165,7 +161,7 @@ const Customer = ({
                 </div>
             </div>
 
-            {/* ✅ RESPONSIVE FIX: Navigation - responsive padding and logo size */}
+            {/* Navigation - responsive padding and logo size */}
             <header className="headersys bg-white border-b border-slate-200/60 shadow-sm py-2 sm:py-3 px-4 sm:px-6">
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer" onClick={() => navigate('/')}>
@@ -180,7 +176,7 @@ const Customer = ({
 
             <main className="all-main-content w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6">
 
-                {/* ✅ RESPONSIVE FIX: Top Bar Info - responsive layout */}
+                {/* Top Bar Info - responsive layout */}
                 <div className="addedit-banner-row flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
                     <div className="title-banner flex items-center bg-gradient-to-r from-blue-900 to-blue-700 rounded-lg overflow-hidden shadow-lg">
                         <button className="menu-btn p-2 sm:p-3">
@@ -204,7 +200,7 @@ const Customer = ({
                     </div>
                 </div>
 
-                {/* ✅ RESPONSIVE FIX: Form Card - responsive grid */}
+                {/* Form Card - responsive grid */}
                 <div className="form-section-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-slate-100 relative overflow-hidden w-full">
                     <div className="form-grid grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 relative z-10">
                         <div className="space-y-4 sm:space-y-5">
@@ -220,7 +216,7 @@ const Customer = ({
                             </div>
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Phone Number</label>
-                                {/* ✅ UPDATED: phone number validation - numbers only, max 12 digits */}
+                                {/* Phone number validation - numbers only, max 12 digits */}
                                 <input 
                                     type="text" 
                                     placeholder="e.g., 60123456789" 
@@ -350,7 +346,7 @@ const Customer = ({
                     </div>
                 </div>
 
-                {/* ✅ RESPONSIVE FIX: Tracking Number Section - responsive */}
+                {/* Tracking Number Section - responsive */}
                 <div className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-6 mb-4 sm:mb-6 border border-slate-100 w-full">
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
                         <div className="w-full lg:w-2/3">
@@ -378,7 +374,7 @@ const Customer = ({
                                         />
                                     </svg>
                                 </div>
-                                {/* ✅ UPDATED: Pass tracking number to Inventory page */}
+                                {/* Pass tracking number to Inventory page */}
                                 <button
                                     onClick={handleInventoryNavigation}
                                     className="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 flex items-center justify-center self-start sm:self-auto"
@@ -394,7 +390,7 @@ const Customer = ({
                     </div>
                 </div>
 
-                {/* ✅ RESPONSIVE FIX: Order Table - ONLY table may scroll horizontally */}
+                {/* Order Table - ONLY table may scroll horizontally */}
                 <div className="bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden mb-6 sm:mb-8 w-full">
                     <div className="w-full overflow-x-auto">
                         <div className="min-w-[500px]">
@@ -421,7 +417,7 @@ const Customer = ({
                         </div>
                     </div>
                     
-                    {/* ✅ RESPONSIVE FIX: Grand Total Summary - auto-updates */}
+                    {/* Grand Total Summary - auto-updates */}
                     <div className="border-t border-slate-200 bg-gradient-to-r from-slate-50 to-white px-4 sm:px-6 py-3 sm:py-4">
                         <div className="flex flex-col sm:flex-row justify-end items-end sm:items-center gap-3 sm:gap-6">
                             <div className="text-right">
@@ -434,7 +430,7 @@ const Customer = ({
                     </div>
                 </div>
 
-                {/* ✅ RESPONSIVE FIX: Remark section - responsive */}
+                {/* Remark section - responsive */}
                 <div className="bg-white rounded-xl shadow-lg border border-slate-100 p-4 sm:p-6 mb-6 sm:mb-8 w-full">
                     <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Remark</label>
                     <textarea 
@@ -447,7 +443,7 @@ const Customer = ({
                     <p className="text-[10px] sm:text-xs text-slate-400 mt-2">*Additional notes or special instructions for this customer order</p>
                 </div>
 
-                {/* ✅ RESPONSIVE FIX: Action Buttons - responsive */}
+                {/* Action Buttons - responsive */}
                 <div className="flex justify-between items-center gap-4 w-full">
                     <div className="flex gap-2">
                         <button 
@@ -459,7 +455,7 @@ const Customer = ({
                             </svg>
                             <span className="text-sm font-medium"></span>
                         </button>
-                        {/* ✅ ADDED: Stock button to pass data to AddEditStock */}
+                        {/* Stock button to pass data to AddEditStock */}
                         <button 
                             onClick={handleOpenStock}
                             className="flex items-center gap-1 sm:gap-2 text-blue-600 hover:text-blue-700 px-4 sm:px-6 py-2 sm:py-3 transition-all duration-200 hover:scale-105 font-semibold text-sm sm:text-base"
@@ -485,7 +481,7 @@ const Customer = ({
                 </div>
             </main>
 
-            {/* ✅ RESPONSIVE FIX: Delete Confirmation Modal - responsive */}
+            {/* Delete Confirmation Modal - responsive */}
             {showDeleteConfirm && (
                 <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="modal-container bg-white rounded-xl p-5 sm:p-6 max-w-md w-full mx-4 shadow-2xl">
@@ -512,7 +508,7 @@ const Customer = ({
                 </div>
             )}
 
-            {/* ✅ RESPONSIVE FIX: Footer */}
+            {/* Footer */}
             <footer className="bg-gradient-to-r from-blue-900 to-blue-700 h-8 w-full flex items-center justify-center">
                 <span className="text-white text-[10px] sm:text-xs">© 2026 AsiaByte. All rights reserved.</span>
             </footer>

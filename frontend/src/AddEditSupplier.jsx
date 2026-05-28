@@ -1,5 +1,7 @@
+// ✅ REFACTORED: imports organized
 import React, { useState, useEffect } from 'react';
 import './App.css';
+import './styles/animations.css';
 
 const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
   const [formData, setFormData] = useState({ id: '', name: '', address: '', pic: '', phone: '', logo: '' });
@@ -18,7 +20,7 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
         setFormData(supplier);
         setImagePreview(supplier.logo || null);
       } else {
-        // ✅ ADDED: auto supplier ID generation (SUP001 format) for ADD mode only
+        // Auto supplier ID generation (SUP001 format) for ADD mode only
         const getLastSupplierId = () => {
           const lastId = localStorage.getItem("lastSupplierId");
           return lastId ? parseInt(lastId) + 1 : 1;
@@ -57,24 +59,24 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
 
   if (!isOpen) return null;
 
-      const Watermark = () => (
-        <div className="absolute inset-0 pointer-events-none opacity-10 flex items-center justify-center overflow-hidden">
-          <img 
-            src="/Pictures/watermark.png"
-            alt="Watermark"
-            className="w-[450px] h-auto object-contain"
-          />
-        </div>
-      );
+  const Watermark = () => (
+    <div className="absolute inset-0 pointer-events-none opacity-10 flex items-center justify-center overflow-hidden">
+      <img 
+        src="/Pictures/watermark.png"
+        alt="Watermark"
+        className="w-[450px] h-auto object-contain"
+      />
+    </div>
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 overflow-x-hidden">
-      {/* ✅ RESPONSIVE FIX: Modal container with proper width control */}
+      {/* Modal container with proper width control */}
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col relative overflow-hidden animate-fadeIn">
         
         <Watermark />
 
-        {/* ✅ RESPONSIVE FIX: Modal Header - responsive padding */}
+        {/* Modal Header - responsive padding */}
         <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-white">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="bg-blue-800 p-2 sm:p-2.5 rounded-xl shadow-lg flex-shrink-0">
@@ -101,7 +103,7 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
           </button>
         </div>
 
-        {/* ✅ RESPONSIVE FIX: Modal Body - responsive grid that stacks on mobile */}
+        {/* Modal Body - responsive grid that stacks on mobile */}
         <div className="p-4 sm:p-6 overflow-y-auto">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* Left Column - Main Info */}
@@ -116,8 +118,7 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
                 <div className="space-y-3 sm:space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Supplier ID</label>
-                    {/* ✅ UPDATED: Supplier ID is now read-only (auto-generated) */}
-                    {/* ✅ UI FIX: removed default black outline */}
+                    {/* Supplier ID is now read-only (auto-generated) */}
                     <input 
                       type="text" 
                       value={formData.id} 
@@ -128,7 +129,6 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Supplier Name</label>
-                    {/* ✅ UI FIX: removed default black outline */}
                     <input 
                       type="text" 
                       value={formData.name}
@@ -139,7 +139,6 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Supplier Address</label>
-                    {/* ✅ UI FIX: removed default black outline */}
                     <textarea 
                       value={formData.address}
                       onChange={(e) => setFormData({...formData, address: e.target.value})} 
@@ -161,7 +160,6 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
                 <div className="space-y-3 sm:space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Person In Charge</label>
-                    {/* ✅ UI FIX: removed default black outline */}
                     <input 
                       type="text" 
                       value={formData.pic}
@@ -172,7 +170,6 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                    {/* ✅ UI FIX: removed default black outline */}
                     <input 
                       type="text" 
                       value={formData.phone}
@@ -199,7 +196,7 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
                   Company Logo
                 </h3>
                 
-                {/* ✅ RESPONSIVE FIX: Image Upload Area - responsive sizing */}
+                {/* Image Upload Area - responsive sizing */}
                 <div className="flex flex-col items-center">
                   <div className="relative group">
                     <div className={`w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-2xl border-3 border-dashed transition-all duration-300 overflow-hidden
@@ -259,7 +256,7 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
           </div>
         </div>
 
-        {/* ✅ RESPONSIVE FIX: Modal Footer - responsive padding and buttons */}
+        {/* Modal Footer - responsive padding and buttons */}
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
           {mode === 'edit' ? (
             <button 
@@ -296,7 +293,7 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
           </div>
         </div>
 
-        {/* ✅ RESPONSIVE FIX: Delete Confirmation Modal - responsive */}
+        {/* Delete Confirmation Modal - responsive */}
         {showDeleteConfirm && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 sm:p-6 animate-fadeIn">
@@ -329,23 +326,6 @@ const AddEditSupplier = ({isOpen, onClose, supplier, mode}) => {
           </div>
         )}
       </div>
-
-      {/* Add animation keyframes to your CSS */}
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        .animate-fadeIn {
-          animation: fadeIn 0.2s ease-out;
-        }
-      `}</style>
     </div>
   );
 };
