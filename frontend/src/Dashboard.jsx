@@ -1,12 +1,17 @@
+// ✅ REFACTORED: imports organized
 import React, { useState } from "react";
-import Sidebar from "./components/Sidebar";
 import { Outlet } from "react-router";
 import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { FiFileText, FiPackage, FiGift, FiPlus, FiEdit2 } from 'react-icons/fi';
 import { BsBoxSeam, BsGraphUp, BsCurrencyDollar } from 'react-icons/bs';
-// ✅ ADDED: role-based condition import
+
+// ✅ REFACTORED: component imports
+import Sidebar from "./components/Sidebar";
 import { isAdmin } from "./shared/role";
+
+// ✅ REFACTORED: CSS imports
+import "./App.css";
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -41,7 +46,7 @@ const Dashboard = () => {
 
     // Generate random stock levels and statuses for products
     const generateRandomStock = () => {
-        const randomLevel = Math.floor(Math.random() * 6); // 0-5
+        const randomLevel = Math.floor(Math.random() * 6);
         let status;
         if (randomLevel >= 4) status = "Good";
         else if (randomLevel >= 2) status = "Low";
@@ -121,91 +126,91 @@ const Dashboard = () => {
             <Sidebar />
             <div className="flex-1 ml-16 md:ml-64 transition-all duration-300">
                 <main className="all-main-content">
-                     {/* Page Title Banner */}
-                    <div className="page-banner flex justify-center items-center mb-8">
-                        <h2 className="bg-[#00008B] text-white px-12 py-2 rounded-full text-xl font-bold shadow-md">Dashboard</h2>
+                    {/* Page Title Banner */}
+                    <div className="page-banner flex justify-center items-center mb-6 sm:mb-8">
+                        <h2 className="bg-[#00008B] text-white px-8 sm:px-12 py-1.5 sm:py-2 rounded-full text-lg sm:text-xl font-bold shadow-md">Dashboard</h2>
                     </div>
 
                     {/* Stats Cards Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 border border-slate-100 hover:border-blue-200">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                        <div className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-4 sm:p-6 border border-slate-100 hover:border-blue-200">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-slate-500 mb-1">Total Products</p>
-                                    <h3 className="text-3xl font-bold text-slate-800">12</h3>
-                                    <p className="text-xs text-green-600 mt-2">+2.5% from last month</p>
+                                    <p className="text-xs sm:text-sm font-medium text-slate-500 mb-1">Total Products</p>
+                                    <h3 className="text-2xl sm:text-3xl font-bold text-slate-800">12</h3>
+                                    <p className="text-[10px] sm:text-xs text-green-600 mt-1 sm:mt-2">+2.5% from last month</p>
                                 </div>
-                                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <BsBoxSeam className="w-6 h-6 text-blue-600" />
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <BsBoxSeam className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 border border-slate-100 hover:border-blue-200">
+                        <div className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-4 sm:p-6 border border-slate-100 hover:border-blue-200">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-slate-500 mb-1">Total Order</p>
-                                    <h3 className="text-3xl font-bold text-slate-800">8</h3>
-                                    <p className="text-xs text-green-600 mt-2">+5% from last month</p>
+                                    <p className="text-xs sm:text-sm font-medium text-slate-500 mb-1">Total Order</p>
+                                    <h3 className="text-2xl sm:text-3xl font-bold text-slate-800">8</h3>
+                                    <p className="text-[10px] sm:text-xs text-green-600 mt-1 sm:mt-2">+5% from last month</p>
                                 </div>
-                                <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <FiPackage className="w-6 h-6 text-emerald-600" />
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-emerald-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <FiPackage className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600" />
                                 </div>
                             </div>
                         </div>
 
-                        <div className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 border border-slate-100 hover:border-blue-200">
+                        <div className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-4 sm:p-6 border border-slate-100 hover:border-blue-200 sm:col-span-2 lg:col-span-1">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm font-medium text-slate-500 mb-1">Total Product Value</p>
-                                    <h3 className="text-3xl font-bold text-slate-800">RM1000</h3>
-                                    <p className="text-xs text-blue-600 mt-2">Updated this month</p>
+                                    <p className="text-xs sm:text-sm font-medium text-slate-500 mb-1">Total Product Value</p>
+                                    <h3 className="text-2xl sm:text-3xl font-bold text-slate-800">RM1000</h3>
+                                    <p className="text-[10px] sm:text-xs text-blue-600 mt-1 sm:mt-2">Updated this month</p>
                                 </div>
-                                <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <FiGift className="w-6 h-6 text-purple-600" />
+                                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-purple-50 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <FiGift className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Charts Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
                         {/* Order Volume Chart */}
-                        <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 border border-slate-100">
-                            <div className="flex items-center justify-between mb-6">
+                        <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-4 sm:p-6 border border-slate-100">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <BsGraphUp className="w-5 h-5 text-blue-600" />
-                                        <p className="text-sm font-medium text-slate-500">Order Volume</p>
+                                        <BsGraphUp className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
+                                        <p className="text-xs sm:text-sm font-medium text-slate-500">Order Volume</p>
                                     </div>
-                                    <h2 className="text-2xl font-bold text-slate-800">8</h2>
+                                    <h2 className="text-xl sm:text-2xl font-bold text-slate-800">8</h2>
                                 </div>
-                                {/* ✅ ADDED: role-based condition - View Report button visible to all */}
+                                {/* ✅ REFACTORED: standardized button class */}
                                 <button
                                     onClick={() => navigate('/reportorder')}
-                                    className="add-button p-2 hover:bg-slate-100 rounded-full transition-all duration-200 hover:scale-105"
+                                    className="btn-icon btn-icon-primary"
                                     title="View Detailed Report"
                                 >
-                                    <FiFileText className="w-5 h-5 text-white" />
+                                    <FiFileText className="btn-icon-svg" />
                                 </button>
                             </div>
 
-                            <div className="flex items-center gap-4 mb-6">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                                 <div className="flex items-center gap-2">
-                                    <label className="text-sm text-slate-500">Month</label>
+                                    <label className="text-xs sm:text-sm text-slate-500">Month</label>
                                     <input
                                         type="month"
-                                        className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                        className="filter-input"
                                     />
                                 </div>
                             </div>
 
-                            <div style={{ width: '100%', height: 200 }}>
+                            <div style={{ width: '100%', height: 200 }} className="min-w-[200px]">
                                 <ResponsiveContainer>
                                     <BarChart data={data}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                                         <XAxis dataKey="name" tick={false} axisLine={false} />
-                                        <YAxis axisLine={false} tickLine={false} fontSize={12} tick={{ fill: '#64748B' }} />
+                                        <YAxis axisLine={false} tickLine={false} fontSize={10} tick={{ fill: '#64748B' }} />
                                         <Tooltip
                                             cursor={{ fill: '#F1F5F9' }}
                                             contentStyle={{
@@ -213,10 +218,11 @@ const Dashboard = () => {
                                                 border: 'none',
                                                 borderRadius: '8px',
                                                 boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-                                                padding: '8px 12px'
+                                                padding: '6px 10px',
+                                                fontSize: '12px'
                                             }}
                                         />
-                                        <Bar dataKey="orders" radius={[4, 4, 0, 0]} barSize={25}>
+                                        <Bar dataKey="orders" radius={[4, 4, 0, 0]} barSize={20}>
                                             {data.map((entry, index) => (
                                                 <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
                                             ))}
@@ -227,36 +233,36 @@ const Dashboard = () => {
                         </div>
 
                         {/* Total Product Value Chart */}
-                        <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-6 border border-slate-100">
-                            <div className="flex items-center justify-between mb-6">
+                        <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 p-4 sm:p-6 border border-slate-100">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3">
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <BsCurrencyDollar className="w-5 h-5 text-emerald-600" />
-                                        <p className="text-sm font-medium text-slate-500">Total Product Value</p>
+                                        <BsCurrencyDollar className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
+                                        <p className="text-xs sm:text-sm font-medium text-slate-500">Total Product Value</p>
                                     </div>
-                                    <h2 className="text-2xl font-bold text-slate-800">1000</h2>
+                                    <h2 className="text-xl sm:text-2xl font-bold text-slate-800">1000</h2>
                                 </div>
-                                {/* ✅ ADDED: role-based condition - View Report button visible to all */}
+                                {/* ✅ REFACTORED: standardized button class */}
                                 <button
                                     onClick={() => navigate('/reportproductvalue')}
-                                    className="add-button p-2 hover:bg-slate-100 rounded-full transition-all duration-200 hover:scale-105"
+                                    className="btn-icon btn-icon-primary"
                                     title="View Detailed Report"
                                 >
-                                    <FiFileText className="w-5 h-5 text-white" />
+                                    <FiFileText className="btn-icon-svg" />
                                 </button>
                             </div>
 
-                            <div className="flex items-center gap-4 mb-6">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                                 <div className="flex items-center gap-2">
-                                    <label className="text-sm text-slate-500">Month</label>
+                                    <label className="text-xs sm:text-sm text-slate-500">Month</label>
                                     <input
                                         type="month"
-                                        className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                                        className="filter-input"
                                     />
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <label className="text-sm text-slate-500">Type</label>
-                                    <select className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
+                                    <label className="text-xs sm:text-sm text-slate-500">Type</label>
+                                    <select className="filter-select">
                                         <option>All Types</option>
                                         <option>Camera</option>
                                         <option>Storage</option>
@@ -264,16 +270,20 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
-                            <div style={{ width: '100%', height: 300 }}>
+                            <div style={{ width: '100%', height: 250 }} className="min-w-[200px]">
                                 <ResponsiveContainer>
                                     <LineChart data={inventoryData}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                                         <XAxis
                                             dataKey="name"
-                                            fontSize={10}
+                                            fontSize={8}
                                             tick={{ fill: '#64748B' }}
                                             axisLine={false}
                                             tickLine={false}
+                                            interval={0}
+                                            angle={-45}
+                                            textAnchor="end"
+                                            height={50}
                                         />
                                         <YAxis
                                             fontSize={10}
@@ -287,7 +297,8 @@ const Dashboard = () => {
                                                 border: 'none',
                                                 borderRadius: '8px',
                                                 boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
-                                                padding: '8px 12px'
+                                                padding: '6px 10px',
+                                                fontSize: '12px'
                                             }}
                                         />
                                         <Line
@@ -304,193 +315,196 @@ const Dashboard = () => {
                         </div>
                     </div>
 
-                    {/* Tables Grid - Equal Height with Scrollable Tables */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Tables Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                         {/* Left Column - Low Product Items Table */}
-                        <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 overflow-hidden h-[500px] flex flex-col">
-                            <div className="p-6 pb-4 flex-shrink-0">
-                                <div className="flex items-center justify-between mb-4">
+                        <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 overflow-hidden h-auto lg:h-[500px] flex flex-col">
+                            <div className="p-4 sm:p-6 pb-2 sm:pb-4 flex-shrink-0">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2 sm:mb-4">
                                     <div>
-                                        <p className="text-sm font-medium text-slate-500 mb-1">Low Stock Items</p>
-                                        <h2 className="text-2xl font-bold text-slate-800">4</h2>
+                                        <p className="text-xs sm:text-sm font-medium text-slate-500 mb-1">Low Stock Items</p>
+                                        <h2 className="text-xl sm:text-2xl font-bold text-slate-800">4</h2>
                                     </div>
-                                    <span className="px-2 py-1 bg-amber-50 text-amber-600 text-xs font-medium rounded-full">Needs attention</span>
+                                    <span className="badge badge-warning">Needs attention</span>
                                 </div>
                             </div>
-                            <div className="overflow-y-auto flex-1">
-                                <table className="w-full">
-                                    <thead className="sticky top-0 bg-slate-50">
-                                        <tr className="bg-slate-50">
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider"></th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Product</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Stock</th>
-                                            <th className="px-6 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-slate-100">
-                                        {products.map((item) => (
-                                            <tr key={item.id} className="hover:bg-blue-50/50 transition-colors group">
-                                                <td className="px-6 py-3">
-                                                    <div className="w-10 h-10 bg-slate-100 rounded-lg overflow-hidden group-hover:scale-105 transition-transform">
-                                                        {/* ✅ FIXED: Updated image path */}
-                                                        <img src={item.image} alt="Product" className="w-full h-full object-cover" />
-                                                    </div>
-                                                </td>
-                                                <td className="px-6 py-3">
-                                                    <span className="text-sm font-medium text-slate-900">{item.sku}</span>
-                                                </td>
-                                                <td className="px-6 py-3">
-                                                    <span className="text-sm text-slate-600">{item.level}</span>
-                                                </td>
-                                                <td className="px-6 py-3">
-                                                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeClass(item.status)}`}>
-                                                        {item.status}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        {/* Right Column - Stacked Tables */}
-                        <div className="flex flex-col gap-6 h-[500px]">
-                            {/* Package Table */}
-                            <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 overflow-hidden flex-1 flex flex-col">
-                                <div className="p-6 pb-4 flex items-center justify-between flex-shrink-0">
-                                    <div>
-                                        <p className="text-sm font-medium text-slate-500 mb-1">Packages</p>
-                                        <h2 className="text-2xl font-bold text-slate-800">1</h2>
-                                    </div>
-                                    {/* ✅ ADDED: role-based condition - Add Package button only for admin */}
-                                    {isAdmin() && (
-                                        <button
-                                            onClick={() => navigate('/addeditpackage')}
-                                            className="add-button p-2 hover:bg-slate-100 rounded-full transition-all duration-200 hover:scale-105"
-                                            title="Add Package"
-                                        >
-                                            <FiPlus className="w-5 h-5 text-white" />
-                                        </button>
-                                    )}
-                                </div>
-                                <div className="overflow-y-auto flex-1">
-                                    <table className="w-full">
-                                        <thead className="sticky top-0 bg-slate-50">
-                                            <tr className="bg-slate-50">
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Package</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Products</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Qty</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Price</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Dateline</th>
-                                                <th className="px-4 py-3"></th>
+                            <div className="overflow-x-auto flex-1">
+                                <div className="min-w-[500px]">
+                                    <table className="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th className="table-th"></th>
+                                                <th className="table-th">Product</th>
+                                                <th className="table-th">Stock</th>
+                                                <th className="table-th">Status</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100">
-                                            {packages.map((item) => (
-                                                <tr key={item.id} className="hover:bg-blue-50/50 transition-colors">
-                                                    <td className="px-4 py-3">
-                                                        <span className="text-sm font-medium text-slate-900">{item.name}</span>
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <div className="text-sm text-slate-600">
-                                                            {item.product.map((p, i) => (
-                                                                <span key={i} className="block">{p}</span>
-                                                            ))}
+                                        <tbody>
+                                            {products.map((item) => (
+                                                <tr key={item.id} className="table-row-hover">
+                                                    <td className="table-td">
+                                                        <div className="product-image-wrapper">
+                                                            <img src={item.image} alt="Product" className="product-image" />
                                                         </div>
                                                     </td>
-                                                    <td className="px-4 py-3 text-sm text-slate-600">{item.quantity}</td>
-                                                    <td className="px-4 py-3 text-sm font-medium text-slate-900">RM {item.price}</td>
-                                                    <td className="px-4 py-3 text-sm text-slate-600">{item.dateline}</td>
-                                                    {/* ✅ ADDED: role-based condition - Edit button only for admin */}
-                                                    {isAdmin() && (
-                                                        <td className="px-4 py-3">
-                                                            <button
-                                                                onClick={() => navigate(item.id)}
-                                                                className="p-1 hover:bg-slate-200 rounded transition-colors"
-                                                            >
-                                                                <FiEdit2 className="w-4 h-4 text-slate-400 hover:text-blue-600" />
-                                                            </button>
-                                                        </td>
-                                                    )}
-                                                    {/* ✅ ADDED: For staff, show empty column to maintain table structure */}
-                                                    {!isAdmin() && <td className="px-4 py-3"></td>}
+                                                    <td className="table-td">
+                                                        <span className="product-sku">{item.sku}</span>
+                                                    </td>
+                                                    <td className="table-td">
+                                                        <span className="stock-level">{item.level}</span>
+                                                    </td>
+                                                    <td className="table-td">
+                                                        <span className={`badge ${getStatusBadgeClass(item.status)}`}>
+                                                            {item.status}
+                                                        </span>
+                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Promotion Table */}
+                        {/* Right Column - Stacked Tables */}
+                        <div className="flex flex-col gap-4 sm:gap-6 h-auto lg:h-[500px]">
+                            {/* Package Table */}
                             <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 overflow-hidden flex-1 flex flex-col">
-                                <div className="p-6 pb-4 flex items-center justify-between flex-shrink-0">
+                                <div className="p-4 sm:p-6 pb-2 sm:pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
                                     <div>
-                                        <p className="text-sm font-medium text-slate-500 mb-1">Promotions</p>
-                                        <h2 className="text-2xl font-bold text-slate-800">1</h2>
+                                        <p className="text-xs sm:text-sm font-medium text-slate-500 mb-1">Packages</p>
+                                        <h2 className="text-xl sm:text-2xl font-bold text-slate-800">1</h2>
                                     </div>
-                                    {/* ✅ ADDED: role-based condition - Add Promotion button only for admin */}
                                     {isAdmin() && (
+                                        // ✅ REFACTORED: standardized button class
                                         <button
-                                            onClick={() => navigate('/addeditpromo')}
-                                            className="add-button p-2 hover:bg-slate-100 rounded-full transition-all duration-200 hover:scale-105"
-                                            title="Add Promotion"
+                                            onClick={() => navigate('/addeditpackage')}
+                                            className="btn-icon btn-icon-primary"
+                                            title="Add Package"
                                         >
-                                            <FiPlus className="w-5 h-5 text-white" />
+                                            <FiPlus className="btn-icon-svg" />
                                         </button>
                                     )}
                                 </div>
-                                <div className="overflow-y-auto flex-1">
-                                    <table className="w-full">
-                                        <thead className="sticky top-0 bg-slate-50">
-                                            <tr className="bg-slate-50">
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Promo</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Products</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Qty</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Reduction</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Price</th>
-                                                <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">Dateline</th>
-                                                <th className="px-4 py-3"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y divide-slate-100">
-                                            {promos.map((item) => (
-                                                <tr key={item.id} className="hover:bg-blue-50/50 transition-colors">
-                                                    <td className="px-4 py-3">
-                                                        <span className="text-sm font-medium text-slate-900">{item.name}</span>
-                                                    </td>
-                                                    <td className="px-4 py-3">
-                                                        <div className="text-sm text-slate-600">
-                                                            {item.product.map((p, i) => (
-                                                                <span key={i} className="block">{p}</span>
-                                                            ))}
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm text-slate-600">{item.quantity}</td>
-                                                    <td className="px-4 py-3">
-                                                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700">
-                                                            {item.reduct}
-                                                        </span>
-                                                    </td>
-                                                    <td className="px-4 py-3 text-sm font-medium text-slate-900">RM {item.price}</td>
-                                                    <td className="px-4 py-3 text-sm text-slate-600">{item.dateline}</td>
-                                                    {/* ✅ ADDED: role-based condition - Edit button only for admin */}
-                                                    {isAdmin() && (
-                                                        <td className="px-4 py-3">
-                                                            <button
-                                                                onClick={() => navigate(item.id)}
-                                                                className="p-1 hover:bg-slate-200 rounded transition-colors"
-                                                            >
-                                                                <FiEdit2 className="w-4 h-4 text-slate-400 hover:text-blue-600" />
-                                                            </button>
-                                                        </td>
-                                                    )}
-                                                    {/* ✅ ADDED: For staff, show empty column to maintain table structure */}
-                                                    {!isAdmin() && <td className="px-4 py-3"></td>}
+                                <div className="overflow-x-auto flex-1">
+                                    <div className="min-w-[600px]">
+                                        <table className="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th className="table-th">Package</th>
+                                                    <th className="table-th">Products</th>
+                                                    <th className="table-th">Qty</th>
+                                                    <th className="table-th">Price</th>
+                                                    <th className="table-th">Dateline</th>
+                                                    <th className="table-th"></th>
                                                 </tr>
-                                            ))} 
-                                        </tbody>
-                                    </table>
+                                            </thead>
+                                            <tbody>
+                                                {packages.map((item) => (
+                                                    <tr key={item.id} className="table-row-hover">
+                                                        <td className="table-td">
+                                                            <span className="item-name">{item.name}</span>
+                                                        </td>
+                                                        <td className="table-td">
+                                                            <div className="product-list">
+                                                                {item.product.map((p, i) => (
+                                                                    <span key={i} className="product-list-item">{p}</span>
+                                                                ))}
+                                                            </div>
+                                                        </td>
+                                                        <td className="table-td">{item.quantity}</td>
+                                                        <td className="table-td table-price">RM {item.price}</td>
+                                                        <td className="table-td">{item.dateline}</td>
+                                                        {isAdmin() && (
+                                                            <td className="table-td">
+                                                                {/* ✅ REFACTORED: standardized edit button */}
+                                                                <button
+                                                                    onClick={() => navigate(item.id)}
+                                                                    className="btn-icon btn-icon-edit"
+                                                                >
+                                                                    <FiEdit2 className="btn-icon-svg-sm" />
+                                                                </button>
+                                                            </td>
+                                                        )}
+                                                        {!isAdmin() && <td className="table-td"></td>}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Promotion Table */}
+                            <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 overflow-hidden flex-1 flex flex-col">
+                                <div className="p-4 sm:p-6 pb-2 sm:pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
+                                    <div>
+                                        <p className="text-xs sm:text-sm font-medium text-slate-500 mb-1">Promotions</p>
+                                        <h2 className="text-xl sm:text-2xl font-bold text-slate-800">1</h2>
+                                    </div>
+                                    {isAdmin() && (
+                                        // ✅ REFACTORED: standardized button class
+                                        <button
+                                            onClick={() => navigate('/addeditpromo')}
+                                            className="btn-icon btn-icon-primary"
+                                            title="Add Promotion"
+                                        >
+                                            <FiPlus className="btn-icon-svg" />
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="overflow-x-auto flex-1">
+                                    <div className="min-w-[700px]">
+                                        <table className="data-table">
+                                            <thead>
+                                                <tr>
+                                                    <th className="table-th">Promo</th>
+                                                    <th className="table-th">Products</th>
+                                                    <th className="table-th">Qty</th>
+                                                    <th className="table-th">Reduction</th>
+                                                    <th className="table-th">Price</th>
+                                                    <th className="table-th">Dateline</th>
+                                                    <th className="table-th"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {promos.map((item) => (
+                                                    <tr key={item.id} className="table-row-hover">
+                                                        <td className="table-td">
+                                                            <span className="item-name">{item.name}</span>
+                                                        </td>
+                                                        <td className="table-td">
+                                                            <div className="product-list">
+                                                                {item.product.map((p, i) => (
+                                                                    <span key={i} className="product-list-item">{p}</span>
+                                                                ))}
+                                                            </div>
+                                                        </td>
+                                                        <td className="table-td">{item.quantity}</td>
+                                                        <td className="table-td">
+                                                            <span className="badge badge-purple">
+                                                                {item.reduct}
+                                                            </span>
+                                                        </td>
+                                                        <td className="table-td table-price">RM {item.price}</td>
+                                                        <td className="table-td">{item.dateline}</td>
+                                                        {isAdmin() && (
+                                                            <td className="table-td">
+                                                                {/* ✅ REFACTORED: standardized edit button */}
+                                                                <button
+                                                                    onClick={() => navigate(item.id)}
+                                                                    className="btn-icon btn-icon-edit"
+                                                                >
+                                                                    <FiEdit2 className="btn-icon-svg-sm" />
+                                                                </button>
+                                                            </td>
+                                                        )}
+                                                        {!isAdmin() && <td className="table-td"></td>}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>

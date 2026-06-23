@@ -1,4 +1,5 @@
 import './App.css'
+import "./styles/animations.css";
 import React, { useEffect } from 'react'
 import {BrowserRouter, Routes, Route, useLocation, Navigate} from 'react-router-dom'
 import Home from './Home'
