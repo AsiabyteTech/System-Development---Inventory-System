@@ -249,18 +249,11 @@ class StockReserveResponse(BaseModel):
     message: str
 
 
-class StockReleaseRequest(BaseModel):
-    tracking_number: str
-
-
 class StockAdjustRequest(BaseModel):
     serial_number: str
     new_status: str
     remark: Optional[str] = None
 
-
-class StockFulfillRequest(BaseModel):
-    tracking_number: str
 
 
 # ── Package ───────────────────────────────────────────────────────────────────
