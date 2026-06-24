@@ -3,13 +3,13 @@ import apiClient from './client';
 export const suppliersAPI = {
   // List all suppliers
   getAll: async (params = { page: 1, limit: 20, search: '' }) => {
-    const response = await apiClient.get('/supplier', { params });
+    const response = await apiClient.get('/api/v1/supplier', { params });
     return response.data;
   },
   
   // Get single supplier by ID
   getBySupplierID: async (supplierID) => {
-    const response = await apiClient.get(`/supplier/${supplierID}`);
+    const response = await apiClient.get(`/api/v1/supplier/${supplierID}`);
     return response.data;
   },
 
@@ -66,7 +66,7 @@ export const suppliersAPI = {
       formData.append('supplier_image', supplierData.supplier_image);
     }
     
-    const response = await apiClient.post('/supplier', formData, {
+    const response = await apiClient.post('/api/v1/supplier', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
@@ -84,7 +84,7 @@ export const suppliersAPI = {
       formData.append('supplier_image', supplierData.supplier_image);
     }
     
-    const response = await apiClient.put(`/supplier/${supplierID}`, formData, {
+    const response = await apiClient.put(`/api/v1/supplier/${supplierID}`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
@@ -92,7 +92,7 @@ export const suppliersAPI = {
   
   // Delete supplier
   delete: async (supplierID) => {
-    const response = await apiClient.delete(`/supplier/${supplierID}`);
+    const response = await apiClient.delete(`/api/v1/supplier/${supplierID}`);
     return response.data;
   },
   
@@ -101,7 +101,7 @@ export const suppliersAPI = {
     const formData = new FormData();
     formData.append('file', imageFile);
     
-    const response = await apiClient.post(`/supplier/${supplierID}/image`, formData, {
+    const response = await apiClient.post(`/api/v1/supplier/${supplierID}/image`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;

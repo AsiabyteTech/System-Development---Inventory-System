@@ -99,13 +99,36 @@ const Dashboard = () => {
         },
     ];
 
-    const packages = [
-        { id: '1', name: 'Duo Package', product: ['EZ-C8C-2MP', 'EZ-H1C'], quantity: 2, price: '330.00', dateline: '2025-10-26' },
-    ];
+    // ✅ FIXED: Packages data with better structure
+    const [packages, setPackages] = useState([
+        { 
+            id: 'PCK01', 
+            name: 'Duo Package', 
+            products: [
+                { sku: 'EZ-C8C-2MP', quantity: 2 },
+                { sku: 'EZ-H1C', quantity: 1 }
+            ], 
+            totalQuantity: 3,
+            price: '330.00', 
+            dateline: '2025-10-26' 
+        },
+    ]);
 
-    const promos = [
-        { id: '1', name: 'New Year', product: ['EZ-C8C-2MP', 'EZ-H1C'], quantity: 2, reduct: '30%', price: '150.00', dateline: '2025-10-26' },
-    ];
+    // ✅ FIXED: Promotions data with better structure
+    const [promos, setPromos] = useState([
+        { 
+            id: 'PRO01', 
+            name: 'New Year', 
+            products: [
+                { sku: 'EZ-C8C-2MP', quantity: 2 },
+                { sku: 'EZ-H1C', quantity: 1 }
+            ],
+            totalQuantity: 3,
+            reduct: '30%', 
+            price: '150.00', 
+            dateline: '2025-10-26' 
+        },
+    ]);
 
     // Function to get status badge color
     const getStatusBadgeClass = (status) => {
@@ -185,7 +208,6 @@ const Dashboard = () => {
                                     </div>
                                     <h2 className="text-xl sm:text-2xl font-bold text-slate-800">8</h2>
                                 </div>
-                                {/* ✅ REFACTORED: standardized button class */}
                                 <button
                                     onClick={() => navigate('/reportorder')}
                                     className="btn-icon btn-icon-primary"
@@ -242,7 +264,6 @@ const Dashboard = () => {
                                     </div>
                                     <h2 className="text-xl sm:text-2xl font-bold text-slate-800">1000</h2>
                                 </div>
-                                {/* ✅ REFACTORED: standardized button class */}
                                 <button
                                     onClick={() => navigate('/reportproductvalue')}
                                     className="btn-icon btn-icon-primary"
@@ -368,15 +389,14 @@ const Dashboard = () => {
 
                         {/* Right Column - Stacked Tables */}
                         <div className="flex flex-col gap-4 sm:gap-6 h-auto lg:h-[500px]">
-                            {/* Package Table */}
+                            {/* ✅ FIXED: Package Table with better product display */}
                             <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 overflow-hidden flex-1 flex flex-col">
                                 <div className="p-4 sm:p-6 pb-2 sm:pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
                                     <div>
                                         <p className="text-xs sm:text-sm font-medium text-slate-500 mb-1">Packages</p>
-                                        <h2 className="text-xl sm:text-2xl font-bold text-slate-800">1</h2>
+                                        <h2 className="text-xl sm:text-2xl font-bold text-slate-800">{packages.length}</h2>
                                     </div>
                                     {isAdmin() && (
-                                        // ✅ REFACTORED: standardized button class
                                         <button
                                             onClick={() => navigate('/addeditpackage')}
                                             className="btn-icon btn-icon-primary"
@@ -407,20 +427,34 @@ const Dashboard = () => {
                                                         </td>
                                                         <td className="table-td">
                                                             <div className="product-list">
-                                                                {item.product.map((p, i) => (
-                                                                    <span key={i} className="product-list-item">{p}</span>
+                                                                {item.products.map((p, i) => (
+                                                                    <span key={i} className="product-list-item">
+                                                                        {p.sku} × {p.quantity}
+                                                                    </span>
                                                                 ))}
                                                             </div>
                                                         </td>
-                                                        <td className="table-td">{item.quantity}</td>
+                                                        <td className="table-td">{item.totalQuantity}</td>
                                                         <td className="table-td table-price">RM {item.price}</td>
                                                         <td className="table-td">{item.dateline}</td>
                                                         {isAdmin() && (
                                                             <td className="table-td">
-                                                                {/* ✅ REFACTORED: standardized edit button */}
                                                                 <button
-                                                                    onClick={() => navigate(item.id)}
+                                                                    onClick={() => navigate('/addeditpackage', { 
+                                                                        state: { 
+                                                                            mode: 'edit', 
+                                                                            packageData: {
+                                                                                id: item.id,
+                                                                                name: item.name,
+                                                                                products: item.products,
+                                                                                totalQuantity: item.totalQuantity,
+                                                                                price: item.price,
+                                                                                dateline: item.dateline
+                                                                            }
+                                                                        } 
+                                                                    })}
                                                                     className="btn-icon btn-icon-edit"
+                                                                    title="Edit Package"
                                                                 >
                                                                     <FiEdit2 className="btn-icon-svg-sm" />
                                                                 </button>
@@ -435,15 +469,14 @@ const Dashboard = () => {
                                 </div>
                             </div>
 
-                            {/* Promotion Table */}
+                            {/* ✅ FIXED: Promotion Table with better product display */}
                             <div className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 overflow-hidden flex-1 flex flex-col">
                                 <div className="p-4 sm:p-6 pb-2 sm:pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 flex-shrink-0">
                                     <div>
                                         <p className="text-xs sm:text-sm font-medium text-slate-500 mb-1">Promotions</p>
-                                        <h2 className="text-xl sm:text-2xl font-bold text-slate-800">1</h2>
+                                        <h2 className="text-xl sm:text-2xl font-bold text-slate-800">{promos.length}</h2>
                                     </div>
                                     {isAdmin() && (
-                                        // ✅ REFACTORED: standardized button class
                                         <button
                                             onClick={() => navigate('/addeditpromo')}
                                             className="btn-icon btn-icon-primary"
@@ -475,12 +508,14 @@ const Dashboard = () => {
                                                         </td>
                                                         <td className="table-td">
                                                             <div className="product-list">
-                                                                {item.product.map((p, i) => (
-                                                                    <span key={i} className="product-list-item">{p}</span>
+                                                                {item.products.map((p, i) => (
+                                                                    <span key={i} className="product-list-item">
+                                                                        {p.sku} × {p.quantity}
+                                                                    </span>
                                                                 ))}
                                                             </div>
                                                         </td>
-                                                        <td className="table-td">{item.quantity}</td>
+                                                        <td className="table-td">{item.totalQuantity}</td>
                                                         <td className="table-td">
                                                             <span className="badge badge-purple">
                                                                 {item.reduct}
@@ -490,10 +525,23 @@ const Dashboard = () => {
                                                         <td className="table-td">{item.dateline}</td>
                                                         {isAdmin() && (
                                                             <td className="table-td">
-                                                                {/* ✅ REFACTORED: standardized edit button */}
                                                                 <button
-                                                                    onClick={() => navigate(item.id)}
+                                                                    onClick={() => navigate('/addeditpromo', { 
+                                                                        state: { 
+                                                                            mode: 'edit', 
+                                                                            promoData: {
+                                                                                id: item.id,
+                                                                                name: item.name,
+                                                                                products: item.products,
+                                                                                totalQuantity: item.totalQuantity,
+                                                                                reduct: item.reduct,
+                                                                                price: item.price,
+                                                                                dateline: item.dateline
+                                                                            }
+                                                                        } 
+                                                                    })}
                                                                     className="btn-icon btn-icon-edit"
+                                                                    title="Edit Promotion"
                                                                 >
                                                                     <FiEdit2 className="btn-icon-svg-sm" />
                                                                 </button>

@@ -1,110 +1,86 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { AuthContext } from './contexts/AuthContext.jsx'; 
 import { useNavigate } from 'react-router-dom';
 import './App.css';
 
 const Login = () => {
+  //const [data, setData] = useState(null);
+
+  const { login } = useContext(AuthContext); 
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
-  // ✅ UPDATED: Replace email with staffId
-  const [staffId, setStaffId] = useState('');
+  // ✅ UPDATED: Replace email with email
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   
-  // ✅ UPDATED: Role selection is now automatic based on staffId prefix
+  // ✅ UPDATED: Role selection is now automatic based on email prefix
   // Manual role toggle has been removed - role is auto-detected
   
   // Modal state for Privacy Policy and Terms of Service
   const [showPrivacyModal, setShowPrivacyModal] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
 
-  // ✅ ADDED: Helper function to detect role from staff ID
-  const detectRoleFromStaffId = (id) => {
-    if (id.startsWith('AD')) {
-      return 'admin';
-    } else if (id.startsWith('SF')) {
-      return 'staff';
-    }
-    return null;
-  };
-
-  // Handle login with staffId/password and auto role detection
+  // Handle login with email/password and auto role detection
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage('');
     
-    // ✅ UPDATED: Validate staffId and password
-    if (!staffId || !password) {
-      setErrorMessage('Please enter both Staff ID and password.');
+    // 1. UPDATED: Validate email and password
+    if (!email || !password) {
+      setErrorMessage('Please enter both email and password.');
       setIsLoading(false);
       return;
     }
-    
-    // ✅ ADDED: Auto detect role from staff ID
-    const detectedRole = detectRoleFromStaffId(staffId);
-    
-    if (!detectedRole) {
-      setErrorMessage('Invalid Staff ID format. Please contact your administrator for further assistance.');
-      setIsLoading(false);
-      return;
-    }
-    
-    setTimeout(() => {
-      // For demo purposes - in real app, validate against backend
-      if (staffId && password) {
-        // ✅ UPDATED: Store detected role in localStorage
-        localStorage.setItem("role", detectedRole);
-        localStorage.setItem("staffId", staffId); // ✅ UPDATED: Store staffId instead of email
-        localStorage.setItem("loginRole", detectedRole);
-        localStorage.setItem("userRole", detectedRole === 'admin' ? 'Admin' : 'Staff');
-        if (rememberMe) {
-          localStorage.setItem("rememberMe", "true");
-        }
+
+    try {
+      const responseData = await login(email, password);
+      
+      if (responseData?.access_token) {
+        // Get role from backend response, not frontend detection
+        const userRole = responseData.user?.role || localStorage.getItem('role') || 'staff';
+        const detectedRole = userRole.toLowerCase() === 'administrator' ? 'admin' : 'staff';
         
-        console.log(`User logged in as: ${detectedRole} with Staff ID: ${staffId}`);
+        localStorage.setItem("role", detectedRole);
+        localStorage.setItem("email", email);
+        
         navigate('/dashboard');
       } else {
-        // ✅ UPDATED: Error message for invalid credentials
-        setErrorMessage('Invalid Staff ID or password. Please try again.');
-      }
+            throw new Error('Invalid response from server');
+        }
+    } catch (err) {
+      console.error('Login error details:', err);
+        const errorMsg = err.response?.data?.detail || 
+                         err.response?.data?.message || 
+                         err.response?.data?.error?.message ||
+                         err.message ||
+                         'Invalid email or password.';
+        setErrorMessage(errorMsg);
+    } finally {
       setIsLoading(false);
-    }, 1000);
-  };
+    }
+    };
+    
 
   // ✅ UPDATED: Handle Google login with role selection (now uses staff ID format)
   const handleGoogleLogin = () => {
-    setIsLoading(true);
-    setErrorMessage('');
-    
-    // Simulate Google authentication
-    setTimeout(() => {
-      // ✅ UPDATED: For demo, use role from URL param or default to staff
-      // In a real app, you might have a different logic for Google login
-      const urlParams = new URLSearchParams(window.location.search);
-      const roleParam = urlParams.get('role');
-      let detectedRole = 'staff';
-      
-      if (roleParam === 'admin') {
-        detectedRole = 'admin';
-      } else if (roleParam === 'staff') {
-        detectedRole = 'staff';
-      }
-      
-      const fakeStaffId = detectedRole === 'admin' ? 'AD01' : 'SF01';
-      
-      localStorage.setItem("role", detectedRole);
-      localStorage.setItem("staffId", fakeStaffId); // ✅ UPDATED: Store staffId
-      localStorage.setItem("googleLogin", "true");
-      localStorage.setItem("loginRole", detectedRole);
-      localStorage.setItem("userRole", detectedRole === 'admin' ? 'Admin' : 'Staff');
-      
-      console.log(`User logged in via Google as: ${detectedRole} with Staff ID: ${fakeStaffId}`);
-      navigate('/dashboard');
-      setIsLoading(false);
-    }, 1000);
-  };
+        setIsLoading(true);
+        setErrorMessage('');
+        
+        // Google OAuth implementation would go here
+        setTimeout(() => {
+            const fakeemail = 'SF001';
+            localStorage.setItem("token", "mock-google-token");
+            localStorage.setItem("role", "staff");
+            localStorage.setItem("email", fakeemail);
+            localStorage.setItem("googleLogin", "true");
+            navigate('/dashboard');
+            setIsLoading(false);
+        }, 1000);
+    };
 
   // Modal component
   const Modal = ({ isOpen, onClose, title, content }) => {
@@ -389,7 +365,7 @@ const Login = () => {
             <form className="auth-form space-y-5" onSubmit={handleLogin}>
               {/* ✅ UPDATED: Replace Email field with Staff ID field */}
               <div className="input-group">
-                <label htmlFor="staffId" className="block text-sm font-semibold text-slate-700 mb-2">Staff ID</label>
+                <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
                 <div className="input-wrapper relative">
                   <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                     <svg className='w-5 h-5 text-slate-400 flex-shrink-0' viewBox='0 0 24 24' fill='none' stroke='currentColor'>
@@ -398,9 +374,9 @@ const Login = () => {
                   </div>
                   <input 
                     type="text" 
-                    id="staffId" 
-                    value={staffId} 
-                    onChange={(e) => setStaffId(e.target.value.toUpperCase())} 
+                    id="email" 
+                    value={email} 
+                    onChange={(e) => setEmail(e.target.value.toLowerCase())} 
                     className="w-full pl-10 pr-4 py-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition-all duration-200 text-slate-800 placeholder:text-slate-400 text-base" 
                     required 
                   />
@@ -462,39 +438,6 @@ const Login = () => {
               </p>
             </footer>
           </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-          
           
           {/* ✅ RESPONSIVE FIX: Legal links - responsive spacing */}
           <div className="legal-links flex justify-center gap-4 sm:gap-6 mt-6 text-xs sm:text-sm">

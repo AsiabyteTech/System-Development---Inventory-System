@@ -18,8 +18,9 @@ import Dashboard from './Dashboard'
 import AddEditPackage from './AddEditPackage'
 import AddEditPromo from './AddEditPromo'
 import RegisterStaff from './RegisterStaff'
+import { AuthProvider } from './contexts/AuthContext.jsx';  // ✅ Remove .jsx extension (optional)
 
-// ScrollToTop component that scrolls to top on route change
+// ScrollToTop component
 function ScrollToTop() {
   const { pathname } = useLocation();
 
@@ -32,31 +33,31 @@ function ScrollToTop() {
 
 function App() {
   return (
-    <BrowserRouter>
-      <ScrollToTop />
-      <Routes>
-        {/* ✅ FIXED: Redirect root path to login */}
-        <Route path='/' element={<Navigate to="/login" replace />} />
-        {/* ✅ ADDED: Home route for sidebar navigation */}
-        <Route path='/home' element={<Home />} />
-        <Route path='/register' element={<Register />}></Route>
-        <Route path='/login' element={<Login />}></Route>
-        <Route path='/invoice' element={<Invoice />}></Route>
-        <Route path='/product' element={<Product />}></Route>
-        <Route path='/stock' element={<Stock />}></Route>
-        <Route path='/order' element={<Order />}></Route>
-        <Route path='/inventory' element={<Inventory />}></Route>
-        <Route path='/supplier' element={<Supplier />}></Route>
-        <Route path='/customer' element={<Customer />}></Route>
-        <Route path='/reportproductvalue' element={<ProductValue />}></Route>
-        <Route path='/reportorder' element={<ReportOrder />}></Route>
-        <Route path='/dashboard' element={<Dashboard />}></Route>
-        <Route path='/addeditpackage' element={<AddEditPackage />}></Route>
-        <Route path='/addeditpromo' element={<AddEditPromo />}></Route> 
-        <Route path="/registerstaff" element={<RegisterStaff />} />
-      </Routes>
+    <BrowserRouter>                    {/* ✅ Router must be OUTERMOST */}
+      <AuthProvider>                   {/* ✅ AuthProvider INSIDE Router */}
+        <ScrollToTop />
+        <Routes>
+          <Route path='/' element={<Navigate to="/login" replace />} />
+          <Route path='/home' element={<Home />} />
+          <Route path='/register' element={<Register />} />
+          <Route path='/login' element={<Login />} />
+          <Route path='/invoice' element={<Invoice />} />
+          <Route path='/product' element={<Product />} />
+          <Route path='/stock' element={<Stock />} />
+          <Route path='/order' element={<Order />} />
+          <Route path='/inventory' element={<Inventory />} />
+          <Route path='/supplier' element={<Supplier />} />
+          <Route path='/customer' element={<Customer />} />
+          <Route path='/reportproductvalue' element={<ProductValue />} />
+          <Route path='/reportorder' element={<ReportOrder />} />
+          <Route path='/dashboard' element={<Dashboard />} />
+          <Route path='/addeditpackage' element={<AddEditPackage />} />
+          <Route path='/addeditpromo' element={<AddEditPromo />} /> 
+          <Route path="/registerstaff" element={<RegisterStaff />} />
+        </Routes>
+      </AuthProvider>
     </BrowserRouter>
   )
 }
 
-export default App
+export default App;

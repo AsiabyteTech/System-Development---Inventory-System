@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
+import './App.css'
 import "./styles/animations.css";
 import "./styles/modals.css";
 import "./styles/forms.css";

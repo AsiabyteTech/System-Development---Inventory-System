@@ -1,18 +1,20 @@
-// ✅ REFACTORED: imports organized
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import {AuthContext} from './contexts/AuthContext.jsx';
 import './App.css';
-import './styles/animations.css';
-import { isAdmin } from "./shared/role";
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
+  const {register} = useContext(AuthContext);
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
-  // State fields for staff registration
+  // ✅ ADDED: New state fields for staff registration
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [staffId, setStaffId] = useState('');
   
+  // ❌ REMOVED: adminCode state - no longer needed
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -46,7 +48,7 @@ const Register = () => {
     checkPasswordStrength(newPassword);
   };
 
-  // Staff ID validation handler
+  // ✅ Staff ID validation handler
   const handleStaffIdChange = (e) => {
     let value = e.target.value;
     // Remove any special characters, allow only letters and numbers
@@ -57,7 +59,7 @@ const Register = () => {
     }
   };
 
-  // Form submission without admin code validation
+  // ✅ UPDATED: Form submission without admin code validation
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -69,6 +71,7 @@ const Register = () => {
       return;
     }
     
+    // ✅ Updated validation - now includes fullName and staffId
     if (!fullName || !email || !staffId || !password || !confirmPassword) {
       setErrorMessage('Please fill in all required fields.');
       setIsLoading(false);
@@ -95,21 +98,32 @@ const Register = () => {
       return;
     }
     
-    setTimeout(() => {
-      console.log('Staff registration submitted', { fullName, email, staffId, password });
-      
-      localStorage.setItem("role", "staff");
-      localStorage.setItem("userEmail", email);
-      localStorage.setItem("userName", fullName);
-      localStorage.setItem("staffId", staffId);
-      localStorage.setItem("isStaffRegistered", "true");
-      setIsLoading(false);
-      alert('Registration successful! Please login.');
-      window.location.href = '/login';
-    }, 1000);
-  };
+    try {
+        // Use the actual register function from AuthContext
+        await register(fullName, email, staffId, password);
 
-  // Google registration as staff
+        console.log('Registration successful:', response);
+        
+        // Store additional info after successful registration
+        localStorage.setItem("staffId", staffId);
+        localStorage.setItem("userName", fullName);
+        localStorage.setItem("userEmail", email);
+        
+        alert('Registration successful! Please login.');
+        navigate('/login');
+        } catch (err) {
+          console.error('Registration error details:', err);
+          const errorMsg = err.response?.data?.detail || 
+                          err.response?.data?.message ||
+                          err.message || 
+                          'Registration failed. Please try again.';
+          setErrorMessage(errorMsg);
+        } finally {
+        setIsLoading(false);
+        }
+    };
+
+  // ✅ UPDATED: Google registration as staff
   const handleGoogleRegister = () => {
     setIsLoading(true);
     setErrorMessage('');
@@ -128,7 +142,7 @@ const Register = () => {
     }, 1000);
   };
 
-  // Modal component
+  // Modal component (unchanged)
   const Modal = ({ isOpen, onClose, title, content }) => {
     if (!isOpen) return null;
 
@@ -152,6 +166,7 @@ const Register = () => {
     );
   };
 
+  // ✅ UPDATED: Expanded Privacy Policy content
   const privacyPolicyContent = (
     <>
       <div className="space-y-4">
@@ -231,6 +246,7 @@ const Register = () => {
     </>
   );
 
+  // ✅ UPDATED: Expanded Terms of Service content
   const termsContent = (
     <>
       <div className="space-y-4">
@@ -332,7 +348,7 @@ const Register = () => {
 
   return (
     <div className="relative min-h-screen overflow-x-hidden">
-      {/* Background animated orbs */}
+      {/* Background - unchanged */}
       <div className="fixed inset-0 -z-10 bg-gradient-to-br from-slate-900 via-blue-900 to-cyan-800">
         <div className="absolute top-0 -left-40 w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
         <div className="absolute top-0 -right-40 w-96 h-96 bg-cyan-600 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
@@ -343,7 +359,7 @@ const Register = () => {
 
       <main className="auth-container w-full max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 md:py-12 flex flex-col lg:flex-row items-center justify-center min-h-screen relative z-10">
         
-        {/* Left brand section */}
+        {/* Left brand section - unchanged */}
         <div className="brand-section w-full lg:flex-1 mb-8 lg:mb-0 lg:pr-8 xl:pr-16">
           <div className="brand-header mb-6 sm:mb-8 md:mb-10 animate-fade-in-up flex justify-center lg:justify-start">
             <div className="brand-icon-box w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-xl transform transition-all duration-300 hover:scale-105 border border-white/30">
@@ -383,7 +399,7 @@ const Register = () => {
           </div>
         </div>
 
-        {/* Registration Form Section */}
+        {/* ✅ UPDATED: Registration Form Section - Staff registration */}
         <div className="form-section w-full max-w-md lg:max-w-md xl:max-w-lg mx-auto lg:mx-0 animate-fade-in-up animation-delay-400">
           <div className="auth-card bg-white rounded-2xl shadow-2xl hover:shadow-3xl transition-all duration-300 p-6 sm:p-8 relative overflow-hidden">
             <div className="card-accent-bar absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-cyan-600"></div>
@@ -403,7 +419,7 @@ const Register = () => {
 
             <form className="auth-form space-y-5" onSubmit={handleSubmit}>
               
-              {/* Full Name field */}
+              {/* ✅ ADDED: Full Name field */}
               <div className="input-group">
                 <label htmlFor="fullName" className="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
                 <div className="input-wrapper relative">
@@ -438,7 +454,7 @@ const Register = () => {
                 </div>
               </div>
 
-              {/* Staff ID field with validation */}
+              {/* ✅ ADDED: Staff ID field with validation */}
               <div className="input-group">
                 <label htmlFor="staffId" className="block text-sm font-semibold text-slate-700 mb-2">Staff ID</label>
                 <div className="input-wrapper relative">
@@ -584,6 +600,8 @@ const Register = () => {
 
       <Modal isOpen={showPrivacyModal} onClose={() => setShowPrivacyModal(false)} title="Privacy Policy" content={privacyPolicyContent} />
       <Modal isOpen={showTermsModal} onClose={() => setShowTermsModal(false)} title="Terms of Service" content={termsContent} />
+
+      <style>{`@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes scaleIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}@keyframes shake{0%,100%{transform:translateX(0)}10%,30%,50%,70%,90%{transform:translateX(-2px)}20%,40%,60%,80%{transform:translateX(2px)}}@keyframes blob{0%{transform:translate(0px,0px) scale(1)}33%{transform:translate(30px,-50px) scale(1.1)}66%{transform:translate(-20px,20px) scale(0.9)}100%{transform:translate(0px,0px) scale(1)}}@keyframes float{0%{transform:translateY(0px)}50%{transform:translateY(-20px)}100%{transform:translateY(0px)}}.animate-fade-in-up{animation:fadeInUp 0.6s ease-out forwards}.animate-fadeIn{animation:fadeIn 0.2s ease-out}.animate-scaleIn{animation:scaleIn 0.2s ease-out}.animate-shake{animation:shake 0.5s ease-in-out}.animate-blob{animation:blob 7s infinite}.animate-float{animation:float 6s ease-in-out infinite}.animation-delay-200{animation-delay:0.2s;opacity:0;animation-fill-mode:forwards}.animation-delay-400{animation-delay:0.4s;opacity:0;animation-fill-mode:forwards}.animation-delay-1000{animation-delay:1s}.animation-delay-1500{animation-delay:1.5s}.animation-delay-2000{animation-delay:2s}.animation-delay-2500{animation-delay:2.5s}.animation-delay-3000{animation-delay:3s}.animation-delay-4000{animation-delay:4s}`}</style>
     </div>
   );
 };

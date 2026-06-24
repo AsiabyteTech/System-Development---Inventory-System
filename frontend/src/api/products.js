@@ -5,13 +5,13 @@ import apiClient from './client';
 export const productsAPI = {
   // List all products (with pagination)
   getAll: async (params = { page: 1, limit: 20 }) => {
-    const response = await apiClient.get('/product', { params });
+    const response = await apiClient.get('/api/v1/product', { params });
     return response.data;
   },
   
   // Get single product by SKU
   getBySKU: async (sku) => {
-    const response = await apiClient.get(`/product/${sku}`);
+    const response = await apiClient.get(`/api/v1/product/${sku}`);
     return response.data;
   },
   
@@ -26,7 +26,7 @@ export const productsAPI = {
       }
     });
     
-    const response = await apiClient.post('/product', formData, {
+    const response = await apiClient.post('/api/v1/product', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     });
     return response.data;
@@ -34,13 +34,13 @@ export const productsAPI = {
   
   // Update product (Admin only)
   update: async (sku, productData) => {
-    const response = await apiClient.put(`/product/${sku}`, productData);
+    const response = await apiClient.put(`/api/v1/product/${sku}`, productData);
     return response.data;
   },
   
   // Delete product (Admin only)
   delete: async (sku) => {
-    const response = await apiClient.delete(`/product/${sku}`);
+    const response = await apiClient.delete(`/api/v1/product/${sku}`);
     return response.data;
   },
   

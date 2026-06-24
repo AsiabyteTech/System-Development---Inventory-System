@@ -1,5 +1,5 @@
 import apiClient from './client';
-import { INVOICE_ENDPOINTS } from '../constants/apiEndpoints';
+//import { INVOICE_ENDPOINTS } from '../constants/apiEndpoints';
 
 export const invoicesAPI = {
     // ============ INVOICE CRUD ============
@@ -9,16 +9,16 @@ export const invoicesAPI = {
      * @param {Object} params - { page, limit, supplier_id, from_date, to_date }
      */
     getAll: async (params = {}) => {
-        const response = await apiClient.get(INVOICE_ENDPOINTS.BASE, { params });
+        const response = await apiClient.get('/api/v1/invoice', { params });
         return response.data;
     },
 
     /**
      * Get invoice by reference number
-     * @param {string} refNo - Invoice reference number
+     * @param {string} ref_no - Invoice reference number
      */
-    getByRefNo: async (refNo) => {
-        const response = await apiClient.get(`/invoice/${refNo}`);
+    getByref_no: async (ref_no) => {
+        const response = await apiClient.get(`/api/v1/invoice/${ref_no}`);
         return response.data;
     },
 
@@ -43,20 +43,20 @@ export const invoicesAPI = {
             formData.append(`stock[${index}][additional_cost]`, item.additional_cost || 0);
         });
         
-        const response = await apiClient.post(INVOICE_ENDPOINTS.BASE, formData, {
+        const response = await apiClient.post('/api/v1/invoice', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
         
         return response.data;
     },
 
-    update: async (refNo, invoiceData) => {
-        const response = await apiClient.put(`/invoice/${refNo}`, invoiceData);
+    update: async (ref_no, invoiceData) => {
+        const response = await apiClient.put(`/api/v1/invoice/${ref_no}`, invoiceData);
         return response.data;
     },
 
-    delete: async (refNo) => {
-        const response = await apiClient.delete(`/invoice/${refNo}`);
+    delete: async (ref_no) => {
+        const response = await apiClient.delete(`/api/v1/invoice/${ref_no}`);
         return response.data;
     },
 
@@ -67,7 +67,7 @@ export const invoicesAPI = {
      */
     getInvoiceStats: async () => {
         try {
-            const response = await apiClient.get(`${INVOICE_ENDPOINTS.BASE}/stats`);
+            const response = await apiClient.get(`/api/v1/invoice/stats`);
             return {
                 success: true,
                 supplier_count: response.data.supplier_count || 0,
@@ -88,9 +88,9 @@ export const invoicesAPI = {
         }
     },
 
-    getSuppliers: async () => {
+    getSuppliers: async (supplier_id) => {
         try {
-            const response = await apiClient.get(`${INVOICE_ENDPOINTS.BASE}/suppliers`);
+            const response = await apiClient.get(`/api/v1/suppliers/${supplier_id}`);
             return {
                 success: true,
                 suppliers: response.data.suppliers || [],
@@ -117,7 +117,7 @@ export const invoicesAPI = {
      * Get all products for dropdown
      */
     getProducts: async () => {
-        const response = await apiClient.get('/product');
+        const response = await apiClient.get('/api/v1/product');
         return response.data;
     },
 
@@ -125,13 +125,13 @@ export const invoicesAPI = {
      * Get products by SKU (for search/filter)
      */
     getProductsBySKU: async (sku) => {
-        const response = await apiClient.get(`/product/search`, { params: { sku } });
+        const response = await apiClient.get(`/api/v1/product/search`, { params: { sku } });
         return response.data;
     },
 
     // ============ STOCK METHODS ============
-    getInvoiceItems: async (refNo) => {
-        const response = await apiClient.get(INVOICE_ENDPOINTS.GET_ITEMS(refNo));
+    getInvoiceItems: async (ref_no) => {
+        const response = await apiClient.get(INVOICE_ENDPOINTS.GET_ITEMS(ref_no));
         return {
             items: response.data.items || [],
             total_value: response.data.total_value || 0,
@@ -167,8 +167,8 @@ export const invoicesAPI = {
     },
 
     // ============ PURCHASE ORDER MATCHING ============
-    matchPurchaseOrder: async (refNo, receivedItems) => {
-        const response = await apiClient.post(INVOICE_ENDPOINTS.MATCH(refNo), {
+    matchPurchaseOrder: async (ref_no, receivedItems) => {
+        const response = await apiClient.post(INVOICE_ENDPOINTS.MATCH(ref_no), {
             received_items: receivedItems,
         });
         
@@ -180,11 +180,11 @@ export const invoicesAPI = {
         };
     },
 
-    uploadFile: async (refNo, file) => {
+    uploadFile: async (ref_no, file) => {
         const formData = new FormData();
         formData.append('invoice_file', file);
         
-        const response = await apiClient.post(INVOICE_ENDPOINTS.UPLOAD_FILE(refNo), formData, {
+        const response = await apiClient.post(`/api/v1/invoice/${ref_no}/items`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
         });
         

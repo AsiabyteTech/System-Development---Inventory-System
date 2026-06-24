@@ -1,50 +1,33 @@
 // ✅ REFACTORED: imports organized
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import './App.css';
 import './styles/animations.css';
 
 const AddEditPromo = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [selectedImage, setSelectedImage] = useState(null);
-
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    
+    // ✅ Check if we're in edit mode
+    const editMode = location.state?.mode === 'edit';
+    const promoData = location.state?.promoData || null;
     
     // Auto promo ID state (PRO format)
     const [promoId, setPromoId] = useState("");
     
-    // State for price input with validation
+    // Form field states
+    const [promoName, setPromoName] = useState("");
     const [promoPrice, setPromoPrice] = useState("");
-    
-    // State for reduction percentage
+    const [promoDateline, setPromoDateline] = useState("");
+    const [promoRemark, setPromoRemark] = useState("");
     const [reduction, setReduction] = useState("");
-    
-    // Flag to track if price is manually overridden
     const [isManualPrice, setIsManualPrice] = useState(false);
-
-    const handleDelete = () => {
-        console.log("Promotion Deleted");
-        setShowDeleteConfirm(false);
-        navigate('/dashboard')
-    };
-
-    // Auto-generate promo ID when component loads (PRO format)
-    useEffect(() => {
-        const getLastPromoId = () => {
-            const lastId = localStorage.getItem('lastPromoId');
-            if (lastId) {
-                return parseInt(lastId) + 1;
-            }
-            return 1; // Start from 1 if no existing promotions
-        };
-        
-        const newIdNumber = getLastPromoId();
-        const newId = `PRO${String(newIdNumber).padStart(2, '0')}`;
-        setPromoId(newId);
-        
-        // Store the current ID for next time
-        localStorage.setItem('lastPromoId', newIdNumber.toString());
-    }, []);
+    
+    // ✅ NEW: Store selected products with their quantities
+    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [totalQuantity, setTotalQuantity] = useState(0);
 
     const products = [
         { id: '1', image: '/Pictures/EZC8C.jpg', sku: 'EZ-C8C-2MP', type: 'CCTV', margin: '8.00', quantity: 7 },
@@ -56,9 +39,77 @@ const AddEditPromo = () => {
         { id: '7', image: '/Pictures/c6n.jpg', sku: 'EZ-C6N', type: 'CCTV', margin: '14.00', quantity: 1 },
     ];
 
-    const [quantities, setQuantities] = useState(
-        products.reduce((acc, product) => ({ ...acc, [product.id]: 0}), {} )
-    );
+    // ✅ Initialize quantities with zeros
+    const initialQuantities = products.reduce((acc, product) => ({ ...acc, [product.id]: 0}), {});
+
+    const [quantities, setQuantities] = useState(initialQuantities);
+
+    const handleDelete = () => {
+        console.log("Promotion Deleted");
+        setShowDeleteConfirm(false);
+        navigate('/dashboard');
+    };
+
+    // ✅ Load data when in edit mode
+    useEffect(() => {
+        if (editMode && promoData) {
+            console.log('📦 Loading promotion for edit:', promoData);
+            
+            setPromoId(promoData.id || '');
+            setPromoName(promoData.name || '');
+            setPromoPrice(promoData.price || '');
+            setPromoDateline(promoData.dateline || '');
+            
+            if (promoData.reduct) {
+                setReduction(promoData.reduct.replace('%', ''));
+            }
+            if (promoData.remark) {
+                setPromoRemark(promoData.remark);
+            }
+            
+            // ✅ Load products with their quantities
+            if (promoData.products && promoData.products.length > 0) {
+                const newQuantities = { ...initialQuantities };
+                let totalQty = 0;
+                
+                promoData.products.forEach((prod) => {
+                    const product = products.find(p => p.sku === prod.sku);
+                    if (product) {
+                        newQuantities[product.id] = prod.quantity || 1;
+                        totalQty += prod.quantity || 1;
+                    }
+                });
+                
+                setQuantities(newQuantities);
+                setTotalQuantity(totalQty);
+                console.log('✅ Restored quantities:', newQuantities);
+            }
+        } else {
+            // ✅ Reset quantities when not in edit mode
+            setQuantities(initialQuantities);
+            setSelectedProducts([]);
+            setTotalQuantity(0);
+        }
+    }, [editMode, promoData]);
+
+    // Auto-generate promo ID when component loads (only for new promos)
+    useEffect(() => {
+        if (!editMode) {
+            const getLastPromoId = () => {
+                const lastId = localStorage.getItem('lastPromoId');
+                if (lastId) {
+                    return parseInt(lastId) + 1;
+                }
+                return 1;
+            };
+            
+            const newIdNumber = getLastPromoId();
+            const newId = `PRO${String(newIdNumber).padStart(2, '0')}`;
+            setPromoId(newId);
+            
+            localStorage.setItem('lastPromoId', newIdNumber.toString());
+        }
+    }, [editMode]);
 
     const updateQty = (id, delta) => {
         setQuantities(prev => {
@@ -67,6 +118,10 @@ const AddEditPromo = () => {
             const newQty = currentQty + delta;
 
             if (newQty < 0 || newQty > product.quantity) return prev;
+
+            // ✅ Update total quantity
+            const newTotal = Object.values({ ...prev, [id]: newQty }).reduce((sum, qty) => sum + qty, 0);
+            setTotalQuantity(newTotal);
 
             return { ...prev, [id]: newQty };
         });
@@ -84,12 +139,12 @@ const AddEditPromo = () => {
 
     // Auto update promo price when margin or reduction changes (unless manually overridden)
     useEffect(() => {
-        if (!isManualPrice && totalMargin > 0) {
+        if (!isManualPrice && totalMargin > 0 && !editMode) {
             setPromoPrice(finalPrice.toFixed(2));
         } else if (!isManualPrice && totalMargin === 0) {
             setPromoPrice("");
         }
-    }, [totalMargin, reduction, isManualPrice]);
+    }, [totalMargin, reduction, isManualPrice, editMode]);
 
     // Handle manual price input
     const handlePriceChange = (e) => {
@@ -105,12 +160,53 @@ const AddEditPromo = () => {
         }
     };
 
-    // Check if any items are selected
     const hasSelectedItems = totalMargin > 0;
+
+    // ✅ Handle Save/Update
+    const handleSave = () => {
+        // ✅ Build the product list from selected quantities
+        const selectedProductsList = [];
+        let totalQty = 0;
+        
+        products.forEach(product => {
+            const qty = quantities[product.id] || 0;
+            if (qty > 0) {
+                selectedProductsList.push({
+                    sku: product.sku,
+                    quantity: qty
+                });
+                totalQty += qty;
+            }
+        });
+
+        const promoDataToSave = {
+            id: promoId,
+            name: promoName,
+            price: promoPrice,
+            dateline: promoDateline,
+            reduction: reduction,
+            remark: promoRemark,
+            products: selectedProductsList,
+            totalQuantity: totalQty,
+            quantities: quantities,
+            totalMargin: totalMargin,
+            finalPrice: finalPrice
+        };
+
+        if (editMode) {
+            console.log('🔄 Updating promotion:', promoDataToSave);
+            alert(`Promotion "${promoName}" updated successfully!`);
+        } else {
+            console.log('📦 Creating new promotion:', promoDataToSave);
+            alert(`Promotion "${promoName}" created successfully!`);
+        }
+        
+        navigate('/dashboard');
+    };
 
     return (
         <div className="containersys min-h-screen bg-slate-50">
-            {/* Top Header Bar - wrap on mobile */}
+            {/* Top Header Bar */}
             <div className="top-info-bar bg-gradient-to-r from-blue-900 to-blue-800 text-white text-[10px] sm:text-xs py-2 px-3 sm:px-6 flex flex-wrap justify-between items-center gap-2">
                 <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                     <span>📍</span>
@@ -122,7 +218,7 @@ const AddEditPromo = () => {
                 </div>
             </div>
 
-            {/* Navigation - responsive padding and logo size */}
+            {/* Navigation */}
             <header className="headersys bg-white border-b border-slate-200/60 shadow-sm py-2 sm:py-3 px-4 sm:px-6">
                 <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer" onClick={() => navigate('/')}>
@@ -136,7 +232,7 @@ const AddEditPromo = () => {
             </header>
 
             <main className="all-main-content max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
-                {/* Banner row - responsive padding and layout */}
+                {/* Banner row */}
                 <div className="addedit-banner-row flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
                     <div className="title-banner flex items-center bg-gradient-to-r from-blue-900 to-blue-700 rounded-lg overflow-hidden shadow-lg">
                         <div className="menu-btn p-2 sm:p-3">
@@ -144,7 +240,9 @@ const AddEditPromo = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
                             </svg>
                         </div>
-                        <h2 className="banner-title text-white text-base sm:text-lg md:text-xl px-4 sm:px-6">Add/Edit Promotion</h2>
+                        <h2 className="banner-title text-white text-base sm:text-lg md:text-xl px-4 sm:px-6">
+                            {editMode ? 'Edit Promotion' : 'Add/Edit Promotion'}
+                        </h2>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -159,7 +257,7 @@ const AddEditPromo = () => {
                     </div>
                 </div>
 
-                {/* Form Card - responsive padding and grid */}
+                {/* Form Card */}
                 <div className="form-section-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-slate-100 relative overflow-hidden">
                     <div className="watermark-bg absolute inset-0 opacity-5 pointer-events-none">
                         <svg viewBox="0 0 100 60" fill="none" className="w-full h-full text-[#00008B]">
@@ -171,22 +269,28 @@ const AddEditPromo = () => {
                         <div className="space-y-4 sm:space-y-5">
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Promotion ID</label>
-                                {/* Auto-generated promo ID (readonly) with PRO format */}
                                 <input
                                     type="text"
                                     value={promoId}
                                     readOnly
                                     className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed"
                                 />
-                                <p className="text-[10px] text-slate-400 mt-1">*Auto-generated, cannot be edited</p>
+                                <p className="text-[10px] text-slate-400 mt-1">
+                                    {editMode ? '*Promotion ID is locked for editing' : '*Auto-generated, cannot be edited'}
+                                </p>
                             </div>
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Promotion Name</label>
-                                <input type="text" placeholder="Enter Promotion Name" className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" />
+                                <input 
+                                    type="text" 
+                                    value={promoName}
+                                    onChange={(e) => setPromoName(e.target.value)}
+                                    placeholder="Enter Promotion Name" 
+                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" 
+                                />
                             </div>
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Price (RM)</label>
-                                {/* Number-only input for price with validation and auto-update */}
                                 <input
                                     type="text"
                                     value={promoPrice}
@@ -195,9 +299,11 @@ const AddEditPromo = () => {
                                     className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
                                 />
                                 <p className="text-[10px] text-slate-400 mt-1">
-                                    {hasSelectedItems && !isManualPrice 
-                                        ? '*Auto-calculated from margin and reduction' 
-                                        : '*Numbers only (0-9 and decimal point)'}
+                                    {editMode 
+                                        ? '*Manually edit the price' 
+                                        : hasSelectedItems && !isManualPrice 
+                                            ? '*Auto-calculated from margin and reduction' 
+                                            : '*Numbers only (0-9 and decimal point)'}
                                 </p>
                             </div>
                             
@@ -211,7 +317,6 @@ const AddEditPromo = () => {
                                         const value = e.target.value.replace(/[^0-9]/g, '');
                                         if (value === '' || parseInt(value) <= 100) {
                                             setReduction(value);
-                                            // When user starts using reduction, auto mode is re-enabled for price
                                             if (isManualPrice) {
                                                 setIsManualPrice(false);
                                             }
@@ -219,10 +324,10 @@ const AddEditPromo = () => {
                                     }}
                                     placeholder="Enter reduction percentage (0-100)"
                                     className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-                                    disabled={!hasSelectedItems}
+                                    disabled={!hasSelectedItems && !editMode}
                                 />
                                 <p className="text-[10px] text-slate-400 mt-1">
-                                    {!hasSelectedItems 
+                                    {!hasSelectedItems && !editMode
                                         ? '*Select products to enable reduction' 
                                         : '*Numbers only (0-100)'}
                                 </p>
@@ -233,16 +338,27 @@ const AddEditPromo = () => {
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Dateline</label>
                                 <div className="filter-group">
-                                    <input type="date" className="filter-select w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" />
+                                    <input 
+                                        type="date" 
+                                        value={promoDateline}
+                                        onChange={(e) => setPromoDateline(e.target.value)}
+                                        className="filter-select w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" 
+                                    />
                                 </div>
                             </div>
                             <div>
                                 <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Remark</label>
-                                <textarea type="text" placeholder="Enter Remarks" className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" rows="3" />
+                                <textarea 
+                                    value={promoRemark}
+                                    onChange={(e) => setPromoRemark(e.target.value)}
+                                    placeholder="Enter Remarks" 
+                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" 
+                                    rows="3" 
+                                />
                             </div>
                             
                             {/* Pricing Summary Card */}
-                            {hasSelectedItems && (
+                            {(hasSelectedItems || editMode) && (
                                 <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
                                     <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                                         <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -284,7 +400,7 @@ const AddEditPromo = () => {
                     </div>
                 </div>
 
-                {/* Table with horizontal scroll on mobile */}
+                {/* Product Table */}
                 <div className="table-wrapper bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden mb-6 sm:mb-8">
                     <div className="overflow-x-auto">
                         <div className="min-w-[700px]">
@@ -338,7 +454,6 @@ const AddEditPromo = () => {
                                                         +
                                                     </button>
                                                 </div>
-                                                {/* Show individual product contribution to margin */}
                                                 {quantities[item.id] > 0 && (
                                                     <div className="text-[10px] text-green-600 mt-1">
                                                         +RM {(parseFloat(item.margin) * quantities[item.id]).toFixed(2)}
@@ -351,31 +466,53 @@ const AddEditPromo = () => {
                             </table>
                         </div>
                     </div>
+                    
+                    {/* ✅ Summary Row */}
+                    <div className="border-t border-slate-200 px-4 sm:px-6 py-3 bg-gradient-to-r from-slate-50 to-white">
+                        <div className="flex justify-end items-center gap-4">
+                            <span className="text-sm font-medium text-slate-600">Total Items Selected:</span>
+                            <span className="font-bold text-blue-900 text-lg">{totalQuantity}</span>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Action Buttons - responsive spacing */}
+                {/* Action Buttons */}
                 <div className="flex justify-between items-center gap-4">
-                    <button 
-                        className="flex items-center gap-1 sm:gap-2 text-red-600 hover:text-red-700 px-4 sm:px-6 py-2 sm:py-3 transition-all duration-200 hover:scale-105 font-semibold text-sm sm:text-base"
-                        onClick={() => setShowDeleteConfirm(true)}
-                    >
-                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        <span className="text-sm font-medium"></span>
-                    </button>
-
-                    <button className="save-btn-main bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 sm:gap-3">
-                        <svg className='w-4 h-4 sm:w-5 sm:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'></path>
-                            <polyline points='17 21 17 13 7 13 7 21' />
-                            <polyline points='7 3 7 8 15 8' />
-                        </svg>
-                    </button>
+                    {editMode && (
+                        <button 
+                            className="flex items-center gap-1 sm:gap-2 text-red-600 hover:text-red-700 px-4 sm:px-6 py-2 sm:py-3 transition-all duration-200 hover:scale-105 font-semibold text-sm sm:text-base"
+                            onClick={() => setShowDeleteConfirm(true)}
+                        >
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span className="text-sm font-medium"></span>
+                        </button>
+                    )}
+                    
+                    <div className="flex gap-2 sm:gap-3 ml-auto">
+                        <button 
+                            onClick={() => navigate('/dashboard')}
+                            className="px-4 sm:px-6 py-2 sm:py-3 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition-all duration-200 hover:scale-105 font-medium text-sm sm:text-base"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            onClick={handleSave}
+                            className="save-btn-main bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 sm:gap-3"
+                        >
+                            <svg className='w-4 h-4 sm:w-5 sm:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'></path>
+                                <polyline points='17 21 17 13 7 13 7 21' />
+                                <polyline points='7 3 7 8 15 8' />
+                            </svg>
+                            <span>{editMode ? '' : ''}</span>
+                        </button>
+                    </div>
                 </div>
             </main>
 
-            {/* Image Preview Modal - responsive sizing */}
+            {/* Image Preview Modal */}
             {selectedImage && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fadeIn duration-300"
                     onClick={() => setSelectedImage(null)}>
@@ -391,7 +528,7 @@ const AddEditPromo = () => {
                 </div>
             )}
 
-            {/* Delete Confirmation Modal - responsive sizing */}
+            {/* Delete Confirmation Modal */}
             {showDeleteConfirm && (
                 <div className="modal-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
                     <div className="modal-container bg-white rounded-xl p-5 sm:p-6 max-w-md w-full mx-4 shadow-2xl">
