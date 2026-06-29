@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.db.session import get_db
-from app.core.security import hash_password, require_admin
+from app.core.security import hash_password, require_admin, get_current_user
 from app.core.exceptions import AppException
 from app.models import Staff
 from app.schemas import StaffCreate, StaffOut
@@ -34,5 +34,5 @@ async def register_staff(
 
 
 @router.get("/me", response_model=StaffOut)
-async def get_me(current_user: Staff = Depends(require_admin())):
+async def get_me(current_user: Staff = Depends(get_current_user)):
     return StaffOut.model_validate(current_user)
