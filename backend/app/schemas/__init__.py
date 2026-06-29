@@ -339,3 +339,14 @@ class PnLResponse(BaseModel):
     summary: PnLSummary
     breakdown_by_product: List[PnLProductBreakdown]
     cost_flow_summary: CostFlowSummary
+
+
+# ── StockMovement (Audit) ─────────────────────────────────────────────────────
+class StockMovementOut(BaseModel):
+    movement_id: int
+    serial_number: str
+    action_type: str
+    ref_id: Optional[str]
+    datetime: datetime
+
+    model_config = {"from_attributes": True}

@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Query, Header
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from typing import Optional
+from datetime import datetime
 
 from app.db.session import get_db
 from app.core.security import get_current_user
@@ -155,6 +156,24 @@ async def return_order(
             if inv:
                 inv.quantity_on_hand += 1
                 db.add(inv)
+
+    if stock:
+            stock.status = "AVAILABLE"
+            stock.stock_out = None
+            db.add(stock)
+
+            # Add this block ↓
+            from app.models import StockMovement
+            movement = StockMovement(
+                serial_number=check.serial_number,
+                action_type="RETURNED",
+                ref_id=tracking_number,
+                datetime=datetime.utcnow(),
+            )
+            db.add(movement)
+            # Add this block ↑
+
+            inv = await db.get(Inventory, stock.sku)
 
     order.status = "RETURNED"
     db.add(order)
