@@ -1,73 +1,151 @@
-import apiClient from './client';
-//import { INVOICE_ENDPOINTS } from '../constants/apiEndpoints';
+import { apiClient } from "./api";
 
 export const invoicesAPI = {
-    // ============ INVOICE CRUD ============
-
     /**
      * List all invoices
      * @param {Object} params - { page, limit, supplier_id, from_date, to_date }
      */
-    getAll: async (params = {}) => {
-        const response = await apiClient.get('/api/v1/invoice', { params });
-        return response.data;
+    getAll: async (params = { page: 1, limit: 20 }) => {
+        try {
+            const response = await apiClient.get('/api/v1/invoice', { params });
+            return response.data;
+        } catch (error) {
+            console.error("Get invoices error:", error.response?.data || error.message);
+            throw error;
+        }
     },
 
     /**
      * Get invoice by reference number
      * @param {string} ref_no - Invoice reference number
      */
-    getByref_no: async (ref_no) => {
-        const response = await apiClient.get(`/api/v1/invoice/${ref_no}`);
-        return response.data;
-    },
-
-    create: async (invoiceData, stockItems = []) => {
-        const formData = new FormData();
-        formData.append('reference_no', invoiceData.reference_no);
-        formData.append('supplier_name', invoiceData.supplier_name);
-        formData.append('supplier_id', invoiceData.supplier_id || ''); 
-        formData.append('invoice_date', invoiceData.invoice_date);
-        formData.append('amount', invoiceData.amount);
-        formData.append('remark', invoiceData.remark || '');
-        
-        if (invoiceData.file) {
-            formData.append('invoice_file', invoiceData.file);
+    getByRefNo: async (ref_no) => {
+        try {
+            const response = await apiClient.get(`/api/v1/invoice/${ref_no}`);
+            return response.data;
+        } catch (error) {
+            console.error("Get invoice by reference no error:", error.response?.data || error.message);
+            throw error;
         }
-        
-        stockItems.forEach((item, index) => {
-            formData.append(`stock[${index}][serial_number]`, item.serial_number);
-            formData.append(`stock[${index}][sku]`, item.sku);
-            formData.append(`stock[${index}][product_id]`, item.product_id || '');
-            formData.append(`stock[${index}][purchase_cost]`, item.purchase_cost);
-            formData.append(`stock[${index}][additional_cost]`, item.additional_cost || 0);
-        });
-        
-        const response = await apiClient.post('/api/v1/invoice', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        
-        return response.data;
     },
-
-    update: async (ref_no, invoiceData) => {
-        const response = await apiClient.put(`/api/v1/invoice/${ref_no}`, invoiceData);
-        return response.data;
-    },
-
-    delete: async (ref_no) => {
-        const response = await apiClient.delete(`/api/v1/invoice/${ref_no}`);
-        return response.data;
-    },
-
-    // ============ SUPPLIER METHODS ============
 
     /**
-     * Returns supplier count and total inventory value (sum of all invoices)
+     * Create invoice with stock items
+     */
+    create: async (invoiceData, stockItems = []) => {
+        try {
+            const formData = new FormData();
+            
+            // Map frontend fields to backend expected fields
+            const backendInvoice = {
+                RefNo: invoiceData.reference_no || invoiceData.refNo,
+                InvoiceDate: invoiceData.invoice_date || invoiceData.date,
+                Amount: invoiceData.amount,
+                Remark: invoiceData.remark || '',
+                SupplierID: invoiceData.supplier_id,
+            };
+
+            Object.keys(backendInvoice).forEach(key => {
+                if (backendInvoice[key] !== undefined && backendInvoice[key] !== null) {
+                    formData.append(key, backendInvoice[key]);
+                }
+            });
+            
+            if (invoiceData.image && invoiceData.image instanceof File) {
+                formData.append('invoice_file', invoiceData.image);
+            }
+
+            // Add stock items if provided
+            if (stockItems && stockItems.length > 0) {
+                stockItems.forEach((item, index) => {
+                    formData.append(`stock[${index}][serial_number]`, item.serial_number || '');
+                    formData.append(`stock[${index}][sku]`, item.sku || '');
+                    formData.append(`stock[${index}][product_id]`, item.product_id || '');
+                    formData.append(`stock[${index}][purchase_cost]`, item.purchase_cost || 0);
+                    formData.append(`stock[${index}][additional_cost]`, item.additional_cost || 0);
+                });
+            }
+            
+            const response = await apiClient.post('/api/v1/invoice', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Create invoice error:", error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    /**
+     * Update invoice
+     */
+    update: async (ref_no, invoiceData) => {
+        try {
+            const formData = new FormData();
+            
+            const updateInvoice = {
+                InvoiceDate: invoiceData.invoice_date || invoiceData.date,
+                Amount: invoiceData.amount,
+                Remark: invoiceData.remark || '',
+                SupplierID: invoiceData.supplier_id,
+            };
+
+            Object.keys(updateInvoice).forEach(key => {
+                if (updateInvoice[key] !== undefined && updateInvoice[key] !== null) {
+                    formData.append(key, updateInvoice[key]);
+                }
+            });
+
+            if (invoiceData.image && invoiceData.image instanceof File) {
+                formData.append('invoice_file', invoiceData.image);
+            }
+
+            const response = await apiClient.put(`/api/v1/invoice/${ref_no}`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Update invoice error:", error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    /**
+     * Delete invoice
+     */
+    delete: async (ref_no) => {
+        try {
+            const response = await apiClient.delete(`/api/v1/invoice/${ref_no}`);
+            return response.data;
+        } catch (error) {
+            console.error("Delete invoice error:", error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    /**
+     * Get invoice items (stock items associated with invoice)
+     */
+    getInvoiceItems: async (ref_no) => {
+        try {
+            const response = await apiClient.get(`/api/v1/invoice/${ref_no}/items`);
+            return {
+                items: response.data.items || [],
+                total_value: response.data.total_value || 0,
+                total_stock_units: response.data.total_stock_units || 0,
+            };
+        } catch (error) {
+            console.error("Get invoice items error:", error.response?.data || error.message);
+            throw error;
+        }
+    },
+
+    /**
+     * Returns invoice stats (supplier count, total inventory value, etc.)
      */
     getInvoiceStats: async () => {
         try {
-            const response = await apiClient.get(`/api/v1/invoice/stats`);
+            const response = await apiClient.get('/api/v1/invoice/stats');
             return {
                 success: true,
                 supplier_count: response.data.supplier_count || 0,
@@ -88,107 +166,100 @@ export const invoicesAPI = {
         }
     },
 
-    getSuppliers: async (supplier_id) => {
+    /**
+     * Get all suppliers for dropdown
+     */
+    getSuppliers: async () => {
         try {
-            const response = await apiClient.get(`/api/v1/suppliers/${supplier_id}`);
-            return {
-                success: true,
-                suppliers: response.data.suppliers || [],
-                count: response.data.count || 0,
-            };
+            const response = await apiClient.get('/api/v1/supplier');
+            return response.data;
         } catch (error) {
-            console.error('Failed to fetch suppliers:', error);
-            return {
-                success: false,
-                suppliers: [],
-                count: 0,
-                error: error.response?.data?.error?.message || 'Failed to load suppliers'
-            };
+            console.error("Get suppliers error:", error.response?.data || error.message);
+            throw error;
         }
     },
 
-    /*getSuppliers: async () => {
-        const response = await apiClient.get('/supplier');
-        return response.data;
-    },*/
-
-    // ============ PRODUCT METHODS  ============
     /**
      * Get all products for dropdown
      */
     getProducts: async () => {
-        const response = await apiClient.get('/api/v1/product');
-        return response.data;
+        try {
+            const response = await apiClient.get('/api/v1/product');
+            return response.data;
+        } catch (error) {
+            console.error("Get products error:", error.response?.data || error.message);
+            throw error;
+        }
     },
 
     /**
      * Get products by SKU (for search/filter)
      */
     getProductsBySKU: async (sku) => {
-        const response = await apiClient.get(`/api/v1/product/search`, { params: { sku } });
-        return response.data;
-    },
-
-    // ============ STOCK METHODS ============
-    getInvoiceItems: async (ref_no) => {
-        const response = await apiClient.get(INVOICE_ENDPOINTS.GET_ITEMS(ref_no));
-        return {
-            items: response.data.items || [],
-            total_value: response.data.total_value || 0,
-            total_stock_units: response.data.total_stock_units || 0,
-        };
+        try {
+            const response = await apiClient.get('/api/v1/product/search', { params: { sku } });
+            return response.data;
+        } catch (error) {
+            console.error("Get products by SKU error:", error.response?.data || error.message);
+            throw error;
+        }
     },
 
     /**
      * Check if serial number already exists
      */
     checkSerialNumber: async (serialNumber) => {
-        const response = await apiClient.get('/stock/check-sn', { params: { serial_number: serialNumber } });
-        return response.data;
+        try {
+            const response = await apiClient.get('/api/v1/stock/check-sn', { params: { serial_number: serialNumber } });
+            return response.data;
+        } catch (error) {
+            console.error("Check serial number error:", error.response?.data || error.message);
+            throw error;
+        }
     },
 
-    // ============ BARCODE SCAN ============
+    /**
+     * Scan barcode
+     */
     scanBarcode: async (serialNumber, referenceNo = null) => {
-        const response = await apiClient.post(INVOICE_ENDPOINTS.SCAN, {
-            serial_number: serialNumber,
-            reference_no: referenceNo,
-        });
-        
-        return {
-            success: true,
-            product: response.data.product,
-            suggested_cost: response.data.suggested_cost || response.data.last_purchase_price,
-            sku: response.data.product.sku,
-            product_id: response.data.product.product_id || response.data.product.id,
-            serial_number: serialNumber,
-            is_duplicate: response.data.is_duplicate || false,
-            warning: response.data.warning || null,
-        };
+        try {
+            const response = await apiClient.post('/api/v1/invoice/scan', {
+                serial_number: serialNumber,
+                reference_no: referenceNo,
+            });
+            
+            return {
+                success: true,
+                product: response.data.product,
+                suggested_cost: response.data.suggested_cost || response.data.last_purchase_price,
+                sku: response.data.product.sku,
+                product_id: response.data.product.product_id || response.data.product.id,
+                serial_number: serialNumber,
+                is_duplicate: response.data.is_duplicate || false,
+                warning: response.data.warning || null,
+            };
+        } catch (error) {
+            console.error("Scan barcode error:", error.response?.data || error.message);
+            throw error;
+        }
     },
 
-    // ============ PURCHASE ORDER MATCHING ============
-    matchPurchaseOrder: async (ref_no, receivedItems) => {
-        const response = await apiClient.post(INVOICE_ENDPOINTS.MATCH(ref_no), {
-            received_items: receivedItems,
-        });
-        
-        return {
-            match_status: response.data.match_status,
-            matched_items: response.data.matched_items,
-            unmatched_items: response.data.unmatched_items,
-            missing_items: response.data.missing_items,
-        };
-    },
-
+    /**
+     * Upload invoice file
+     */
     uploadFile: async (ref_no, file) => {
-        const formData = new FormData();
-        formData.append('invoice_file', file);
-        
-        const response = await apiClient.post(`/api/v1/invoice/${ref_no}/items`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-        });
-        
-        return response.data;
+        try {
+            const formData = new FormData();
+            formData.append('invoice_file', file);
+            
+            const response = await apiClient.post(`/api/v1/invoice/${ref_no}/upload`, formData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Upload file error:", error.response?.data || error.message);
+            throw error;
+        }
     },
 };
 

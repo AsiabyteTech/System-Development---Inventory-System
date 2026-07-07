@@ -1,23 +1,30 @@
 // ✅ REFACTORED: imports organized
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { promoAPI } from "./api/promo";
+import { productsAPI } from "./api/products";
 import './App.css';
 import './styles/animations.css';
+
+// ✅ REFACTORED: component imports
+import { isAdmin } from "./shared/role";
 
 const AddEditPromo = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [selectedImage, setSelectedImage] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [products, setProducts] = useState([]);
+    const [saving, setSaving] = useState(false);
     
     // ✅ Check if we're in edit mode
     const editMode = location.state?.mode === 'edit';
     const promoData = location.state?.promoData || null;
     
-    // Auto promo ID state (PRO format)
+    // Form field states - matching your table structure
     const [promoId, setPromoId] = useState("");
-    
-    // Form field states
     const [promoName, setPromoName] = useState("");
     const [promoPrice, setPromoPrice] = useState("");
     const [promoDateline, setPromoDateline] = useState("");
@@ -25,49 +32,90 @@ const AddEditPromo = () => {
     const [reduction, setReduction] = useState("");
     const [isManualPrice, setIsManualPrice] = useState(false);
     
-    // ✅ NEW: Store selected products with their quantities
+    // Store selected products with their quantities
     const [selectedProducts, setSelectedProducts] = useState([]);
     const [totalQuantity, setTotalQuantity] = useState(0);
 
-    const products = [
-        { id: '1', image: '/Pictures/EZC8C.jpg', sku: 'EZ-C8C-2MP', type: 'CCTV', margin: '8.00', quantity: 7 },
-        { id: '2', image: '/Pictures/C8C5MP.png', sku: 'EZ-C8C-5MP', type: 'CCTV', margin: '8.00', quantity: 2 },
-        { id: '3', image: '/Pictures/Ezviz-H1C front.jpg', sku: 'EZ-H1C', type: 'CCTV', margin: '8.00', quantity: 1 },
-        { id: '4', image: '/Pictures/ez ty1pro.jpg', sku: 'EZ-TY1-PRO', type: 'CCTV', margin: '8.00', quantity: 5 },
-        { id: '5', image: '/Pictures/ez h6cpro.png', sku: 'EZ-H6C-PRO', type: 'CCTV', margin: '8.00', quantity: 2 },
-        { id: '6', image: '/Pictures/H9c.png', sku: 'EZ-H9C-DL', type: 'CCTV', margin: '8.00', quantity: 4 },
-        { id: '7', image: '/Pictures/c6n.jpg', sku: 'EZ-C6N', type: 'CCTV', margin: '14.00', quantity: 1 },
-    ];
+    // Fetch products from API
+    const fetchProducts = async () => {
+        try {
+            const response = await productsAPI.getAll();
+            
+            let productData = [];
+            if (response?.data) {
+                productData = Array.isArray(response.data) ? response.data : [response.data];
+            } else if (response?.products) {
+                productData = response.products;
+            } else if (Array.isArray(response)) {
+                productData = response;
+            }
+            
+            // Map backend fields to frontend expected fields
+            const mappedProducts = productData.map(item => ({
+                id: item.id || item.SKU || item.sku || `prod-${Math.random().toString(36).substr(2, 9)}`,
+                sku: item.SKU || item.sku || '',
+                name: item.ProductName || item.product_name || item.name || '',
+                type: item.ProductType || item.product_type || item.type || '',
+                margin: item.Margin || item.margin || 0,
+                quantity: item.QuantityOnHand || item.quantity_balance || item.quantity || 0,
+                image: item.product_image || item.image || '/Pictures/default-product.png'
+            }));
+            
+            setProducts(mappedProducts);
+            return mappedProducts;
+        } catch (err) {
+            console.error("Failed to fetch products:", err);
+            setError(err.message || "Failed to load products");
+            return [];
+        }
+    };
 
-    // ✅ Initialize quantities with zeros
+    // Initialize quantities with zeros
     const initialQuantities = products.reduce((acc, product) => ({ ...acc, [product.id]: 0}), {});
-
     const [quantities, setQuantities] = useState(initialQuantities);
 
-    const handleDelete = () => {
-        console.log("Promotion Deleted");
-        setShowDeleteConfirm(false);
-        navigate('/dashboard');
+    // Load data when component mounts
+    useEffect(() => {
+        const loadData = async () => {
+            setLoading(true);
+            await fetchProducts();
+            setLoading(false);
+        };
+        loadData();
+    }, []);
+
+    // Reset quantities when products change
+    useEffect(() => {
+        const newQuantities = products.reduce((acc, product) => ({ ...acc, [product.id]: 0}), {});
+        setQuantities(newQuantities);
+    }, [products]);
+
+    const handleDelete = async () => {
+        try {
+            await promoAPI.delete(promoId);
+            console.log("Promotion Deleted:", promoId);
+            setShowDeleteConfirm(false);
+            navigate('/dashboard');
+        } catch (err) {
+            console.error("Failed to delete promotion:", err);
+            alert(err.response?.data?.detail || err.message || "Failed to delete promotion");
+        }
     };
 
     // ✅ Load data when in edit mode
     useEffect(() => {
-        if (editMode && promoData) {
+        if (editMode && promoData && products.length > 0) {
             console.log('📦 Loading promotion for edit:', promoData);
             
-            setPromoId(promoData.id || '');
-            setPromoName(promoData.name || '');
-            setPromoPrice(promoData.price || '');
-            setPromoDateline(promoData.dateline || '');
+            // Map backend fields to frontend
+            setPromoId(promoData.PromoID || promoData.promo_id || promoData.id || '');
+            setPromoName(promoData.PromoName || promoData.promo_name || promoData.name || '');
+            setPromoPrice(promoData.Price || promoData.price || '');
+            setPromoDateline(promoData.Dateline || promoData.dateline || '');
+            setReduction(promoData.Reduction || promoData.reduction || '');
+            setPromoRemark(promoData.Remark || promoData.remark || '');
             
-            if (promoData.reduct) {
-                setReduction(promoData.reduct.replace('%', ''));
-            }
-            if (promoData.remark) {
-                setPromoRemark(promoData.remark);
-            }
-            
-            // ✅ Load products with their quantities
+            // Load products with their quantities if available
             if (promoData.products && promoData.products.length > 0) {
                 const newQuantities = { ...initialQuantities };
                 let totalQty = 0;
@@ -84,42 +132,24 @@ const AddEditPromo = () => {
                 setTotalQuantity(totalQty);
                 console.log('✅ Restored quantities:', newQuantities);
             }
-        } else {
-            // ✅ Reset quantities when not in edit mode
+        } else if (!editMode) {
+            // Reset quantities when not in edit mode
             setQuantities(initialQuantities);
             setSelectedProducts([]);
             setTotalQuantity(0);
         }
-    }, [editMode, promoData]);
+    }, [editMode, promoData, products]);
 
-    // Auto-generate promo ID when component loads (only for new promos)
-    useEffect(() => {
-        if (!editMode) {
-            const getLastPromoId = () => {
-                const lastId = localStorage.getItem('lastPromoId');
-                if (lastId) {
-                    return parseInt(lastId) + 1;
-                }
-                return 1;
-            };
-            
-            const newIdNumber = getLastPromoId();
-            const newId = `PRO${String(newIdNumber).padStart(2, '0')}`;
-            setPromoId(newId);
-            
-            localStorage.setItem('lastPromoId', newIdNumber.toString());
-        }
-    }, [editMode]);
-
+    // Update quantity stock
     const updateQty = (id, delta) => {
         setQuantities(prev => {
             const currentQty = prev[id] || 0;
             const product = products.find(p => p.id === id);
             const newQty = currentQty + delta;
 
-            if (newQty < 0 || newQty > product.quantity) return prev;
+            if (newQty < 0 || (product && newQty > product.quantity)) return prev;
 
-            // ✅ Update total quantity
+            // Update total quantity
             const newTotal = Object.values({ ...prev, [id]: newQty }).reduce((sum, qty) => sum + qty, 0);
             setTotalQuantity(newTotal);
 
@@ -162,9 +192,23 @@ const AddEditPromo = () => {
 
     const hasSelectedItems = totalMargin > 0;
 
-    // ✅ Handle Save/Update
-    const handleSave = () => {
-        // ✅ Build the product list from selected quantities
+    // ✅ Handle Save/Update with actual API
+    const handleSave = async () => {
+        // Validate required fields
+        if (!promoName.trim()) {
+            alert('Please enter a promotion name');
+            return;
+        }
+        if (!promoPrice || parseFloat(promoPrice) <= 0) {
+            alert('Please enter a valid price');
+            return;
+        }
+        if (!promoDateline) {
+            alert('Please select a dateline');
+            return;
+        }
+        
+        // Build the product list from selected quantities
         const selectedProductsList = [];
         let totalQty = 0;
         
@@ -173,36 +217,62 @@ const AddEditPromo = () => {
             if (qty > 0) {
                 selectedProductsList.push({
                     sku: product.sku,
-                    quantity: qty
+                    quantity: qty,
+                    product_id: product.id
                 });
                 totalQty += qty;
             }
         });
 
+        if (selectedProductsList.length === 0) {
+            alert('Please select at least one product with quantity > 0');
+            return;
+        }
+
+        // Prepare data matching your table structure
         const promoDataToSave = {
-            id: promoId,
-            name: promoName,
-            price: promoPrice,
-            dateline: promoDateline,
-            reduction: reduction,
-            remark: promoRemark,
-            products: selectedProductsList,
-            totalQuantity: totalQty,
-            quantities: quantities,
-            totalMargin: totalMargin,
-            finalPrice: finalPrice
+            PromoName: promoName,
+            Dateline: promoDateline,
+            Price: parseFloat(promoPrice),
+            Reduction: parseFloat(reduction) || 0,
+            Remark: promoRemark,
+            products: selectedProductsList
         };
 
-        if (editMode) {
-            console.log('🔄 Updating promotion:', promoDataToSave);
-            alert(`Promotion "${promoName}" updated successfully!`);
-        } else {
-            console.log('📦 Creating new promotion:', promoDataToSave);
-            alert(`Promotion "${promoName}" created successfully!`);
+        try {
+            setSaving(true);
+            
+            if (editMode) {
+                console.log('🔄 Updating promotion:', promoDataToSave);
+                await promoAPI.update(promoId, promoDataToSave);
+                alert(`Promotion "${promoName}" updated successfully!`);
+            } else {
+                console.log('📦 Creating new promotion:', promoDataToSave);
+                await promoAPI.create(promoDataToSave);
+                alert(`Promotion "${promoName}" created successfully!`);
+            }
+            
+            navigate('/dashboard');
+        } catch (err) {
+            console.error("Failed to save promotion:", err);
+            alert(err.response?.data?.detail || err.message || "Failed to save promotion. Please try again.");
+        } finally {
+            setSaving(false);
         }
-        
-        navigate('/dashboard');
     };
+
+    if (loading) {
+        return (
+            <div className="flex min-h-screen bg-slate-50">
+                <div className="flex-1 flex items-center justify-center">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                        <p className="mt-4 text-gray-600">Loading promotion...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="containersys min-h-screen bg-slate-50">
@@ -221,7 +291,7 @@ const AddEditPromo = () => {
             {/* Navigation */}
             <header className="headersys bg-white border-b border-slate-200/60 shadow-sm py-2 sm:py-3 px-4 sm:px-6">
                 <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer" onClick={() => navigate('/')}>
+                    <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer" onClick={() => navigate('/dashboard')}>
                         <div className="relative">
                             <img src="/Pictures/Asiabite.png" alt="AsiaByte Logo" className="h-8 sm:h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
                             <div className="absolute -inset-1 bg-blue-600/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -232,6 +302,19 @@ const AddEditPromo = () => {
             </header>
 
             <main className="all-main-content max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
+                {/* Error Message */}
+                {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+                        <p className="text-sm">{error}</p>
+                        <button 
+                            onClick={fetchProducts}
+                            className="mt-2 text-sm font-medium text-red-600 hover:text-red-800"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                )}
+
                 {/* Banner row */}
                 <div className="addedit-banner-row flex flex-col sm:flex-row justify-between items-center gap-3 sm:gap-0 mb-4 sm:mb-6">
                     <div className="title-banner flex items-center bg-gradient-to-r from-blue-900 to-blue-700 rounded-lg overflow-hidden shadow-lg">
@@ -241,7 +324,7 @@ const AddEditPromo = () => {
                             </svg>
                         </div>
                         <h2 className="banner-title text-white text-base sm:text-lg md:text-xl px-4 sm:px-6">
-                            {editMode ? 'Edit Promotion' : 'Add/Edit Promotion'}
+                            {editMode ? 'Edit Promotion' : 'Add Promotion'}
                         </h2>
                     </div>
 
@@ -259,143 +342,139 @@ const AddEditPromo = () => {
 
                 {/* Form Card */}
                 <div className="form-section-card bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-slate-100 relative overflow-hidden">
-                    <div className="watermark-bg absolute inset-0 opacity-5 pointer-events-none">
-                        <svg viewBox="0 0 100 60" fill="none" className="w-full h-full text-[#00008B]">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M30 30 C 10 30, 10 10, 30 10 C 45 10, 55 50, 70 50 C 90 50, 90 30, 70 30 C 55 30, 45 10, 30 10"></path>
-                        </svg>
-                    </div>
-
-                    <div className="form-grid grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 relative z-10">
-                        <div className="space-y-4 sm:space-y-5">
-                            <div>
-                                <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Promotion ID</label>
-                                <input
-                                    type="text"
-                                    value={promoId}
-                                    readOnly
-                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed"
-                                />
-                                <p className="text-[10px] text-slate-400 mt-1">
-                                    {editMode ? '*Promotion ID is locked for editing' : '*Auto-generated, cannot be edited'}
-                                </p>
-                            </div>
-                            <div>
-                                <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Promotion Name</label>
-                                <input 
-                                    type="text" 
-                                    value={promoName}
-                                    onChange={(e) => setPromoName(e.target.value)}
-                                    placeholder="Enter Promotion Name" 
-                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" 
-                                />
-                            </div>
-                            <div>
-                                <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Price (RM)</label>
-                                <input
-                                    type="text"
-                                    value={promoPrice}
-                                    onChange={handlePriceChange}
-                                    placeholder="0.00"
-                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-                                />
-                                <p className="text-[10px] text-slate-400 mt-1">
-                                    {editMode 
-                                        ? '*Manually edit the price' 
-                                        : hasSelectedItems && !isManualPrice 
-                                            ? '*Auto-calculated from margin and reduction' 
-                                            : '*Numbers only (0-9 and decimal point)'}
-                                </p>
-                            </div>
-                            
-                            {/* Reduction Percentage Input */}
-                            <div>
-                                <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Reduction (%)</label>
-                                <input
-                                    type="text"
-                                    value={reduction}
-                                    onChange={(e) => {
-                                        const value = e.target.value.replace(/[^0-9]/g, '');
-                                        if (value === '' || parseInt(value) <= 100) {
-                                            setReduction(value);
-                                            if (isManualPrice) {
-                                                setIsManualPrice(false);
-                                            }
-                                        }
-                                    }}
-                                    placeholder="Enter reduction percentage (0-100)"
-                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-                                    disabled={!hasSelectedItems && !editMode}
-                                />
-                                <p className="text-[10px] text-slate-400 mt-1">
-                                    {!hasSelectedItems && !editMode
-                                        ? '*Select products to enable reduction' 
-                                        : '*Numbers only (0-100)'}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4 sm:space-y-5">
-                            <div>
-                                <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Dateline</label>
-                                <div className="filter-group">
+                    <div className="relative z-10">
+                        <div className="form-grid grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                            <div className="space-y-4 sm:space-y-5">
+                                <div>
+                                    <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Promotion ID</label>
+                                    <input
+                                        type="text"
+                                        value={promoId || (editMode ? 'Auto-generated' : 'New')}
+                                        readOnly
+                                        className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed"
+                                    />
+                                    <p className="text-[10px] text-slate-400 mt-1">
+                                        {editMode ? '*Promotion ID is locked for editing' : '*Auto-generated on save'}
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Promotion Name *</label>
                                     <input 
-                                        type="date" 
-                                        value={promoDateline}
-                                        onChange={(e) => setPromoDateline(e.target.value)}
-                                        className="filter-select w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" 
+                                        type="text" 
+                                        value={promoName}
+                                        onChange={(e) => setPromoName(e.target.value)}
+                                        placeholder="Enter Promotion Name" 
+                                        className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" 
                                     />
                                 </div>
-                            </div>
-                            <div>
-                                <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Remark</label>
-                                <textarea 
-                                    value={promoRemark}
-                                    onChange={(e) => setPromoRemark(e.target.value)}
-                                    placeholder="Enter Remarks" 
-                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" 
-                                    rows="3" 
-                                />
-                            </div>
-                            
-                            {/* Pricing Summary Card */}
-                            {(hasSelectedItems || editMode) && (
-                                <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
-                                    <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
-                                        <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                        Pricing Summary
-                                    </h4>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-slate-600">Total Margin:</span>
-                                            <span className="font-semibold text-slate-800">RM {totalMargin.toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-slate-600">Reduction:</span>
-                                            <span className="font-semibold text-slate-800">{reduction || 0}%</span>
-                                        </div>
-                                        {reduction && reduction > 0 && (
-                                            <div className="flex justify-between items-center text-red-600">
-                                                <span className="text-slate-600">Discount Amount:</span>
-                                                <span className="font-semibold">- RM {reductionValue.toFixed(2)}</span>
-                                            </div>
-                                        )}
-                                        <div className="flex justify-between items-center pt-2 border-t border-blue-200">
-                                            <span className="font-semibold text-slate-700">Final Price:</span>
-                                            <span className="font-bold text-blue-900 text-lg">RM {finalPrice.toFixed(2)}</span>
-                                        </div>
-                                    </div>
-                                    {isManualPrice && (
-                                        <p className="text-[10px] text-amber-600 mt-2 flex items-center gap-1">
-                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                            </svg>
-                                            Manual price mode active
-                                        </p>
-                                    )}
+                                <div>
+                                    <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Price (RM) *</label>
+                                    <input
+                                        type="text"
+                                        value={promoPrice}
+                                        onChange={handlePriceChange}
+                                        placeholder="0.00"
+                                        className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                                    />
+                                    <p className="text-[10px] text-slate-400 mt-1">
+                                        {editMode 
+                                            ? '*Manually edit the price' 
+                                            : hasSelectedItems && !isManualPrice 
+                                                ? '*Auto-calculated from margin and reduction' 
+                                                : '*Numbers only (0-9 and decimal point)'}
+                                    </p>
                                 </div>
-                            )}
+                                
+                                {/* Reduction Percentage Input */}
+                                <div>
+                                    <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Reduction (%)</label>
+                                    <input
+                                        type="text"
+                                        value={reduction}
+                                        onChange={(e) => {
+                                            const value = e.target.value.replace(/[^0-9]/g, '');
+                                            if (value === '' || parseInt(value) <= 100) {
+                                                setReduction(value);
+                                                if (isManualPrice) {
+                                                    setIsManualPrice(false);
+                                                }
+                                            }
+                                        }}
+                                        placeholder="Enter reduction percentage (0-100)"
+                                        className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                                        disabled={!hasSelectedItems && !editMode}
+                                    />
+                                    <p className="text-[10px] text-slate-400 mt-1">
+                                        {!hasSelectedItems && !editMode
+                                            ? '*Select products to enable reduction' 
+                                            : '*Numbers only (0-100)'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 sm:space-y-5">
+                                <div>
+                                    <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Dateline *</label>
+                                    <div className="filter-group">
+                                        <input 
+                                            type="date" 
+                                            value={promoDateline}
+                                            onChange={(e) => setPromoDateline(e.target.value)}
+                                            className="filter-select w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" 
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="input-label text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 block">Remark</label>
+                                    <textarea 
+                                        value={promoRemark}
+                                        onChange={(e) => setPromoRemark(e.target.value)}
+                                        placeholder="Enter Remarks" 
+                                        className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" 
+                                        rows="3" 
+                                    />
+                                </div>
+                                
+                                {/* Pricing Summary Card */}
+                                {(hasSelectedItems || editMode) && (
+                                    <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
+                                        <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                                            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            Pricing Summary
+                                        </h4>
+                                        <div className="space-y-2 text-sm">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-slate-600">Total Margin:</span>
+                                                <span className="font-semibold text-slate-800">RM {totalMargin.toFixed(2)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-slate-600">Reduction:</span>
+                                                <span className="font-semibold text-slate-800">{reduction || 0}%</span>
+                                            </div>
+                                            {reduction && reduction > 0 && (
+                                                <div className="flex justify-between items-center text-red-600">
+                                                    <span className="text-slate-600">Discount Amount:</span>
+                                                    <span className="font-semibold">- RM {reductionValue.toFixed(2)}</span>
+                                                </div>
+                                            )}
+                                            <div className="flex justify-between items-center pt-2 border-t border-blue-200">
+                                                <span className="font-semibold text-slate-700">Final Price:</span>
+                                                <span className="font-bold text-blue-900 text-lg">RM {finalPrice.toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                        {isManualPrice && (
+                                            <p className="text-[10px] text-amber-600 mt-2 flex items-center gap-1">
+                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                </svg>
+                                                Manual price mode active
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -410,64 +489,88 @@ const AddEditPromo = () => {
                                         <th className="px-3 sm:px-6 py-3 sm:py-4 text-left font-semibold">Product</th>
                                         <th className="px-3 sm:px-6 py-3 sm:py-4 text-left font-semibold">SKU</th>
                                         <th className="px-3 sm:px-6 py-3 sm:py-4 text-left font-semibold">Type</th>
-                                        <th className="px-3 sm:px-6 py-3 sm:py-4 text-left font-semibold">Margin</th>
+                                        <th className="px-3 sm:px-6 py-3 sm:py-4 text-left font-semibold">Margin (RM)</th>
                                         <th className="px-3 sm:px-6 py-3 sm:py-4 text-left font-semibold">Available</th>
                                         <th className="px-3 sm:px-6 py-3 sm:py-4 text-left font-semibold">Select Qty</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-xs sm:text-sm text-slate-600 bg-white divide-y divide-slate-100">
-                                    {products.map((item) => (
-                                        <tr key={item.id} className="hover:bg-blue-50/50 transition-colors group">
-                                            <td className="px-3 sm:px-6 py-3 sm:py-4">
-                                                <img 
-                                                    src={item.image} 
-                                                    alt="Product" 
-                                                    className="w-10 h-10 sm:w-14 sm:h-14 object-cover rounded-lg shadow-sm cursor-pointer hover:scale-110 transition-transform duration-300" 
-                                                    onClick={() => setSelectedImage(item.image)} 
-                                                />
-                                            </td>
-                                            <td className="px-3 sm:px-6 py-3 sm:py-4 font-semibold text-blue-900 text-xs sm:text-sm">{item.sku}</td>
-                                            <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-500 text-xs sm:text-sm">{item.type}</td>
-                                            <td className="px-3 sm:px-6 py-3 sm:py-4 font-medium text-slate-700 text-xs sm:text-sm">RM {item.margin}</td>
-                                            <td className="px-3 sm:px-6 py-3 sm:py-4">
-                                                <span className="inline-flex items-center px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-blue-50 text-blue-700">
-                                                    {item.quantity} units
-                                                </span>
-                                            </td>
-                                            <td className="px-3 sm:px-6 py-3 sm:py-4">
-                                                <div className="qty-controls flex items-center gap-2 sm:gap-3 bg-slate-50 rounded-lg p-1 border border-slate-200 w-fit">
-                                                    <button
-                                                        onClick={() => updateQty(item.id, -1)}
-                                                        className="qty-btn w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-lg text-blue-900 font-bold hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-sm sm:text-base"
-                                                        disabled={quantities[item.id] === 0}
-                                                    >
-                                                        -
-                                                    </button>
-                                                    <span className="qty-display font-bold text-blue-900 min-w-[20px] sm:min-w-[24px] text-center text-sm sm:text-base">
-                                                        {quantities[item.id] || 0}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => updateQty(item.id, 1)}
-                                                        className="qty-btn w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-lg text-blue-900 font-bold hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-sm sm:text-base"
-                                                        disabled={quantities[item.id] >= item.quantity}
-                                                    >
-                                                        +
-                                                    </button>
-                                                </div>
-                                                {quantities[item.id] > 0 && (
-                                                    <div className="text-[10px] text-green-600 mt-1">
-                                                        +RM {(parseFloat(item.margin) * quantities[item.id]).toFixed(2)}
+                                    {products.length > 0 ? (
+                                        products.map((item) => (
+                                            <tr key={item.id} className="hover:bg-blue-50/50 transition-colors group">
+                                                <td className="px-3 sm:px-6 py-3 sm:py-4">
+                                                    <div className="w-10 h-10 sm:w-14 sm:h-14 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden">
+                                                        {item.image && item.image.startsWith('http') ? (
+                                                            <img 
+                                                                src={item.image} 
+                                                                alt={item.sku} 
+                                                                className="w-full h-full object-cover rounded-lg shadow-sm cursor-pointer hover:scale-110 transition-transform duration-300" 
+                                                                onClick={() => setSelectedImage(item.image)}
+                                                                onError={(e) => {
+                                                                    e.target.style.display = 'none';
+                                                                    e.target.parentElement.innerHTML = `
+                                                                        <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600 font-bold text-xs">
+                                                                            ${(item.sku || 'P').charAt(0).toUpperCase()}
+                                                                        </div>
+                                                                    `;
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200 text-blue-600 font-bold text-sm">
+                                                                {(item.sku || 'P').charAt(0).toUpperCase()}
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                )}
+                                                </td>
+                                                <td className="px-3 sm:px-6 py-3 sm:py-4 font-semibold text-blue-900 text-xs sm:text-sm">{item.sku}</td>
+                                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-slate-500 text-xs sm:text-sm">{item.type || 'N/A'}</td>
+                                                <td className="px-3 sm:px-6 py-3 sm:py-4 font-medium text-slate-700 text-xs sm:text-sm">RM {parseFloat(item.margin).toFixed(2)}</td>
+                                                <td className="px-3 sm:px-6 py-3 sm:py-4">
+                                                    <span className="inline-flex items-center px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium bg-blue-50 text-blue-700">
+                                                        {item.quantity} units
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 sm:px-6 py-3 sm:py-4">
+                                                    <div className="qty-controls flex items-center gap-2 sm:gap-3 bg-slate-50 rounded-lg p-1 border border-slate-200 w-fit">
+                                                        <button
+                                                            onClick={() => updateQty(item.id, -1)}
+                                                            className="qty-btn w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-lg text-blue-900 font-bold hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-sm sm:text-base"
+                                                            disabled={(quantities[item.id] || 0) === 0}
+                                                        >
+                                                            -
+                                                        </button>
+                                                        <span className="qty-display font-bold text-blue-900 min-w-[20px] sm:min-w-[24px] text-center text-sm sm:text-base">
+                                                            {quantities[item.id] || 0}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => updateQty(item.id, 1)}
+                                                            className="qty-btn w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-lg text-blue-900 font-bold hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-sm sm:text-base"
+                                                            disabled={(quantities[item.id] || 0) >= (item.quantity || 0)}
+                                                        >
+                                                            +
+                                                        </button>
+                                                    </div>
+                                                    {quantities[item.id] > 0 && (
+                                                        <div className="text-[10px] text-green-600 mt-1">
+                                                            +RM {(parseFloat(item.margin) * quantities[item.id]).toFixed(2)}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="6" className="text-center py-8 text-slate-500">
+                                                No products available. Please add products first.
                                             </td>
                                         </tr>
-                                    ))}
+                                    )}
                                 </tbody>
                             </table>
                         </div>
                     </div>
                     
-                    {/* ✅ Summary Row */}
+                    {/* Summary Row */}
                     <div className="border-t border-slate-200 px-4 sm:px-6 py-3 bg-gradient-to-r from-slate-50 to-white">
                         <div className="flex justify-end items-center gap-4">
                             <span className="text-sm font-medium text-slate-600">Total Items Selected:</span>
@@ -486,7 +589,7 @@ const AddEditPromo = () => {
                             <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
-                            <span className="text-sm font-medium"></span>
+                            <span className="text-sm font-medium">Delete</span>
                         </button>
                     )}
                     
@@ -494,19 +597,33 @@ const AddEditPromo = () => {
                         <button 
                             onClick={() => navigate('/dashboard')}
                             className="px-4 sm:px-6 py-2 sm:py-3 border border-slate-300 rounded-lg text-slate-700 hover:bg-slate-50 transition-all duration-200 hover:scale-105 font-medium text-sm sm:text-base"
+                            disabled={saving}
                         >
                             Cancel
                         </button>
                         <button 
                             onClick={handleSave}
-                            className="save-btn-main bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 sm:gap-3"
+                            disabled={saving}
+                            className="save-btn-main bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 sm:gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
-                            <svg className='w-4 h-4 sm:w-5 sm:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'></path>
-                                <polyline points='17 21 17 13 7 13 7 21' />
-                                <polyline points='7 3 7 8 15 8' />
-                            </svg>
-                            <span>{editMode ? '' : ''}</span>
+                            {saving ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Saving...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <svg className='w-4 h-4 sm:w-5 sm:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'></path>
+                                        <polyline points='17 21 17 13 7 13 7 21' />
+                                        <polyline points='7 3 7 8 15 8' />
+                                    </svg>
+                                    <span>{editMode ? 'Update' : 'Save'}</span>
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>

@@ -1,10 +1,11 @@
 // ✅ REFACTORED: imports organized
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { invoicesAPI } from './api/invoices';
 import './App.css';
 import './styles/animations.css';
 
-const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
+const AddEditInvoice = ({ isOpen, onClose, invoice, mode, onSave }) => {
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
@@ -16,48 +17,104 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
   const [formData, setFormData] = useState({
     refNo: '',
     supplier: '',
+    supplierId: '',
     remark: '',
     date: '',
     amount: '',
     file: null
   });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+  const [suppliers, setSuppliers] = useState([]);
+  const [showSupplierDropdown, setShowSupplierDropdown] = useState(false);
+  const [supplierSearchText, setSupplierSearchText] = useState('');
   
   // State for product autocomplete
   const [productSearchText, setProductSearchText] = useState('');
   const [showProductDropdown, setShowProductDropdown] = useState(false);
   const [currentProductSection, setCurrentProductSection] = useState(null);
   const [barcodeInputValue, setBarcodeInputValue] = useState('');
+  const [products, setProducts] = useState([]);
   
-  // State for file upload (matching Customer page)
+  // State for file upload
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileName, setFileName] = useState('');
 
-  const productOptions = [
-    'EZ-C8C-2MP',
-    'EZ-C8C-5MP',
-    'EZ-H1C',
-    'EZ-TY1-PRO',
-    'EZ-H6C-PRO',
-    'EZ-H9C-DL',
-    'EZ-C6N',
-    'TP-C200',
-    'TP-C500',
-    'HS-SD-64G'
-  ];
+  // Fetch suppliers on mount
+  useEffect(() => {
+    if (isOpen) {
+      fetchSuppliers();
+      fetchProducts();
+    }
+  }, [isOpen]);
+
+  const fetchSuppliers = async () => {
+    try {
+      const response = await invoicesAPI.getSuppliers();
+      let supplierData = [];
+      if (response?.data) {
+        supplierData = Array.isArray(response.data) ? response.data : [response.data];
+      } else if (response?.suppliers) {
+        supplierData = response.suppliers;
+      } else if (Array.isArray(response)) {
+        supplierData = response;
+      }
+      
+      const mappedSuppliers = supplierData.map(item => ({
+        id: item.SupplierID || item.supplier_id || item.id,
+        name: item.SupplierName || item.supplier_name || item.name || 'Unknown'
+      }));
+      setSuppliers(mappedSuppliers);
+    } catch (err) {
+      console.error("Failed to fetch suppliers:", err);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await invoicesAPI.getProducts();
+      let productData = [];
+      if (response?.data) {
+        productData = Array.isArray(response.data) ? response.data : [response.data];
+      } else if (response?.products) {
+        productData = response.products;
+      } else if (Array.isArray(response)) {
+        productData = response;
+      }
+      
+      const mappedProducts = productData.map(item => ({
+        sku: item.SKU || item.sku || '',
+        name: item.ProductName || item.product_name || ''
+      }));
+      setProducts(mappedProducts);
+    } catch (err) {
+      console.error("Failed to fetch products:", err);
+    }
+  };
+
+  // Filtered suppliers based on search text
+  const filteredSuppliers = supplierSearchText
+    ? suppliers.filter(supplier =>
+        supplier.name.toLowerCase().includes(supplierSearchText.toLowerCase())
+      )
+    : suppliers;
 
   // Filtered product options based on search text
   const filteredProducts = productSearchText
-    ? productOptions.filter(product =>
-        product.toLowerCase().includes(productSearchText.toLowerCase())
+    ? products.filter(product =>
+        product.sku.toLowerCase().includes(productSearchText.toLowerCase()) ||
+        product.name.toLowerCase().includes(productSearchText.toLowerCase())
       )
-    : productOptions;
+    : products;
 
   useEffect(() => {
     if (isOpen) {
+      setError(null);
       if (mode === 'edit' && invoice) {
         setFormData({
           refNo: invoice.refNo || '',
           supplier: invoice.supplier || '',
+          supplierId: invoice.supplierId || '',
           remark: invoice.remark || '',
           date: invoice.date || '',
           amount: invoice.amount || '',
@@ -68,18 +125,34 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
           setSelectedFile(invoice.file);
           setFileName(invoice.file.name);
         }
+        setSupplierSearchText(invoice.supplier || '');
       } else {
+        // Auto-generate reference number
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const dateStr = `${year}-${month}-${day}`;
+        
+        // Get last invoice number from localStorage
+        const lastInvNum = parseInt(localStorage.getItem('lastInvoiceNumber') || '0');
+        const newInvNum = lastInvNum + 1;
+        const refNo = `INV-${year}${month}${day}-${String(newInvNum).padStart(3, '0')}`;
+        localStorage.setItem('lastInvoiceNumber', newInvNum.toString());
+        
         setFormData({
-          refNo: '',
+          refNo: refNo,
           supplier: '',
+          supplierId: '',
           remark: '',
-          date: '',
+          date: dateStr,
           amount: '',
           file: null
         });
         setSections([{ product: '', serialNumbers: [''] }]);
         setSelectedFile(null);
         setFileName('');
+        setSupplierSearchText('');
       }
     }
   }, [isOpen, invoice, mode]);
@@ -96,11 +169,22 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
     </div>
   );
 
-  const handleDelete = () => {
-    console.log("Invoice Deleted");
-    setShowDeleteConfirm(false);
-    onClose();
-    navigate('/invoice');
+  const handleDelete = async () => {
+    try {
+      if (invoice && invoice.refNo) {
+        await invoicesAPI.delete(invoice.refNo);
+        console.log("Invoice Deleted:", invoice.refNo);
+        setShowDeleteConfirm(false);
+        onClose();
+        if (onSave) {
+          onSave(null);
+        }
+        navigate('/invoice');
+      }
+    } catch (err) {
+      console.error("Failed to delete invoice:", err);
+      alert(err.response?.data?.detail || err.message || "Failed to delete invoice");
+    }
   };
 
   const addSerialNumberRow = (sectionIndex) => {
@@ -122,7 +206,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
     setSections(newSections);
   };
 
-  // Proper product update function that updates both display and state
+  // Product update function
   const updateProduct = (sectionIndex, value) => {
     const newSections = [...sections];
     newSections[sectionIndex].product = value;
@@ -131,36 +215,45 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
     setShowProductDropdown(false);
   };
 
-  // Handle product input change - allows typing, deleting, editing
+  // Handle product input change
   const handleProductInputChange = (sectionIndex, value) => {
-    // Update the search text for filtering
     setProductSearchText(value);
-    // Update the section product value directly
     const newSections = [...sections];
     newSections[sectionIndex].product = value;
     setSections(newSections);
-    // Show dropdown when user is typing
     setShowProductDropdown(true);
     setCurrentProductSection(sectionIndex);
+  };
+
+  // Handle supplier input change
+  const handleSupplierInputChange = (value) => {
+    setSupplierSearchText(value);
+    setFormData({...formData, supplier: value});
+    setShowSupplierDropdown(true);
+  };
+
+  // Handle supplier selection
+  const handleSupplierSelect = (supplier) => {
+    setFormData({...formData, supplier: supplier.name, supplierId: supplier.id});
+    setSupplierSearchText(supplier.name);
+    setShowSupplierDropdown(false);
   };
 
   const addProductSection = () => {
     setSections([...sections, { product: '', serialNumbers: [''] }]);
   };
 
-  // Handle file upload with validation (matching Customer page style)
+  // Handle file upload
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     const maxSize = 5 * 1024 * 1024; // 5MB
     
     if (file) {
-      // Check file size
       if (file.size > maxSize) {
         alert('File size exceeds 5MB limit. Please choose a smaller file.');
         return;
       }
       
-      // Check file type
       const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       if (!allowedTypes.includes(file.type) && !file.name.match(/\.(pdf|jpg|jpeg|png|doc|docx)$/i)) {
         alert('Unsupported file format. Please upload PDF, DOC, DOCX, JPG, or PNG files.');
@@ -174,29 +267,24 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
     }
   };
 
-  // Enhanced barcode detection with continuous scanning
+  // Barcode detection
   const handleBarcodeDetected = (barcode) => {
     if (!barcode.trim() || currentSectionIndex === null) return;
 
     const newSections = [...sections];
     const serialList = newSections[currentSectionIndex].serialNumbers;
 
-    // Find first empty slot
     const emptyIndex = serialList.findIndex((sn) => sn.trim() === "");
 
     if (emptyIndex !== -1) {
-      // Replace empty slot with barcode
       serialList[emptyIndex] = barcode;
     } else {
-      // Add new row with barcode
       serialList.push(barcode);
     }
 
-    // Add another empty row for next scan
     serialList.push("");
-
     setSections(newSections);
-    setBarcodeInputValue(''); // Clear input for next scan
+    setBarcodeInputValue('');
   };
 
   const openBarcodeScanner = (sectionIndex) => {
@@ -205,7 +293,6 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
     setBarcodeInputValue('');
   };
 
-  // Handle product focus to open dropdown and sync search text
   const handleProductFocus = (sectionIndex) => {
     setCurrentProductSection(sectionIndex);
     const currentProductValue = sections[sectionIndex].product;
@@ -213,21 +300,114 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
     setShowProductDropdown(true);
   };
 
-  // Handle blur to close dropdown (with delay to allow click selection)
   const handleProductBlur = () => {
     setTimeout(() => {
       setShowProductDropdown(false);
     }, 200);
   };
 
+  // Handle supplier blur
+  const handleSupplierBlur = () => {
+    setTimeout(() => {
+      setShowSupplierDropdown(false);
+    }, 200);
+  };
+
+  // Handle form submission - FIXED: Now calls the API
+  const handleSubmit = async () => {
+    // Validate required fields
+    if (!formData.refNo.trim()) {
+      alert('Reference No is required');
+      return;
+    }
+    if (!formData.supplier.trim()) {
+      alert('Supplier Name is required');
+      return;
+    }
+    if (!formData.date) {
+      alert('Invoice Date is required');
+      return;
+    }
+    if (!formData.amount || parseFloat(formData.amount) <= 0) {
+      alert('Amount is required and must be greater than 0');
+      return;
+    }
+
+    // Check if at least one serial number is filled
+    let hasSerialNumbers = false;
+    sections.forEach(section => {
+      section.serialNumbers.forEach(sn => {
+        if (sn.trim() !== '') hasSerialNumbers = true;
+      });
+    });
+    if (!hasSerialNumbers) {
+      alert('Please add at least one serial number');
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      // Prepare stock items from sections
+      const stockItems = [];
+      sections.forEach(section => {
+        section.serialNumbers.forEach(sn => {
+          if (sn.trim() !== '') {
+            stockItems.push({
+              serial_number: sn.trim(),
+              sku: section.product || '',
+            });
+          }
+        });
+      });
+
+      // Prepare invoice data
+      const invoiceData = {
+        reference_no: formData.refNo,
+        supplier_name: formData.supplier,
+        supplier_id: formData.supplierId || null,
+        invoice_date: formData.date,
+        amount: parseFloat(formData.amount),
+        remark: formData.remark || '',
+        image: selectedFile
+      };
+
+      console.log('Saving invoice data:', invoiceData);
+      console.log('Stock items:', stockItems);
+
+      if (mode === 'edit') {
+        // Update existing invoice
+        await invoicesAPI.update(formData.refNo, invoiceData);
+        alert(`Invoice "${formData.refNo}" updated successfully!`);
+      } else {
+        // Create new invoice with stock items
+        await invoicesAPI.create(invoiceData, stockItems);
+        alert(`Invoice "${formData.refNo}" created successfully!`);
+      }
+
+      // Close modal and refresh
+      onClose();
+      if (onSave) {
+        onSave(invoiceData);
+      }
+    } catch (err) {
+      console.error("Failed to save invoice:", err);
+      const errorMsg = err.response?.data?.detail || err.message || "Failed to save invoice";
+      setError(errorMsg);
+      alert(errorMsg);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 overflow-x-hidden">
-      {/* Modal container with proper width and overflow control */}
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative animate-fadeIn">
         
         <Watermark />
 
-        {/* Modal Header - responsive padding */}
+        {/* Modal Header */}
         <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-white">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="bg-blue-800 p-2 sm:p-2.5 rounded-xl shadow-lg">
@@ -236,7 +416,9 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
               </svg>
             </div>
             <div>
-              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">{mode === 'edit' ? 'Edit Invoice' : 'Create New Invoice'}</h2>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">
+                {mode === 'edit' ? 'Edit Invoice' : 'Create New Invoice'}
+              </h2>
               <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
                 {mode === 'edit' ? 'Update invoice details below' : 'Fill in the invoice information below'}
               </p>
@@ -252,10 +434,17 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
           </button>
         </div>
         
-        {/* Modal Body with scroll and proper overflow */}
+        {/* Error Message */}
+        {error && (
+          <div className="mx-4 sm:mx-6 mt-3 bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
+        {/* Modal Body */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-6">
           
-          {/* Section 1: Basic Information Grid - responsive */}
+          {/* Section 1: Basic Information */}
           <div className="bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-200">
             <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
               <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -266,24 +455,45 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Reference No</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Reference No *</label>
                   <input 
                     type="text" 
                     value={formData.refNo}
                     onChange={(e) => setFormData({...formData, refNo: e.target.value})}
                     placeholder="e.g., INV-2024-001" 
                     className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                    disabled={mode === 'edit'}
                   />
+                  {mode === 'edit' && (
+                    <p className="text-xs text-amber-600 mt-1">Reference No cannot be changed in edit mode</p>
+                  )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Supplier Name</label>
-                  <input 
-                    type="text" 
-                    value={formData.supplier}
-                    onChange={(e) => setFormData({...formData, supplier: e.target.value})}
-                    placeholder="Enter supplier name" 
-                    className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
-                  />
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Supplier Name *</label>
+                  <div className="relative">
+                    <input 
+                      type="text" 
+                      value={supplierSearchText}
+                      onChange={(e) => handleSupplierInputChange(e.target.value)}
+                      onFocus={() => setShowSupplierDropdown(true)}
+                      onBlur={handleSupplierBlur}
+                      placeholder="Search or select supplier..." 
+                      className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                    />
+                    {showSupplierDropdown && filteredSuppliers.length > 0 && (
+                      <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        {filteredSuppliers.map((supplier) => (
+                          <div
+                            key={supplier.id}
+                            className="px-3 sm:px-4 py-2 hover:bg-blue-50 cursor-pointer transition-colors text-sm"
+                            onClick={() => handleSupplierSelect(supplier)}
+                          >
+                            {supplier.name}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Remark</label>
@@ -299,7 +509,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Invoice Date *</label>
                   <input 
                     type="date" 
                     value={formData.date}
@@ -308,7 +518,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount (RM)</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Amount (RM) *</label>
                   <div className="relative">
                     <span className="absolute left-3 top-2 sm:top-2.5 text-gray-500 text-sm">RM</span>
                     <input 
@@ -367,61 +577,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
             </div>
           </div>
 
-          {/* Section 2: Costs Table - with horizontal scroll on mobile */}
-          <div className="bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-200">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4 flex items-center gap-2">
-              <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Cost Breakdown
-            </h3>
-            <div className="overflow-x-auto w-full">
-              <div className="min-w-[400px]">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-gradient-to-r from-blue-800 to-blue-900 text-white">
-                      <th className="p-3 sm:p-4 text-left font-medium">
-                        Purchase Cost (RM)
-                      </th>
-                      <th className="p-3 sm:p-4 text-left font-medium">
-                        Additional Cost (RM)
-                      </th>
-                      <th className="p-3 sm:p-4 text-left font-medium">
-                        Total Cost (RM)
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white">
-                    <tr className="border-t border-gray-200">
-                      <td className="p-3 sm:p-4">
-                        <input 
-                          type="text" 
-                          placeholder="0.00" 
-                          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
-                        />
-                       </td>
-                      <td className="p-3 sm:p-4">
-                        <input 
-                          type="text" 
-                          placeholder="0.00" 
-                          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
-                        />
-                       </td>
-                      <td className="p-3 sm:p-4">
-                        <input 
-                          type="text" 
-                          placeholder="0.00" 
-                          className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm" 
-                        />
-                       </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 3: Serial Numbers - Dynamic Sections with responsive layout */}
+          {/* Section 2: Serial Numbers - Dynamic Sections */}
           {sections.map((section, sectionIdx) => (
             <div key={sectionIdx} className="bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-200">
               <h3 className="text-sm font-semibold text-gray-700 mb-4 flex flex-wrap items-center gap-2">
@@ -429,13 +585,13 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z" />
                 </svg>
                 Product {sectionIdx + 1}
-                <span className="text-xs font-normal text-gray-500">({section.serialNumbers.length} items)</span>
+                <span className="text-xs font-normal text-gray-500">({section.serialNumbers.filter(sn => sn.trim() !== '').length} items)</span>
               </h3>
               
-              {/* Product selection with proper autocomplete that allows typing, deleting, editing */}
+              {/* Product selection */}
               <div className="flex flex-col sm:flex-row gap-3 mb-4">
                 <div className="flex-1 relative">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Product</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Product SKU</label>
                   <div className="relative">
                     <input 
                       type="text"
@@ -443,20 +599,20 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                       onChange={(e) => handleProductInputChange(sectionIdx, e.target.value)}
                       onFocus={() => handleProductFocus(sectionIdx)}
                       onBlur={handleProductBlur}
-                      placeholder="Search or select product..."
+                      placeholder="Search or select product by SKU..."
                       className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm"
                     />
-                    {/* Product autocomplete dropdown */}
                     {showProductDropdown && currentProductSection === sectionIdx && productSearchText && (
                       <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
                         {filteredProducts.length > 0 ? (
                           filteredProducts.map((product) => (
                             <div
-                              key={product}
+                              key={product.sku}
                               className="px-3 sm:px-4 py-2 hover:bg-blue-50 cursor-pointer transition-colors text-sm"
-                              onClick={() => updateProduct(sectionIdx, product)}
+                              onClick={() => updateProduct(sectionIdx, product.sku)}
                             >
-                              {product}
+                              <span className="font-medium">{product.sku}</span>
+                              {product.name && <span className="text-gray-500 ml-2">- {product.name}</span>}
                             </div>
                           ))
                         ) : (
@@ -488,7 +644,7 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                         <th className="p-3 sm:p-4 w-12"></th>
                         <th className="p-3 sm:p-4 text-left font-medium text-gray-700">Serial Number</th>
                         <th className="p-3 sm:p-4 w-12"></th>
-                       </tr>
+                      </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
                       {section.serialNumbers.map((sn, serialIdx) => (
@@ -507,16 +663,16 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                             ) : (
                               <span className="text-gray-300 text-lg">•</span>
                             )}
-                           </td>
+                          </td>
                           <td className="p-3 sm:p-4">
                             <input 
                               type="text" 
-                              placeholder={`SN-${String(serialIdx + 1).padStart(3, '0')}`}
+                              placeholder={`Enter serial number`}
                               className="w-full px-2 sm:px-3 py-1.5 sm:py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 text-sm"
                               value={sn}
                               onChange={(e) => updateSerialNumber(sectionIdx, serialIdx, e.target.value)}
                             />
-                           </td>
+                          </td>
                           <td className="p-3 sm:p-4 text-center">
                             {section.serialNumbers.length > 1 && (
                               <button 
@@ -529,15 +685,15 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
                                 </svg>
                               </button>
                             )}
-                           </td>
-                         </tr>
+                          </td>
+                        </tr>
                       ))}
                     </tbody>
-                   </table>
+                  </table>
                 </div>
               </div>
               
-              {/* Quick Stats for Serial Numbers */}
+              {/* Quick Stats */}
               {section.serialNumbers.length > 1 && (
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-gray-500">
                   <span className="px-2 py-1 bg-blue-50 text-blue-600 rounded-full">
@@ -565,16 +721,18 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
           </div>
         </div>
 
-        {/* Modal Footer - responsive */}
+        {/* Modal Footer */}
         <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
           {mode === 'edit' ? (
             <button 
               onClick={() => setShowDeleteConfirm(true)} 
-              className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-red-500 text-sm"
+              className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-red-500 text-sm disabled:opacity-50"
+              disabled={saving}
             >
               <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
+              <span>Delete</span>
             </button>
           ) : (
             <div />
@@ -583,26 +741,37 @@ const AddEditInvoice = ({isOpen, onClose, invoice, mode}) => {
           <div className="flex gap-2 sm:gap-3">
             <button 
               onClick={onClose} 
-              className="px-4 sm:px-6 py-1.5 sm:py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="px-4 sm:px-6 py-1.5 sm:py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm disabled:opacity-50"
+              disabled={saving}
             >
               Cancel
             </button>
             <button 
-              className="save-btn-main bg-blue-800 text-white px-6 sm:px-8 py-1.5 sm:py-2 rounded-md flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm"
-              onClick={() => {
-                console.log("Saving invoice:", formData, sections);
-                onClose();
-              }}
+              className="save-btn-main bg-blue-800 text-white px-6 sm:px-8 py-1.5 sm:py-2 rounded-md flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm disabled:opacity-70 disabled:cursor-not-allowed"
+              onClick={handleSubmit}
+              disabled={saving}
             >
-              <span>{mode === 'edit' ? 'Update' : 'Save'}</span>
-              <svg className='w-4 h-4 sm:w-5 sm:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-              </svg>
+              {saving ? (
+                <>
+                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <span>{mode === 'edit' ? 'Update' : 'Save'}</span>
+                  <svg className='w-4 h-4 sm:w-5 sm:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                  </svg>
+                </>
+              )}
             </button>
           </div>
         </div>
 
-        {/* Delete Confirmation Modal - responsive */}
+        {/* Delete Confirmation Modal */}
         {showDeleteConfirm && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 sm:p-6 animate-fadeIn">

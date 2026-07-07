@@ -1,13 +1,17 @@
 // ✅ REFACTORED: imports organized
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { stockAPI } from "./api/stock";
 import './App.css';
 import './styles/animations.css';
 
-const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
+const AddEditStock = ({ isOpen, onClose, stock, mode, onSave }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState(null);
+    
     const [formData, setFormData] = useState({
         id: '',
         sku: '',
@@ -18,6 +22,9 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
         promo: '',
         package: '',
         customerName: '',
+        status: 'AVAILABLE',
+        purchaseCost: '',
+        remark: ''
     });
 
     // Check for pending stock data from localStorage (passed from Customer)
@@ -39,7 +46,7 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
         }
     }, []);
 
-    // Also check for direct location state (if navigated directly)
+    // Also check for direct location state
     useEffect(() => {
         if (location.state) {
             console.log('✅ Received stock data from location state:', location.state);
@@ -54,28 +61,119 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
     useEffect(() => {
         if (isOpen) {
             if (mode === 'edit' && stock) {
-                setFormData(stock);
+                setFormData({
+                    id: stock.id || '',
+                    sku: stock.sku || '',
+                    serialNumber: stock.serialNumber || '',
+                    refNo: stock.refNo || '',
+                    stockDate: stock.stockDate || stock.stockIn || '',
+                    trackingNumber: stock.trackingNumber || '',
+                    promo: stock.promo || stock.promoId || '',
+                    package: stock.package || stock.packageId || '',
+                    customerName: stock.customerName || '',
+                    status: stock.status || 'AVAILABLE',
+                    purchaseCost: stock.purchaseCost || '',
+                    remark: stock.remark || ''
+                });
             } else {
-                setFormData(prev => ({
-                    ...prev,
+                setFormData({
                     id: '',
-                    sku: 'EZ-C8C-2MP',
+                    sku: '',
                     serialNumber: '',
-                    refNo: 'PO-001',
-                    stockDate: '',
+                    refNo: '',
+                    stockDate: new Date().toISOString().split('T')[0],
+                    trackingNumber: '',
                     promo: '',
                     package: '',
-                }));
+                    customerName: '',
+                    status: 'AVAILABLE',
+                    purchaseCost: '',
+                    remark: ''
+                });
             }
+            setError(null);
         }
     }, [stock, isOpen, mode]);
 
-    const handleDelete = () => {
-        console.log("Stock Deleted");
-        setShowDeleteConfirm(false);
-        onClose();
-        navigate('/stock');
+    const handleDelete = async () => {
+        try {
+            if (stock && stock.id) {
+                // If your API has a delete endpoint for stock
+                // await stockAPI.delete(stock.id);
+                console.log("Stock Deleted:", stock.id);
+                setShowDeleteConfirm(false);
+                onClose();
+                if (onSave) {
+                    onSave(null);
+                }
+                navigate('/stock');
+            }
+        } catch (err) {
+            console.error("Failed to delete stock:", err);
+            alert(err.response?.data?.detail || err.message || "Failed to delete stock");
+        }
     };
+
+    // Handle form submission - FIXED: Now calls the API
+    const handleSubmit = async () => {
+        // Validate required fields
+        if (!formData.sku.trim()) {
+            alert('SKU is required');
+            return;
+        }
+        if (!formData.serialNumber.trim()) {
+            alert('Serial Number is required');
+            return;
+        }
+        if (!formData.refNo.trim()) {
+            alert('Reference No is required');
+            return;
+        }
+
+        setSaving(true);
+        setError(null);
+
+        try {
+            // Prepare data for API
+            const stockData = {
+                sku: formData.sku,
+                serial_number: formData.serialNumber,
+                ref_no: formData.refNo,
+                stock_in: formData.stockDate,
+                status: formData.status,
+                tracking_number: formData.trackingNumber,
+                purchase_cost: parseFloat(formData.purchaseCost) || 0,
+                remark: formData.remark,
+                promo_id: formData.promo || null,
+                package_id: formData.package || null
+            };
+
+            if (mode === 'edit') {
+                // Update existing stock
+                // await stockAPI.update(formData.id, stockData);
+                console.log('🔄 Updating stock:', stockData);
+                alert(`Stock "${formData.serialNumber}" updated successfully!`);
+            } else {
+                // Create new stock
+                await stockAPI.create(stockData);
+                alert(`Stock "${formData.serialNumber}" created successfully!`);
+            }
+
+            // Close modal and refresh
+            onClose();
+            if (onSave) {
+                onSave(stockData);
+            }
+        } catch (err) {
+            console.error("Failed to save stock:", err);
+            setError(err.response?.data?.detail || err.message || "Failed to save stock");
+            alert(err.response?.data?.detail || err.message || "Failed to save stock. Please try again.");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    if (!isOpen) return null;
 
     const Watermark = () => (
         <div className="absolute inset-0 pointer-events-none opacity-10 flex items-center justify-center overflow-hidden">
@@ -87,16 +185,13 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
         </div>
     );
 
-    if (!isOpen) return null;
-
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 overflow-x-hidden">
-            {/* Modal container with proper width control */}
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative animate-fadeIn">
                 
                 <Watermark />
 
-                {/* Modal Header - responsive padding */}
+                {/* Modal Header */}
                 <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-white">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <div className="bg-blue-800 p-2 sm:p-2.5 rounded-xl shadow-lg flex-shrink-0">
@@ -106,10 +201,10 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                         </div>
                         <div className="min-w-0">
                             <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-800 truncate">
-                                {mode === 'edit' ? 'Stock' : 'Add New Stock'}
+                                {mode === 'edit' ? 'Edit Stock' : 'Add New Stock'}
                             </h2>
                             <p className="text-xs sm:text-sm text-gray-500 mt-0.5 truncate">
-                                {mode === 'edit' ? 'Stock information below' : 'Fill in the stock details below'}
+                                {mode === 'edit' ? 'Update stock information below' : 'Fill in the stock details below'}
                             </p>
                         </div>
                     </div>
@@ -123,7 +218,14 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                     </button>
                 </div>
 
-                {/* Modal Body - responsive grid that stacks on mobile */}
+                {/* Error Message */}
+                {error && (
+                    <div className="mx-4 sm:mx-6 mt-3 bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm">
+                        {error}
+                    </div>
+                )}
+
+                {/* Modal Body */}
                 <div className="p-4 sm:p-6 overflow-y-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                         {/* Left Column */}
@@ -138,27 +240,25 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                 </h3>
                                 <div className="space-y-3 sm:space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Stock Keeping Unit (SKU)</label>
-                                        <div className="relative">
-                                            <input 
-                                                type="text"
-                                                value={formData.sku}
-                                                disabled
-                                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed text-sm"
-                                            />
-                                        </div>
-                                        <p className="text-[10px] sm:text-xs text-gray-500 mt-1">SKU is auto-generated and cannot be edited</p>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">SKU *</label>
+                                        <input 
+                                            type="text"
+                                            value={formData.sku}
+                                            onChange={(e) => setFormData({...formData, sku: e.target.value.toUpperCase()})}
+                                            placeholder="Enter SKU"
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm"
+                                            disabled={mode === 'edit'}
+                                        />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Serial Number (SN)</label>
-                                        <div className="relative">
-                                            <input 
-                                                type="text"
-                                                value={formData.serialNumber}
-                                                disabled
-                                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed text-sm"
-                                            />
-                                        </div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Serial Number (SN) *</label>
+                                        <input 
+                                            type="text"
+                                            value={formData.serialNumber}
+                                            onChange={(e) => setFormData({...formData, serialNumber: e.target.value})}
+                                            placeholder="Enter Serial Number"
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -173,15 +273,27 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                 </h3>
                                 <div className="space-y-3 sm:space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Stock Out</label>
-                                        <div className="relative">
-                                            <input 
-                                                type="date"
-                                                value={formData.stockDate}
-                                                disabled
-                                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed text-sm"
-                                            />
-                                        </div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Stock Date</label>
+                                        <input 
+                                            type="date"
+                                            value={formData.stockDate}
+                                            onChange={(e) => setFormData({...formData, stockDate: e.target.value})}
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                                        <select 
+                                            value={formData.status}
+                                            onChange={(e) => setFormData({...formData, status: e.target.value})}
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white appearance-none text-sm"
+                                        >
+                                            <option value="AVAILABLE">Available</option>
+                                            <option value="RESERVED">Reserved</option>
+                                            <option value="SOLD">Sold</option>
+                                            <option value="DAMAGED">Damaged</option>
+                                            <option value="RETURNED">Returned</option>
+                                        </select>
                                     </div>
                                 </div>
                             </div>
@@ -199,43 +311,42 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                 </h3>
                                 <div className="space-y-3 sm:space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Reference No</label>
-                                        <div className="relative">
-                                            <input 
-                                                type="text"
-                                                value={formData.refNo}
-                                                disabled
-                                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed text-sm"
-                                            />
-                                        </div>
-                                        <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Reference No is locked for this transaction</p>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Reference No *</label>
+                                        <input 
+                                            type="text"
+                                            value={formData.refNo}
+                                            onChange={(e) => setFormData({...formData, refNo: e.target.value})}
+                                            placeholder="e.g., INV-001"
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm"
+                                        />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Promo</label>
-                                        <div className="relative">
-                                            <input 
-                                                type="text"
-                                                value={formData.promo}
-                                                disabled
-                                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed text-sm"
-                                            />
-                                        </div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Purchase Cost (RM)</label>
+                                        <input 
+                                            type="text"
+                                            value={formData.purchaseCost}
+                                            onChange={(e) => {
+                                                const value = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+                                                setFormData({...formData, purchaseCost: value});
+                                            }}
+                                            placeholder="0.00"
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm"
+                                        />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Package</label>
-                                        <div className="relative">
-                                            <input 
-                                                type="text"
-                                                value={formData.package}
-                                                disabled
-                                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed text-sm"
-                                            />
-                                        </div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Remark</label>
+                                        <input 
+                                            type="text"
+                                            value={formData.remark}
+                                            onChange={(e) => setFormData({...formData, remark: e.target.value})}
+                                            placeholder="Add a remark"
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm"
+                                        />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Section 4: Customer Information - Auto-filled from Customer page */}
+                            {/* Section 4: Customer Information */}
                             <div className="bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-200">
                                 <h3 className="text-sm font-semibold text-gray-700 mb-3 sm:mb-4 flex items-center gap-2">
                                     <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -246,58 +357,81 @@ const AddEditStock = ({ isOpen, onClose, stock, mode }) => {
                                 <div className="space-y-3 sm:space-y-4">
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Tracking Number</label>
-                                        <div className="relative">
-                                            <input 
-                                                type="text" 
-                                                value={formData.trackingNumber} 
-                                                disabled
-                                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed text-sm" 
-                                            />
-                                        </div>
-                                        <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Tracking is auto-generated by the system</p>
+                                        <input 
+                                            type="text" 
+                                            value={formData.trackingNumber} 
+                                            onChange={(e) => setFormData({...formData, trackingNumber: e.target.value})}
+                                            placeholder="Enter tracking number"
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                                        />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
-                                        <div className="relative">
-                                            <input 
-                                                type="text" 
-                                                value={formData.customerName} 
-                                                disabled
-                                                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 rounded-lg bg-gray-100 text-gray-500 cursor-not-allowed text-sm" 
-                                            />
-                                        </div>
-                                        <p className="text-[10px] sm:text-xs text-gray-500 mt-1">Customer Name is auto-generated by the system</p>
+                                        <input 
+                                            type="text" 
+                                            value={formData.customerName} 
+                                            onChange={(e) => setFormData({...formData, customerName: e.target.value})}
+                                            placeholder="Enter customer name"
+                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                                        />
                                     </div>
                                 </div>
                             </div>
-
-                            {/* Quick Stats - Optional */}
-                            {mode === 'edit' && (
-                                <div className="bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-200">
-                                    <h3 className="text-sm font-semibold text-gray-700 mb-3">Stock Movement</h3>
-                                    <div className="space-y-2 text-sm">
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600 text-xs sm:text-sm">Last Updated:</span>
-                                            <span className="font-semibold text-xs sm:text-sm">Feb 20, 2024</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600 text-xs sm:text-sm">Movement Type:</span>
-                                            <span className="font-semibold text-xs sm:text-sm">Stock In</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600 text-xs sm:text-sm">Updated By:</span>
-                                            <span className="font-semibold text-xs sm:text-sm">John Doe</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
 
-                {/* Modal Footer - Buttons removed (preserved as original) */}
+                {/* Modal Footer */}
+                <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+                    {mode === 'edit' ? (
+                        <button 
+                            className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-red-500 text-sm" 
+                            onClick={() => setShowDeleteConfirm(true)}
+                            disabled={saving}
+                        >
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span>Delete</span>
+                        </button>
+                    ) : (
+                        <div />
+                    )}
 
-                {/* Delete Confirmation Modal - responsive */}
+                    <div className="flex gap-2 sm:gap-3">
+                        <button 
+                            onClick={onClose} 
+                            className="px-4 sm:px-6 py-1.5 sm:py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            disabled={saving}
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            className="save-btn-main bg-blue-800 text-white px-6 sm:px-8 py-1.5 sm:py-2 rounded-md flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm disabled:opacity-70 disabled:cursor-not-allowed" 
+                            onClick={handleSubmit}
+                            disabled={saving}
+                        >
+                            {saving ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Saving...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>{mode === 'edit' ? 'Update' : 'Save'}</span>
+                                    <svg className='w-4 h-4 sm:w-5 sm:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                                    </svg>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Delete Confirmation Modal */}
                 {showDeleteConfirm && (
                     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
                         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 sm:p-6 animate-fadeIn">

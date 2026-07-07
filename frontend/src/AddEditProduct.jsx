@@ -1,13 +1,18 @@
 // ✅ REFACTORED: imports organized
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { productsAPI } from "./api/products";
 import './App.css';
 import './styles/animations.css';
 
-const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
+const AddEditProduct = ({ isOpen, onClose, product, mode, onSave }) => {
     const navigate = useNavigate();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [imagePreview, setImagePreview] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState(null);
+    
     const [formData, setFormData] = useState({ 
         id: '', 
         sku: '', 
@@ -20,7 +25,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
         vendorPrice: '',
         sellingPrice: '',
         reservedQuantity: '0',
-        status: 'active'
+        status: 'ACTIVE'
     });
 
     // SKU autocomplete state
@@ -40,25 +45,34 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
         "HS-SD-64G"
     ];
 
-    // Filtered SKU options based on user input (startsWith matching)
+    // Filtered SKU options based on user input
     const filteredSkuOptions = formData.sku
         ? skuOptions.filter((sku) =>
             sku.toLowerCase().startsWith(formData.sku.toLowerCase())
           )
         : [];
 
-    // Limit to 3 suggestions and make scrollable
     const displaySkuOptions = filteredSkuOptions.slice(0, 3);
 
     useEffect(() => {
         if (isOpen) {
             if (mode === 'edit' && product) {
                 setFormData({
-                    ...product,
+                    id: product.id || '',
+                    sku: product.sku || '',
+                    type: product.type || '',
+                    margin: product.margin || '',
+                    quantity: product.quantityOnHand || product.quantity || '',
+                    productName: product.productName || '',
+                    productDetails: product.productDetails || '',
+                    vendorPrice: product.vendorPrice || '',
+                    sellingPrice: product.sellingPrice || '',
                     reservedQuantity: product.reservedQuantity || '0',
-                    status: product.status || 'active'
+                    status: product.status || 'ACTIVE',
+                    image: product.image || null
                 });
                 setImagePreview(product.image || null);
+                setImageFile(null);
             } else {
                 setFormData({ 
                     id: '', 
@@ -71,19 +85,32 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                     vendorPrice: '',
                     sellingPrice: '',
                     reservedQuantity: '0',
-                    status: 'active',
+                    status: 'ACTIVE',
                     image: null
                 });
                 setImagePreview(null);
+                setImageFile(null);
             }
+            setError(null);
         }
     }, [product, isOpen, mode]);
 
-    const handleDelete = () => {
-        console.log("Product Deleted");
-        setShowDeleteConfirm(false);
-        onClose();
-        navigate('/product');
+    const handleDelete = async () => {
+        try {
+            if (product && product.sku) {
+                await productsAPI.delete(product.sku);
+                console.log("Product Deleted:", product.sku);
+                setShowDeleteConfirm(false);
+                onClose();
+                if (onSave) {
+                    onSave(null); // Trigger refresh
+                }
+                navigate('/product');
+            }
+        } catch (err) {
+            console.error("Failed to delete product:", err);
+            alert(err.response?.data?.detail || err.message || "Failed to delete product");
+        }
     };
 
     const handleImageUpload = (e) => {
@@ -92,6 +119,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImagePreview(reader.result);
+                setImageFile(file);
                 setFormData({...formData, image: reader.result});
             };
             reader.readAsDataURL(file);
@@ -114,8 +142,8 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
     // Numbers-only validation for price fields
     const handlePriceChange = (field, value) => {
         const sanitizedValue = value
-            .replace(/[^0-9.]/g, "") // Remove non-numeric characters except decimal
-            .replace(/(\..*)\./g, "$1"); // Allow only one decimal point
+            .replace(/[^0-9.]/g, "")
+            .replace(/(\..*)\./g, "$1");
         setFormData({ ...formData, [field]: sanitizedValue });
     };
 
@@ -124,6 +152,63 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
         setTimeout(() => {
             setShowSkuDropdown(false);
         }, 200);
+    };
+
+    // Handle form submission - FIXED: Now calls the API
+    const handleSubmit = async () => {
+        // Validate required fields
+        if (!formData.sku.trim()) {
+            alert('SKU is required');
+            return;
+        }
+        if (!formData.productName.trim()) {
+            alert('Product Name is required');
+            return;
+        }
+        if (!formData.type.trim()) {
+            alert('Product Type is required');
+            return;
+        }
+
+        setSaving(true);
+        setError(null);
+
+        try {
+            // Prepare data for API
+            const productData = {
+                sku: formData.sku,
+                productName: formData.productName,
+                type: formData.type,
+                productDetails: formData.productDetails,
+                vendorPrice: parseFloat(formData.vendorPrice) || 0,
+                sellingPrice: parseFloat(formData.sellingPrice) || 0,
+                margin: parseFloat(formData.margin) || 0,
+                status: formData.status || 'ACTIVE',
+                quantityOnHand: parseInt(formData.quantity) || 0,
+                reservedQuantity: parseInt(formData.reservedQuantity) || 0,
+                image: imageFile
+            };
+
+            if (mode === 'edit') {
+                await productsAPI.update(formData.sku, productData);
+                alert(`Product "${formData.productName}" updated successfully!`);
+            } else {
+                await productsAPI.create(productData);
+                alert(`Product "${formData.productName}" created successfully!`);
+            }
+
+            // Close modal and refresh
+            onClose();
+            if (onSave) {
+                onSave(productData);
+            }
+        } catch (err) {
+            console.error("Failed to save product:", err);
+            setError(err.response?.data?.detail || err.message || "Failed to save product");
+            alert(err.response?.data?.detail || err.message || "Failed to save product. Please try again.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     if (!isOpen) return null;
@@ -140,12 +225,11 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4 overflow-x-hidden">
-            {/* Modal container with proper width control */}
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative animate-fadeIn">
                 
                 <Watermark />
 
-                {/* Modal Header - responsive padding */}
+                {/* Modal Header */}
                 <div className="px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-200 flex justify-between items-center bg-gradient-to-r from-blue-50 to-white">
                     <div className="flex items-center gap-2 sm:gap-3">
                         <div className="bg-blue-800 p-2 sm:p-2.5 rounded-xl shadow-lg">
@@ -172,7 +256,14 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                     </button>
                 </div>
 
-                {/* Modal Body - responsive grid that stacks on mobile */}
+                {/* Error Message */}
+                {error && (
+                    <div className="mx-4 sm:mx-6 mt-3 bg-red-50 border border-red-200 text-red-700 px-4 py-2 rounded-lg text-sm">
+                        {error}
+                    </div>
+                )}
+
+                {/* Modal Body */}
                 <div className="p-4 sm:p-6 overflow-y-auto">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                         {/* Left Column - Basic Info */}
@@ -187,8 +278,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                 </h3>
                                 <div className="space-y-3 sm:space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">SKU (Stock Keeping Unit)</label>
-                                        {/* SKU input with autocomplete dropdown */}
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">SKU (Stock Keeping Unit) *</label>
                                         <div className="relative">
                                             <input 
                                                 type="text" 
@@ -197,8 +287,8 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                                 onBlur={handleSkuBlur}
                                                 placeholder="e.g., EZ-C8C-2MP" 
                                                 className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                                                disabled={mode === 'edit'}
                                             />
-                                            {/* SKU autocomplete dropdown - limited to 3 suggestions, scrollable */}
                                             {showSkuDropdown && displaySkuOptions.length > 0 && (
                                                 <div className="absolute z-20 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-[120px] overflow-y-auto">
                                                     {displaySkuOptions.map((sku) => (
@@ -213,9 +303,12 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                                 </div>
                                             )}
                                         </div>
+                                        {mode === 'edit' && (
+                                            <p className="text-xs text-amber-600 mt-1">SKU cannot be changed in edit mode</p>
+                                        )}
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Product Name *</label>
                                         <input 
                                             type="text" 
                                             value={formData.productName}
@@ -225,7 +318,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Product Type</label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Product Type *</label>
                                         <input 
                                             type="text" 
                                             value={formData.type}
@@ -252,9 +345,9 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                                 onChange={(e) => setFormData({...formData, status: e.target.value})}
                                                 className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white appearance-none text-sm"
                                             >
-                                                <option value="active">Active</option>
-                                                <option value="inactive">Inactive</option>
-                                                <option value="discontinued">Discontinued</option>
+                                                <option value="ACTIVE">Active</option>
+                                                <option value="INACTIVE">Inactive</option>
+                                                <option value="DISCONTINUED">Discontinued</option>
                                             </select>
                                             <div className="absolute right-3 top-2.5 sm:top-3 text-gray-400 pointer-events-none">
                                                 <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -279,7 +372,6 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Vendor Price (RM)</label>
                                         <div className="relative">
                                             <span className="absolute left-3 top-2 sm:top-2.5 text-gray-500 text-sm">RM</span>
-                                            {/* Numbers-only validation for Vendor Price */}
                                             <input 
                                                 type="text" 
                                                 value={formData.vendorPrice}
@@ -293,7 +385,6 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Selling Price (RM)</label>
                                         <div className="relative">
                                             <span className="absolute left-3 top-2 sm:top-2.5 text-gray-500 text-sm">RM</span>
-                                            {/* Numbers-only validation for Selling Price */}
                                             <input 
                                                 type="text" 
                                                 value={formData.sellingPrice}
@@ -306,7 +397,6 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Margin (%)</label>
                                         <div className="relative">
-                                            {/* Numbers-only validation for Margin */}
                                             <input 
                                                 type="text" 
                                                 value={formData.margin}
@@ -370,7 +460,6 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                     Product Image
                                 </h3>
                                 
-                                {/* Image Upload Area - responsive sizing */}
                                 <div className="flex flex-col items-center">
                                     <div className="relative group">
                                         <div className={`w-32 h-32 sm:w-36 sm:h-36 md:w-40 md:h-40 rounded-2xl border-3 border-dashed transition-all duration-300 overflow-hidden
@@ -386,7 +475,6 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                             )}
                                         </div>
                                         
-                                        {/* Upload Overlay */}
                                         <label className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 rounded-2xl cursor-pointer">
                                             <input 
                                                 type="file" 
@@ -406,7 +494,6 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                 </div>
                             </div>
 
-                            {/* Quick Stats - Optional */}
                             {mode === 'edit' && (
                                 <div className="bg-gray-50 p-4 sm:p-5 rounded-xl border border-gray-200">
                                     <h3 className="text-sm font-semibold text-gray-700 mb-3">Product Stats</h3>
@@ -421,7 +508,7 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-gray-600">Last Updated:</span>
-                                            <span className="font-semibold">Feb 20, 2024</span>
+                                            <span className="font-semibold">{new Date().toLocaleDateString()}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -430,16 +517,18 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                     </div>
                 </div>
 
-                {/* Modal Footer - responsive padding and buttons */}
+                {/* Modal Footer */}
                 <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
                     {mode === 'edit' ? (
                         <button 
                             className="flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group focus:outline-none focus:ring-2 focus:ring-red-500 text-sm" 
                             onClick={() => setShowDeleteConfirm(true)}
+                            disabled={saving}
                         >
                             <svg className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
+                            <span>Delete</span>
                         </button>
                     ) : (
                         <div />
@@ -449,25 +538,36 @@ const AddEditProduct = ({ isOpen, onClose, product, mode }) => {
                         <button 
                             onClick={onClose} 
                             className="px-4 sm:px-6 py-1.5 sm:py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            disabled={saving}
                         >
                             Cancel
                         </button>
                         <button 
-                            className="save-btn-main bg-blue-800 text-white px-6 sm:px-8 py-1.5 sm:py-2 rounded-md flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm" 
-                            onClick={() => {
-                                console.log("Saving product:", formData);
-                                onClose();
-                            }}
+                            className="save-btn-main bg-blue-800 text-white px-6 sm:px-8 py-1.5 sm:py-2 rounded-md flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm disabled:opacity-70 disabled:cursor-not-allowed" 
+                            onClick={handleSubmit}
+                            disabled={saving}
                         >
-                            <span>{mode === 'edit' ? 'Update' : 'Save'}</span>
-                            <svg className='w-4 h-4 sm:w-5 sm:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-                                <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
-                            </svg>
+                            {saving ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Saving...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>{mode === 'edit' ? 'Update' : 'Save'}</span>
+                                    <svg className='w-4 h-4 sm:w-5 sm:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                                        <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M5 13l4 4L19 7' />
+                                    </svg>
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>
 
-                {/* Delete Confirmation Modal - responsive */}
+                {/* Delete Confirmation Modal */}
                 {showDeleteConfirm && (
                     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm p-4">
                         <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-5 sm:p-6 animate-fadeIn">

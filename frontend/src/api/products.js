@@ -3,16 +3,28 @@
 import apiClient from './client';
 
 export const productsAPI = {
-  // List all products (with pagination)
+
   getAll: async (params = { page: 1, limit: 20 }) => {
-    const response = await apiClient.get('/api/v1/product', { params });
-    return response.data;
+    try {
+      const response = await apiClient.get('/api/v1/product', { params });
+      console.log('Products API response:', response);
+      return response.data;
+    } catch (error) {
+      console.error("Get products error:", error.response?.data || error.message);
+      throw error;
+    }
   },
   
   // Get single product by SKU
   getBySKU: async (sku) => {
-    const response = await apiClient.get(`/api/v1/product/${sku}`);
-    return response.data;
+    try {
+      const response = await apiClient.get(`/api/v1/product/${sku}`);
+      console.log('Product API response:', response);
+      return response.data;
+    } catch (error) {
+      console.error("Get product error:", error.response?.data || error.message);
+      throw error;
+    }
   },
   
   // Create product (Admin only)
@@ -34,84 +46,25 @@ export const productsAPI = {
   
   // Update product (Admin only)
   update: async (sku, productData) => {
-    const response = await apiClient.put(`/api/v1/product/${sku}`, productData);
-    return response.data;
+    try {
+      const response = await apiClient.put(`/api/v1/product/${sku}`, productData);
+      console.log('Product update API response:', response);
+      return response.data;
+    } catch (error) {
+      console.error("Update product error:", error.response?.data || error.message);
+      throw error;
+    }
   },
   
   // Delete product (Admin only)
   delete: async (sku) => {
-    const response = await apiClient.delete(`/api/v1/product/${sku}`);
-    return response.data;
-  },
-  
-  // Add stock info endpoint
-  getStockInfo: async (sku) => {
-    const response = await apiClient.get(`/product/${sku}/stock`);
-    return response.data;
-  },
-  
-  // Add dashboard summary
-  getSummary: async () => {
-    const response = await apiClient.get('/product/dashboard/summary');
-    return response.data;
-  },
-
-  // Fix create with image
-  create: async (productData) => {
-    const formData = new FormData();
-    
-    // Map frontend fields to backend expected fields
-    const backendData = {
-      sku: productData.sku,
-      product_name: productData.product_name,
-      product_type: productData.product_type,
-      description: productData.description,
-      cost_price: productData.cost_price,
-      selling_price: productData.selling_price,
-      quantity_balance: productData.initial_stock || 0,  // Add initial stock
-      status: productData.status || 'ACTIVE'
-    };
-
-    Object.keys(backendData).forEach(key => {
-      if (backendData[key] !== undefined && backendData[key] !== null) {
-        formData.append(key, backendData[key]);
-      }
-    });
-    
-    if (productData.image) {
-      formData.append('product_image', productData.image);
+    try {
+      const response = await apiClient.delete(`/api/v1/product/${sku}`);
+      console.log('Product delete API response:', response);
+      return response.data;
+    } catch (error) {
+      console.error("Delete product error:", error.response?.data || error.message);
+      throw error;
     }
-    
-    const response = await apiClient.post('/product', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
-    return response.data;
   },
-
-  // Fix update - should also handle stock adjustments
-  update: async (sku, productData) => {
-    // Separate stock movement from product updates
-    const updateData = {
-      product_name: productData.product_name,
-      product_type: productData.product_type,
-      description: productData.description,
-      cost_price: productData.cost_price,
-      selling_price: productData.selling_price,
-      status: productData.status
-    };
-    
-  const response = await apiClient.put(`/product/${sku}`, updateData);
-
-  // Handle stock adjustment separately if needed
-    if (productData.stock_adjustment) {
-      await apiClient.post(`/product/${sku}/adjust-stock`, {
-        quantity: productData.stock_adjustment,
-        reason: productData.adjustment_reason
-      });
-    }
-    
-    return response.data;
-  }
-
-    
 };
