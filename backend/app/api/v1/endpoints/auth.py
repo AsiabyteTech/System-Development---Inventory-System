@@ -19,7 +19,7 @@ router = APIRouter(prefix="/auth", tags=["Auth"])
 
 @router.post("/login", response_model=TokenResponse)
 async def login(payload: LoginRequest, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Staff).where(Staff.staff_id == payload.email))
+    result = await db.execute(select(Staff).where(Staff.email == payload.email))
     user = result.scalar_one_or_none()
     if not user or not verify_password(payload.password, user.password):
         raise UnauthorizedException("Invalid email or password")

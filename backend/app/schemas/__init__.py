@@ -249,18 +249,11 @@ class StockReserveResponse(BaseModel):
     message: str
 
 
-class StockReleaseRequest(BaseModel):
-    tracking_number: str
-
-
 class StockAdjustRequest(BaseModel):
     serial_number: str
     new_status: str
     remark: Optional[str] = None
 
-
-class StockFulfillRequest(BaseModel):
-    tracking_number: str
 
 
 # ── Package ───────────────────────────────────────────────────────────────────
@@ -346,3 +339,14 @@ class PnLResponse(BaseModel):
     summary: PnLSummary
     breakdown_by_product: List[PnLProductBreakdown]
     cost_flow_summary: CostFlowSummary
+
+
+# ── StockMovement (Audit) ─────────────────────────────────────────────────────
+class StockMovementOut(BaseModel):
+    movement_id: int
+    serial_number: str
+    action_type: str
+    ref_id: Optional[str]
+    datetime: datetime
+
+    model_config = {"from_attributes": True}

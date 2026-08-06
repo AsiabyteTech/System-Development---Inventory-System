@@ -12,7 +12,7 @@ from app.models import Stock, Inventory, Order, Check, StockMovement, Staff
 from app.schemas import (
     StockCreate, StockUpdate, StockOut,
     StockReserveRequest, StockReserveResponse,
-    StockReleaseRequest, StockAdjustRequest, StockFulfillRequest,
+    StockAdjustRequest,
 )
 
 router = APIRouter(prefix="/stock", tags=["Stock"])
@@ -188,78 +188,6 @@ async def reserve_stock(
         reserved=reserved_serials,
         message=f"{len(reserved_serials)} item(s) reserved for order {payload.tracking_number}",
     )
-
-
-@router.post("/release", status_code=200)
-async def release_stock(
-    payload: StockReleaseRequest,
-    db: AsyncSession = Depends(get_db),
-    _: Staff = Depends(get_current_user),
-):
-    """Cancel reservation — move RESERVED → AVAILABLE."""
-    result = await db.execute(
-        select(Check).where(Check.tracking_number == payload.tracking_number)
-    )
-    checks = result.scalars().all()
-
-    for check in checks:
-        stock = await db.get(Stock, check.serial_number)
-        if stock and stock.status == "RESERVED":
-            stock.status = "AVAILABLE"
-            db.add(stock)
-
-            inv = await db.get(Inventory, stock.sku)
-            if inv:
-                inv.reserved_quantity = max(0, inv.reserved_quantity - 1)
-                db.add(inv)
-
-            movement = StockMovement(
-                serial_number=check.serial_number,
-                action_type="RELEASED",
-                ref_id=payload.tracking_number,
-                datetime=datetime.utcnow(),
-            )
-            db.add(movement)
-
-        await db.delete(check)
-
-    return {"message": f"Reservation for {payload.tracking_number} released"}
-
-
-@router.post("/fulfill", status_code=200)
-async def fulfill_stock(
-    payload: StockFulfillRequest,
-    db: AsyncSession = Depends(get_db),
-    _: Staff = Depends(get_current_user),
-):
-    """Confirm sale: RESERVED → SOLD. Decrements quantity_on_hand and reserved_quantity."""
-    result = await db.execute(
-        select(Check).where(Check.tracking_number == payload.tracking_number)
-    )
-    checks = result.scalars().all()
-
-    for check in checks:
-        stock = await db.get(Stock, check.serial_number)
-        if stock and stock.status == "RESERVED":
-            stock.status = "SOLD"
-            stock.stock_out = datetime.utcnow()
-            db.add(stock)
-
-            inv = await db.get(Inventory, stock.sku)
-            if inv:
-                inv.quantity_on_hand = max(0, inv.quantity_on_hand - 1)
-                inv.reserved_quantity = max(0, inv.reserved_quantity - 1)
-                db.add(inv)
-
-            movement = StockMovement(
-                serial_number=check.serial_number,
-                action_type="SOLD",
-                ref_id=payload.tracking_number,
-                datetime=datetime.utcnow(),
-            )
-            db.add(movement)
-
-    return {"message": f"Order {payload.tracking_number} fulfilled"}
 
 
 @router.post("/adjust", status_code=200)
