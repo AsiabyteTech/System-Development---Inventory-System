@@ -1,7 +1,7 @@
 // src/contexts/AuthContext.jsx
 import React, { createContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginUser, fetchUserProfile, registerUser } from '../api/api.js';
+import { loginUser, fetchUserProfile, registerUser, registerUserAlt, forgotPassword, resetPassword } from '../api/api.js';
 
 const AuthContext = createContext({});
 
@@ -18,18 +18,26 @@ const AuthProvider = ({ children }) => {
                     const userData = await fetchUserProfile(token);
                     setUser(userData);
                     
-                    // Update localStorage with user data
                     if (userData) {
                         localStorage.setItem('user', JSON.stringify(userData));
                         const role = userData.role?.toLowerCase() === 'administrator' ? 'admin' : 'staff';
                         localStorage.setItem('role', role);
+                        localStorage.setItem('userRole', role);
                         if (userData.email) localStorage.setItem('email', userData.email);
-                        //if (userData.staff_id) localStorage.setItem('staffId', userData.staff_id);
+                        if (userData.name) localStorage.setItem('userName', userData.name);
+                        if (userData.staff_id) localStorage.setItem('staffId', userData.staff_id);
                     }
                 } catch (error) {
                     console.error("Failed to fetch user profile:", error);
-                    if (error.response?.status === 401) {
-                        logout();
+                    if (error.response?.status === 401 || error.response?.status === 403) {
+                        const savedUser = localStorage.getItem('user');
+                        if (savedUser) {
+                            try {
+                                setUser(JSON.parse(savedUser));
+                            } catch (e) {
+                                console.error('Invalid user data in localStorage');
+                            }
+                        }
                     }
                 }
             }
@@ -43,10 +51,7 @@ const AuthProvider = ({ children }) => {
         try {
             const response = await loginUser({ email, password });
             
-            console.log('Login response in context:', response);
-            
             if (response?.access_token) {
-                // Store tokens
                 setToken(response.access_token);
                 localStorage.setItem('token', response.access_token);
                 
@@ -54,28 +59,37 @@ const AuthProvider = ({ children }) => {
                     localStorage.setItem('refresh_token', response.refresh_token);
                 }
                 
-                // Store user data
                 let userData = response.user;
                 
-                // If user data not in response, fetch it separately
                 if (!userData && response.access_token) {
-                    userData = await fetchUserProfile(response.access_token);
+                    try {
+                        userData = await fetchUserProfile(response.access_token);
+                    } catch (profileError) {
+                        console.warn('Could not fetch profile, using minimal data');
+                        userData = { 
+                            email: email,
+                            role: 'staff',
+                            name: email.split('@')[0]
+                        };
+                    }
                 }
                 
                 if (userData) {
                     setUser(userData);
                     localStorage.setItem('user', JSON.stringify(userData));
                     
-                    // Store additional user info
+                    const userName = userData.name || email.split('@')[0];
+                    localStorage.setItem('userName', userName);
+                    
                     const role = userData.role?.toLowerCase() === 'administrator' ? 'admin' : 'staff';
                     localStorage.setItem('role', role);
-                    localStorage.setItem('email', userData.email || email);
+                    localStorage.setItem('userRole', role);
                     
-                    /*if (userData.staff_id) {
+                    localStorage.setItem('email', userData.email || email);
+                    localStorage.setItem('userEmail', userData.email || email);
+                    
+                    if (userData.staff_id) {
                         localStorage.setItem('staffId', userData.staff_id);
-                    }*/
-                    if (userData.name) {
-                        localStorage.setItem('userName', userData.name);
                     }
                 }
                 
@@ -88,17 +102,32 @@ const AuthProvider = ({ children }) => {
         }
     };
 
-    const register = async (fullName, email, staffId, password) => {
+    // UPDATED: Register without staffId
+    const register = async (fullName, email, password) => {
         try {
             const userData = {
                 name: fullName,
                 email: email,
                 password: password,
-                staffId: staffId,
                 role: "STAFF"
+                // staffId is NOT sent - backend will generate it
             };
             
-            const response = await registerUser(userData);
+            console.log('Registering user with data:', userData);
+            
+            let response;
+            try {
+                response = await registerUser(userData);
+            } catch (firstError) {
+                console.warn('Primary registration failed, trying alternative:', firstError.message);
+                try {
+                    response = await registerUserAlt(userData);
+                } catch (secondError) {
+                    console.error('Both registration endpoints failed');
+                    throw secondError;
+                }
+            }
+            
             console.log('Registration response in context:', response);
             
             return response;
@@ -112,7 +141,6 @@ const AuthProvider = ({ children }) => {
         setToken(null);
         setUser(null);
         
-        // Clear all auth-related localStorage items
         const authKeys = [
             'token', 'refresh_token', 'token_type', 'role', 'staffId', 
             'email', 'user', 'loginRole', 'userRole', 'userName', 
@@ -120,7 +148,6 @@ const AuthProvider = ({ children }) => {
         ];
         
         authKeys.forEach(key => localStorage.removeItem(key));
-        
         navigate('/login');
     };
 

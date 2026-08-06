@@ -1,6 +1,6 @@
 // P&L Reports
 
-import apiClient from './client';
+import { apiClient } from "./api";
 //import { REPORT_ENDPOINTS } from '../constants/apiEndpoints';
 
 // Helper to transform P&L data
@@ -147,7 +147,11 @@ export const reportsAPI = {
      */
     getInventoryValuation: async () => {
         try {
-            const response = await apiClient.get(REPORT_ENDPOINTS.INVENTORY_VALUATION);
+            // ⚠️ VERIFY this path — REPORT_ENDPOINTS was referenced here but never
+            // imported (the import above was commented out), so this always silently
+            // threw and returned defaults. Using the same /api/v1/reports/ prefix as
+            // every other endpoint in this file as a best guess.
+            const response = await apiClient.get('/api/v1/reports/inventory-valuation');
             return {
                 total_value: response.data?.total_value || 0,
                 by_product: response.data?.by_product || [],
@@ -168,7 +172,7 @@ export const reportsAPI = {
      */
     exportReport: async (reportType, params = {}, format = 'csv') => {
         try {
-            const response = await apiClient.get(`/reports/${reportType}/export`, {
+            const response = await apiClient.get(`/api/v1/reports/${reportType}/export`, {
                 params: { ...params, format },
                 responseType: 'blob',
             });
@@ -205,7 +209,6 @@ export const reportsAPI = {
                 <html>
                     <head>
                         <title>AsiaByte Inventory Report</title>
-                        <link rel="stylesheet" href="/src/styles/App.css">
                         <style>
                             body { font-family: Arial, sans-serif; margin: 20px; }
                             table { width: 100%; border-collapse: collapse; }

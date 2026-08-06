@@ -1,14 +1,15 @@
 // ✅ REFACTORED: imports organized
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Outlet } from 'react-router';
 import { useNavigate } from 'react-router-dom';
-import './App.css';
-import './styles/animations.css';
+import { useOrders } from '../hooks/useOrders';
+import '../App.css';
+import '../styles/animations.css';
 
 // ✅ REFACTORED: component imports
-import Sidebar from './components/Sidebar';
-import FilePreviewModal from './components/FilePreviewModal';
-import { isAdmin } from "./shared/role";
+import Sidebar from '../components/Sidebar';
+import FilePreviewModal from '../components/FilePreviewModal';
+import { isAdmin } from "../shared/role";
 
 const Order = ({}) => {
   const navigate = useNavigate();
@@ -21,90 +22,37 @@ const Order = ({}) => {
   const [selectedFileOrder, setSelectedFileOrder] = useState(null);
   const [isFileModalOpen, setIsFileModalOpen] = useState(false);
 
-  // Local data for the table
-  const orders = [
-    {
-      id: '1',
-      trackingNumber: 'TN-12345678',
-      customerName: 'Ahmad Faiz',
-      purchaseDate: '2023-10-25',
-      salesPlatform: 'Shopee',
-      marginTotal: '45.00',
-      status: 'Pending',
-      fileName: 'invoice_TN-12345678.pdf',
-      fileUrl: '/invoices/invoice_TN-12345678.pdf',
-      fileType: 'application/pdf',
+  const { orders: rawOrders, loading, error, fetchOrders } = useOrders();
+
+  // Map backend fields to the shape this page (and the Customer edit handoff) expects
+  const orders = useMemo(() => {
+    return (rawOrders || []).map(item => ({
+      id: item.id || item.OrderID || item.TrackingNumber || item.tracking_number,
+      trackingNumber: item.TrackingNumber || item.tracking_number || item.trackingNumber || 'N/A',
+      customerName: item.CustomerName || item.customer_name || item.customerName || 'Unknown',
+      purchaseDate: item.PurchaseDate || item.purchase_date || item.purchaseDate || '',
+      salesPlatform: item.SalesPlatform || item.sales_platform || item.salesPlatform || '',
+      marginTotal: item.MarginTotal || item.margin_total || item.Amount || item.amount || '0.00',
+      status: item.Stat || item.status || item.OrderStatus || item.order_status || 'Pending',
+      fileName: item.file_name || item.fileName || '',
+      fileUrl: item.file_url || item.fileUrl || item.invoice_file || null,
+      fileType: item.file_type || item.fileType || 'application/pdf',
       customerData: {
-        name: 'Ahmad Faiz',
-        phone: '+6012-3456789',
-        email: 'ahmad.faiz@email.com',
-        address: '12-1, Jalan PJS 7/19, Bandar Sunway, 47500 Subang Jaya',
-        status: 'Active',
-        salesPlatform: 'Shopee',
-        purchaseDate: '2023-10-25'
+        id: item.CustomerID || item.customer_id,
+        name: item.CustomerName || item.customer_name,
+        phone: item.PhoneNumber || item.phone_number,
+        email: item.Email || item.email,
+        address: item.Address || item.address || item.ShippingAddress || item.shipping_address,
+        status: item.CustomerStatus || item.customer_status || 'Active',
+        salesPlatform: item.SalesPlatform || item.sales_platform,
+        purchaseDate: item.PurchaseDate || item.purchase_date,
       },
-      orderItems: [
-        { sku: 'EZ-C8C-2MP', type: 'CCTV', quantity: 2, total: '80.00' }
-      ],
-      remark: 'Please handle with care',
-      shippingAddress: '12-1, Jalan PJS 7/19, Bandar Sunway, 47500 Subang Jaya',
-      paymentMethod: 'Credit Card'
-    },
-    {
-      id: '2',
-      trackingNumber: 'TN-87654321',
-      customerName: 'Sarah Lim',
-      purchaseDate: '2023-10-26',
-      salesPlatform: 'Lazada',
-      marginTotal: '120.50',
-      status: 'Delivery',
-      fileName: 'delivery_note_TN-87654321.pdf',
-      fileUrl: '/delivery_notes/delivery_TN-87654321.pdf',
-      fileType: 'application/pdf',
-      customerData: {
-        name: 'Sarah Lim',
-        phone: '+6012-9876543',
-        email: 'sarah.lim@email.com',
-        address: '45, Jalan SS2/72, 47300 Petaling Jaya',
-        status: 'Active',
-        salesPlatform: 'Lazada',
-        purchaseDate: '2023-10-26'
-      },
-      orderItems: [
-        { sku: 'EZ-C8C-5MP', type: 'CCTV', quantity: 2, total: '80.00' }
-      ],
-      remark: 'Call before delivery',
-      shippingAddress: '45, Jalan SS2/72, 47300 Petaling Jaya',
-      paymentMethod: 'Online Banking'
-    },
-    {
-      id: '3',
-      trackingNumber: 'TN-99887766',
-      customerName: 'Jason Tan',
-      purchaseDate: '2023-10-24',
-      salesPlatform: 'Direct',
-      marginTotal: '250.00',
-      status: 'Complete',
-      fileName: 'receipt_TN-99887766.pdf',
-      fileUrl: '/receipts/receipt_TN-99887766.pdf',
-      fileType: 'application/pdf',
-      customerData: {
-        name: 'Jason Tan',
-        phone: '+6012-5551234',
-        email: 'jason.tan@email.com',
-        address: '88, Jalan Bukit Bintang, 55100 Kuala Lumpur',
-        status: 'Active',
-        salesPlatform: 'Direct',
-        purchaseDate: '2023-10-24'
-      },
-      orderItems: [
-        { sku: 'EZ-H1C', type: 'CCTV', quantity: 1, total: '40.00' }
-      ],
-      remark: 'Leave at reception',
-      shippingAddress: '88, Jalan Bukit Bintang, 55100 Kuala Lumpur',
-      paymentMethod: 'Cash on Delivery'
-    }
-  ];
+      orderItems: item.items || item.order_items || item.orderItems || [],
+      remark: item.Remark || item.remark || '',
+      shippingAddress: item.ShippingAddress || item.shipping_address || '',
+      paymentMethod: item.PaymentMethod || item.payment_method || '',
+    }));
+  }, [rawOrders]);
   
   const handleFilePreview = (order) => {
     setSelectedFileOrder(order);
@@ -125,6 +73,7 @@ const Order = ({}) => {
       case 'Pending': return 'status-badge-pending';
       case 'Delivery': return 'status-badge-delivery';
       case 'Complete': return 'status-badge-complete';
+      case 'Cancelled': return 'status-badge-cancelled';
       default: return 'status-badge-default';
     }
   };
@@ -331,6 +280,7 @@ const Order = ({}) => {
                 <option value="Pending">Pending</option>
                 <option value="Delivery">Delivery</option>
                 <option value="Complete">Complete</option>
+                <option value="Cancelled">Cancelled</option>
               </select>
               <div className="absolute right-2 sm:right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                 <svg className="w-3 h-3 text-slate-400" fill="currentColor" viewBox="0 0 20 20">
@@ -349,9 +299,22 @@ const Order = ({}) => {
             </button>
           </div>
 
+          {/* Error banner */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-center justify-between">
+              <span className="text-sm">{error}</span>
+              <button onClick={fetchOrders} className="text-sm font-medium underline">Retry</button>
+            </div>
+          )}
+
           {/* Order Table */}
           <div className="bg-white rounded-xl shadow-lg border border-slate-100 overflow-hidden w-full">
-            {filteredOrders.length > 0 ? (
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-8 sm:py-12 md:py-20 px-4 w-full">
+                <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-3"></div>
+                <p className="text-sm text-slate-500">Loading orders...</p>
+              </div>
+            ) : filteredOrders.length > 0 ? (
               <div className="w-full overflow-x-auto">
                 <table className="w-full min-w-[800px] md:min-w-0">
                   <thead>

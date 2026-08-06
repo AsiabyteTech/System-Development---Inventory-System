@@ -33,7 +33,7 @@ export const promoAPI = {
     create: async (promoData) => {
         try {
             const formData = new FormData();
-            
+
             // Map frontend fields to backend expected fields (matches your table)
             const backendPromo = {
                 PromoName: promoData.PromoName || promoData.promo_name || promoData.name,
@@ -48,12 +48,24 @@ export const promoAPI = {
                     formData.append(key, backendPromo[key]);
                 }
             });
-            
+
+            // Which products this promo applies to — previously dropped entirely,
+            // meaning promos were created with no product linkage at all, which is
+            // why "applicable promos" lookups always came back empty.
+            const products = promoData.products || [];
+            products.forEach((item, index) => {
+                formData.append(`products[${index}][sku]`, item.sku || '');
+                formData.append(`products[${index}][quantity]`, item.quantity || 1);
+                if (item.product_id) {
+                    formData.append(`products[${index}][product_id]`, item.product_id);
+                }
+            });
+
             // If there's an image
             if (promoData.image && promoData.image instanceof File) {
                 formData.append('promo_image', promoData.image);
             }
-            
+
             const response = await apiClient.post('/api/v1/promotion', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
@@ -70,7 +82,7 @@ export const promoAPI = {
     update: async (promo_id, promoData) => {
         try {
             const formData = new FormData();
-            
+
             const updatePromo = {
                 PromoName: promoData.PromoName || promoData.promo_name || promoData.name,
                 Dateline: promoData.Dateline || promoData.dateline,
@@ -82,6 +94,16 @@ export const promoAPI = {
             Object.keys(updatePromo).forEach(key => {
                 if (updatePromo[key] !== undefined && updatePromo[key] !== null) {
                     formData.append(key, updatePromo[key]);
+                }
+            });
+
+            // Same fix as create() — the product linkage was previously dropped here too.
+            const products = promoData.products || [];
+            products.forEach((item, index) => {
+                formData.append(`products[${index}][sku]`, item.sku || '');
+                formData.append(`products[${index}][quantity]`, item.quantity || 1);
+                if (item.product_id) {
+                    formData.append(`products[${index}][product_id]`, item.product_id);
                 }
             });
 

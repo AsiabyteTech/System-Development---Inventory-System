@@ -7,11 +7,11 @@ import { FiFileText, FiPackage, FiGift, FiPlus, FiEdit2 } from 'react-icons/fi';
 import { BsBoxSeam, BsGraphUp, BsCurrencyDollar } from 'react-icons/bs';
 
 // ✅ REFACTORED: component imports
-import Sidebar from "./components/Sidebar";
-import { isAdmin } from "./shared/role";
+import Sidebar from "../components/Sidebar";
+import { isAdmin } from "../shared/role";
 
 // ✅ REFACTORED: CSS imports
-import "./App.css";
+import "../App.css";
 
 const Dashboard = () => {
     const navigate = useNavigate();

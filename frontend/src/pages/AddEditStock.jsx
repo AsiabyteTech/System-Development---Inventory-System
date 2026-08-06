@@ -1,11 +1,10 @@
 // ✅ REFACTORED: imports organized
 import React, { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { stockAPI } from "./api/stock";
-import './App.css';
-import './styles/animations.css';
+import '../App.css';
+import '../styles/animations.css';
 
-const AddEditStock = ({ isOpen, onClose, stock, mode, onSave }) => {
+const AddEditStock = ({ isOpen, onClose, stock, mode, onSave, onDelete }) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -96,21 +95,14 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave }) => {
     }, [stock, isOpen, mode]);
 
     const handleDelete = async () => {
-        try {
-            if (stock && stock.id) {
-                // If your API has a delete endpoint for stock
-                // await stockAPI.delete(stock.id);
-                console.log("Stock Deleted:", stock.id);
-                setShowDeleteConfirm(false);
-                onClose();
-                if (onSave) {
-                    onSave(null);
-                }
-                navigate('/stock');
-            }
-        } catch (err) {
-            console.error("Failed to delete stock:", err);
-            alert(err.response?.data?.detail || err.message || "Failed to delete stock");
+        if (!stock || !stock.id || !onDelete) return;
+        const result = await onDelete(stock.id);
+        setShowDeleteConfirm(false);
+        if (result.success) {
+            onClose();
+            navigate('/stock');
+        } else {
+            alert(result.error || "Failed to delete stock");
         }
     };
 
@@ -148,21 +140,17 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave }) => {
                 package_id: formData.package || null
             };
 
-            if (mode === 'edit') {
-                // Update existing stock
-                // await stockAPI.update(formData.id, stockData);
-                console.log('🔄 Updating stock:', stockData);
-                alert(`Stock "${formData.serialNumber}" updated successfully!`);
-            } else {
-                // Create new stock
-                await stockAPI.create(stockData);
-                alert(`Stock "${formData.serialNumber}" created successfully!`);
-            }
-
-            // Close modal and refresh
-            onClose();
             if (onSave) {
-                onSave(stockData);
+                const result = await onSave(stockData);
+                if (result.success) {
+                    alert(mode === 'edit'
+                        ? `Stock "${formData.serialNumber}" updated successfully!`
+                        : `Stock "${formData.serialNumber}" created successfully!`);
+                    onClose();
+                } else {
+                    setError(result.error || "Failed to save stock");
+                    alert(result.error || "Failed to save stock. Please try again.");
+                }
             }
         } catch (err) {
             console.error("Failed to save stock:", err);

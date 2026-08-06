@@ -1,85 +1,47 @@
 // ✅ REFACTORED: imports organized
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from "react-router-dom";
-import { suppliersAPI } from "./api/suppliers";
-import './App.css';
-import './styles/animations.css';
+import { useSuppliers } from "../hooks/useSuppliers";
+import '../App.css';
+import '../styles/animations.css';
 
 // ✅ REFACTORED: component imports
-import Sidebar from './components/Sidebar';
+import Sidebar from '../components/Sidebar';
 import AddEditSupplierModal from './AddEditSupplier';
-import { isAdmin } from "./shared/role";
+import { isAdmin } from "../shared/role";
 
 const Supplier = () => {
   const navigate = useNavigate();
   const logoScrollRef = useRef(null);
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
-  const [suppliers, setSuppliers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [modalMode, setModalMode] = useState('add');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSupplier, setSelectedSupplier] = useState(null);
   const [activeSupplierIdx, setActiveSupplierIdx] = useState(0);
 
-  // Fetch suppliers from API
-  const fetchSuppliers = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await suppliersAPI.getAll();
-      
-      console.log('Raw API response:', response);
-      
-      // Handle different response structures
-      let supplierData = [];
-      if (response?.data) {
-        supplierData = Array.isArray(response.data) ? response.data : [response.data];
-      } else if (response?.suppliers) {
-        supplierData = response.suppliers;
-      } else if (Array.isArray(response)) {
-        supplierData = response;
-      } else if (response) {
-        supplierData = Array.isArray(response) ? response : [response];
-      }
-      
-      console.log('Extracted supplier data:', supplierData);
-      
-      // Map backend fields to frontend expected fields
-      const mappedSuppliers = supplierData.map((item, index) => {
-        console.log('Mapping supplier item:', item);
-        
-        return {
-          id: item.SupplierID || item.supplier_id || item.id || `SUP-${String(index + 1).padStart(3, '0')}`,
-          name: item.SupplierName || item.supplier_name || item.name || 'Unknown Supplier',
-          logo: item.supplier_image || item.logo || `/Pictures/supplier-${index + 1}.png`,
-          pic: item.PersonInCharge || item.person_in_charge || item.pic || 'N/A',
-          address: item.SupplierAddress || item.supplier_address || item.address || 'N/A',
-          // FIXED: Properly map SupplierPhoneNumber
-          phone: item.SupplierPhoneNumber || item.supplier_phone_number || item.supplier_phone || item.phone || 'N/A'
-        };
-      });
-      
-      console.log('Mapped suppliers:', mappedSuppliers);
-      
-      setSuppliers(mappedSuppliers);
-      if (mappedSuppliers.length > 0) {
-        setActiveSupplierIdx(0);
-      }
-    } catch (err) {
-      console.error("Failed to fetch suppliers:", err);
-      setError(err.message || "Failed to load suppliers");
-      setSuppliers([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // REPLACE with:
+  const {
+    suppliers: rawSuppliers,
+    loading,
+    error,
+    fetchSuppliers,
+    createSupplier,
+    updateSupplier,
+    deleteSupplier,
+  } = useSuppliers();
 
-  // Load suppliers on component mount
-  useEffect(() => {
-    fetchSuppliers();
-  }, []);
+  // Keep your field-mapping logic, just run it on the hook's data:
+  const suppliers = useMemo(() => {
+    return (rawSuppliers || []).map((item, index) => ({
+      id: item.SupplierID || item.supplier_id || item.id || `SUP-${String(index + 1).padStart(3, '0')}`,
+      name: item.SupplierName || item.supplier_name || item.name || 'Unknown Supplier',
+      logo: item.supplier_image || item.logo || `/Pictures/supplier-${index + 1}.png`,
+      pic: item.PersonInCharge || item.person_in_charge || item.pic || 'N/A',
+      address: item.SupplierAddress || item.supplier_address || item.address || 'N/A',
+      phone: item.SupplierPhoneNumber || item.supplier_phone_number || item.supplier_phone || item.phone || 'N/A',
+    }));
+  }, [rawSuppliers]);
 
   // Scroll functions
   const scrollLogos = (direction) => {
@@ -137,34 +99,27 @@ const Supplier = () => {
 
   // Handle supplier save/update
   const handleSupplierSave = async (supplierData) => {
-    try {
-      if (modalMode === 'edit' && selectedSupplier) {
-        await suppliersAPI.update(selectedSupplier.id, supplierData);
-      } else {
-        await suppliersAPI.create(supplierData);
-      }
-      // Refresh supplier list
-      await fetchSuppliers();
+    const result = modalMode === 'edit' && selectedSupplier
+      ? await updateSupplier(selectedSupplier.id, supplierData)
+      : await createSupplier(supplierData);
+
+    if (result.success) {
       setIsModalOpen(false);
-    } catch (err) {
-      console.error("Failed to save supplier:", err);
-      alert(err.response?.data?.detail || err.message || "Failed to save supplier. Please try again.");
+    } else {
+      alert(result.error || "Failed to save supplier. Please try again.");
     }
   };
 
-  // Handle supplier delete
   const handleSupplierDelete = async (supplierId) => {
-    if (!window.confirm('Are you sure you want to delete this supplier?')) return;
-    
-    try {
-      await suppliersAPI.delete(supplierId);
-      await fetchSuppliers();
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error("Failed to delete supplier:", err);
-      alert(err.response?.data?.detail || err.message || "Failed to delete supplier. Please try again.");
-    }
-  };
+  if (!window.confirm('Are you sure you want to delete this supplier?')) return;
+
+  const result = await deleteSupplier(supplierId);
+  if (result.success) {
+    setIsModalOpen(false);
+  } else {
+    alert(result.error || "Failed to delete supplier. Please try again.");
+  }
+};
 
   // Get current supplier
   const current = suppliers.length > 0 && suppliers[activeSupplierIdx] 

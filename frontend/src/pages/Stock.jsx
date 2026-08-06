@@ -1,13 +1,14 @@
 // ✅ REFACTORED: imports organized
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { stockAPI } from './api/stock';
-import './App.css';
-import './styles/animations.css';
+import { useStock } from '../hooks/useStock';
+import '../App.css';
+import '../styles/animations.css';
 
 // ✅ REFACTORED: component imports
-import Sidebar from './components/Sidebar';
+import Sidebar from '../components/Sidebar';
 import AddEditStockModal from './AddEditStock';
+import { isAdmin } from "../shared/role";
 
 const Stock = () => {
   const navigate = useNavigate();
@@ -19,9 +20,16 @@ const Stock = () => {
   const [modalMode, setModalMode] = useState('add');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedStock, setSelectedStock] = useState(null);
-  const [stocks, setStocks] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  const {
+    stocks,
+    loading,
+    error,
+    fetchStocks,
+    createStock,
+    updateStock,
+    deleteStock,
+  } = useStock();
 
   // Get SKU filter from navigation state
   useEffect(() => {
@@ -36,48 +44,6 @@ const Stock = () => {
       case 'RESERVED': return 'bg-purple-50 text-purple-700';
       case 'AVAILABLE': return 'bg-green-50 text-green-700';
       default: return 'bg-slate-50 text-slate-700';
-    }
-  };
-
-  useEffect(() => {
-    fetchStocks();
-  }, []);
-
-  const fetchStocks = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await stockAPI.getAll();
-      const stockData = response.data || response.stocks || [];
-      
-      console.log('Raw stock data:', stockData);
-      
-      // Map backend fields to frontend fields
-      const mappedStocks = stockData.map(item => ({
-        id: item.id || item.stock_id || item.SerialNumber,
-        sku: item.SKU || item.sku,
-        serialNumber: item.SerialNumber || item.serial_number || item.serialNumber,
-        refNo: item.RefNo || item.ref_no || item.refNo,
-        stockIn: item.StockIn || item.stock_in || item.stockIn,
-        stockOut: item.StockOut || item.stock_out || item.stockOut,
-        trackingNumber: item.TrackingNumber || item.tracking_number || item.trackingNumber,
-        status: item.Stat || item.status || 'AVAILABLE',
-        orderId: item.OrderId || item.order_id,
-        purchaseCost: item.PurchaseCost || item.purchase_cost,
-        promoId: item.PromoId || item.promo_id,
-        packageId: item.PackageId || item.package_id,
-        remark: item.Remark || item.remark
-      }));
-      
-      console.log('Mapped stocks:', mappedStocks);
-      
-      setStocks(mappedStocks);
-    } catch (err) {
-      console.error("Failed to fetch stocks:", err);
-      setError(err.message || "Failed to load stocks");
-      setStocks([]);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -152,10 +118,28 @@ const Stock = () => {
     navigate('/stock', { state: null, replace: true });
   };
 
+  const openAddModal = () => {
+    setModalMode('add');
+    setSelectedStock(null);
+    setIsModalOpen(true);
+  };
+
   const openEditModal = (stock) => {
     setModalMode('edit');
     setSelectedStock(stock);
     setIsModalOpen(true);
+  };
+
+  // Delegates to the hook — no direct API call here (AddEditStock.jsx just collects form data)
+  const handleStockSave = async (stockData) => {
+    if (modalMode === 'edit' && selectedStock) {
+      return await updateStock(selectedStock.id, stockData);
+    }
+    return await createStock(stockData);
+  };
+
+  const handleStockDelete = async (id) => {
+    return await deleteStock(id);
   };
 
   if (loading) {
@@ -294,6 +278,17 @@ const Stock = () => {
                     </svg>
                     <span>Search</span>
                   </button>
+                  {isAdmin() && (
+                    <button
+                      onClick={openAddModal}
+                      className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 flex items-center justify-center flex-shrink-0"
+                      title="Add New Stock"
+                    >
+                      <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                      </svg>
+                    </button>
+                  )}
                 </div>
                 <p className="text-[10px] sm:text-xs text-slate-400 mt-1 sm:mt-2">*Serial Number, Reference No, Tracking Number</p>
               </div>
@@ -432,7 +427,14 @@ const Stock = () => {
             )}
           </div>
         </main>
-        <AddEditStockModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} stock={selectedStock} mode={modalMode} />
+        <AddEditStockModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          stock={selectedStock}
+          mode={modalMode}
+          onSave={handleStockSave}
+          onDelete={handleStockDelete}
+        />
       </div>
     </div>
   );

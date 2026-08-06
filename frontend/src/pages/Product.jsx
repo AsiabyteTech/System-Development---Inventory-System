@@ -1,16 +1,15 @@
 // ✅ REFACTORED: imports organized
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router';
 import { useNavigate } from 'react-router-dom';
-import { productsAPI } from "./api/products";
-import { stockAPI } from "./api/stock";
-import './App.css';
-import './styles/animations.css';
+import { useProducts } from '../hooks/useProducts';
+import '../App.css';
+import '../styles/animations.css';
 
 // ✅ REFACTORED: component imports
-import Sidebar from './components/Sidebar';
+import Sidebar from '../components/Sidebar';
 import AddEditProductModal from './AddEditProduct';
-import { isAdmin } from "./shared/role";
+import { isAdmin } from "../shared/role";
 
 const Product = () => {
     const navigate = useNavigate();
@@ -19,267 +18,39 @@ const Product = () => {
     const [modalMode, setModalMode] = useState('add');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState(null);
-    const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    
-    // Pagination state
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalProductsCount, setTotalProductsCount] = useState(0);
-    const [itemsPerPage, setItemsPerPage] = useState(50);
-    const [allProducts, setAllProducts] = useState([]);
 
-    useEffect(() => {
-        fetchAllProducts();
-    }, []);
+    const {
+        displayedProducts,
+        loading,
+        error,
+        currentPage,
+        totalPages,
+        totalProductsCount,
+        itemsPerPage,
+        totalMargin,
+        totalStockValue,
+        fetchAllProducts,
+        goToPage,
+        changeItemsPerPage,
+        createProduct,
+        updateProduct,
+        deleteProduct,
+    } = useProducts();
 
-    // ✅ CORRECTED: Fetch ALL products using backend pagination
-    const fetchAllProducts = async () => {
-        try {
-            setLoading(true);
-            setError(null);
-            
-            let allProductData = [];
-            let currentPageNum = 1;
-            const pageSize = 100; // Fetch 100 per request
-            let hasMore = true;
-            
-            // First, try to get total count
-            let totalCount = 0;
-            try {
-                const firstResponse = await productsAPI.getAll({ page: 1, limit: pageSize });
-                console.log('First page response:', firstResponse);
-                
-                // Try to get total from response
-                if (firstResponse?.total) {
-                    totalCount = firstResponse.total;
-                } else if (firstResponse?.data?.total) {
-                    totalCount = firstResponse.data.total;
-                } else if (firstResponse?.pagination?.total) {
-                    totalCount = firstResponse.pagination.total;
-                }
-                
-                // Extract products from first response
-                let firstPageData = [];
-                if (firstResponse?.data?.items) {
-                    firstPageData = firstResponse.data.items;
-                } else if (firstResponse?.data) {
-                    firstPageData = Array.isArray(firstResponse.data) ? firstResponse.data : [firstResponse.data];
-                } else if (firstResponse?.products) {
-                    firstPageData = firstResponse.products;
-                } else if (Array.isArray(firstResponse)) {
-                    firstPageData = firstResponse;
-                }
-                
-                allProductData = [...firstPageData];
-                console.log(`Page ${currentPageNum} fetched: ${firstPageData.length} products`);
-                
-                // If we have total count, calculate how many more pages to fetch
-                if (totalCount > 0) {
-                    const totalPagesNeeded = Math.ceil(totalCount / pageSize);
-                    console.log(`Total products: ${totalCount}, Total pages needed: ${totalPagesNeeded}`);
-                    
-                    // Fetch remaining pages
-                    for (let page = 2; page <= totalPagesNeeded; page++) {
-                        try {
-                            const response = await productsAPI.getAll({ page: page, limit: pageSize });
-                            let pageData = [];
-                            if (response?.data?.items) {
-                                pageData = response.data.items;
-                            } else if (response?.data) {
-                                pageData = Array.isArray(response.data) ? response.data : [response.data];
-                            } else if (response?.products) {
-                                pageData = response.products;
-                            } else if (Array.isArray(response)) {
-                                pageData = response;
-                            }
-                            allProductData = [...allProductData, ...pageData];
-                            console.log(`Page ${page} fetched: ${pageData.length} products. Total: ${allProductData.length}`);
-                        } catch (pageErr) {
-                            console.warn(`Failed to fetch page ${page}:`, pageErr);
-                        }
-                    }
-                } else {
-                    // If no total count, fetch pages until we get empty response
-                    while (hasMore) {
-                        currentPageNum++;
-                        try {
-                            const response = await productsAPI.getAll({ page: currentPageNum, limit: pageSize });
-                            let pageData = [];
-                            if (response?.data?.items) {
-                                pageData = response.data.items;
-                            } else if (response?.data) {
-                                pageData = Array.isArray(response.data) ? response.data : [response.data];
-                            } else if (response?.products) {
-                                pageData = response.products;
-                            } else if (Array.isArray(response)) {
-                                pageData = response;
-                            }
-                            
-                            if (pageData.length === 0) {
-                                hasMore = false;
-                            } else {
-                                allProductData = [...allProductData, ...pageData];
-                                console.log(`Page ${currentPageNum} fetched: ${pageData.length} products. Total: ${allProductData.length}`);
-                                
-                                if (pageData.length < pageSize) {
-                                    hasMore = false;
-                                }
-                            }
-                        } catch (err) {
-                            console.warn(`Failed to fetch page ${currentPageNum}:`, err);
-                            hasMore = false;
-                        }
-                    }
-                }
-            } catch (err) {
-                console.warn('Pagination approach failed, trying single fetch:', err);
-                // Fallback: try to get all products at once
-                try {
-                    const fallbackResponse = await productsAPI.getAll({ limit: 9999 });
-                    if (fallbackResponse?.data) {
-                        allProductData = Array.isArray(fallbackResponse.data) ? fallbackResponse.data : [fallbackResponse.data];
-                    } else if (fallbackResponse?.products) {
-                        allProductData = fallbackResponse.products;
-                    }
-                } catch (fallbackErr) {
-                    // If all fails, try without parameters
-                    const lastResponse = await productsAPI.getAll();
-                    if (lastResponse?.data) {
-                        allProductData = Array.isArray(lastResponse.data) ? lastResponse.data : [lastResponse.data];
-                    } else if (lastResponse?.products) {
-                        allProductData = lastResponse.products;
-                    }
-                }
-            }
-            
-            console.log('Total products fetched:', allProductData.length);
-            
-            // Fetch stock data to get quantity on hand
-            let stockCountBySku = {};
-            try {
-                const stockResponse = await stockAPI.getAll();
-                const stockData = stockResponse.data || stockResponse.stocks || [];
-                
-                stockData.forEach(item => {
-                    const sku = item.SKU || item.sku;
-                    if (sku) {
-                        if (!stockCountBySku[sku]) {
-                            stockCountBySku[sku] = 0;
-                        }
-                        const status = item.Stat || item.status || '';
-                        if (status.toUpperCase() === 'AVAILABLE') {
-                            stockCountBySku[sku]++;
-                        }
-                    }
-                });
-                console.log('Stock count by SKU:', stockCountBySku);
-            } catch (stockErr) {
-                console.warn('Could not fetch stock data:', stockErr);
-            }
-            
-            // Map backend fields to frontend expected fields
-            const mappedProducts = allProductData.map(item => {
-                const sku = item.SKU || item.sku || '';
-                
-                return {
-                    id: item.id || item.SKU || item.sku || `prod-${Math.random().toString(36).substr(2, 9)}`,
-                    sku: sku,
-                    productName: item.ProductName || item.product_name || item.productName || '',
-                    type: item.ProductType || item.product_type || item.type || '',
-                    productDetails: item.ProductDetail || item.description || item.productDetails || '',
-                    vendorPrice: item.InitialVendorPrice || item.cost_price || item.vendorPrice || 0,
-                    sellingPrice: item.InitialSellingPrice || item.selling_price || item.sellingPrice || 0,
-                    margin: item.Margin || item.margin || 0,
-                    status: item.Stat || item.status || 'ACTIVE',
-                    staffId: item.StaffID || item.staff_id || item.staffId || '',
-                    quantityOnHand: item.QuantityOnHand || stockCountBySku[sku] || 0,
-                    reservedQuantity: item.ReservedQuantity || 0,
-                    currentAvgCost: item.CurrentAvgCost || 0,
-                    currentStockValue: item.CurrentStockValue || 0,
-                    image: item.product_image || item.image || null
-                };
-            });
-            
-            // Remove duplicates by SKU
-            const uniqueProducts = [];
-            const seenSkus = new Set();
-            mappedProducts.forEach(product => {
-                if (!seenSkus.has(product.sku)) {
-                    seenSkus.add(product.sku);
-                    uniqueProducts.push(product);
-                }
-            });
-            
-            console.log('Unique products after deduplication:', uniqueProducts.length);
-            
-            // Store all products
-            setAllProducts(uniqueProducts);
-            
-            // Calculate pagination
-            const totalItems = uniqueProducts.length;
-            setTotalProductsCount(totalItems);
-            const totalPagesCount = Math.ceil(totalItems / itemsPerPage);
-            setTotalPages(totalPagesCount > 0 ? totalPagesCount : 1);
-            
-            // Set current page to 1
-            setCurrentPage(1);
-            
-            // Update displayed products
-            updateDisplayedProducts(uniqueProducts, 1, itemsPerPage);
-            
-        } catch (err) {
-            console.error("Failed to fetch products:", err);
-            let errorMsg = "Failed to load products. ";
-            if (err.response?.status === 422) {
-                errorMsg += "Invalid request parameters. Please check the API configuration.";
-            } else if (err.response?.status === 404) {
-                errorMsg += "Product endpoint not found. Please check if the backend is running.";
-            } else if (err.response?.status === 500) {
-                errorMsg += "Server error. Please check backend logs.";
-            } else if (err.code === 'ERR_NETWORK') {
-                errorMsg += "Network error. Please check if the backend server is running.";
-            } else {
-                errorMsg += err.message || "Please try again.";
-            }
-            setError(errorMsg);
-            setProducts([]);
-            setAllProducts([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    // Update displayed products based on current page
-    const updateDisplayedProducts = (productList, page, perPage) => {
-        const startIndex = (page - 1) * perPage;
-        const endIndex = startIndex + perPage;
-        const paginatedItems = productList.slice(startIndex, endIndex);
-        setProducts(paginatedItems);
-    };
-
-    // Handle page change
+    // Handle page change (data fetching/slicing now lives in useProducts)
     const handlePageChange = (page) => {
         if (page < 1 || page > totalPages) return;
-        setCurrentPage(page);
-        updateDisplayedProducts(allProducts, page, itemsPerPage);
-        // Scroll to top of table
+        goToPage(page);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     // Handle items per page change
     const handleItemsPerPageChange = (e) => {
-        const newPerPage = parseInt(e.target.value);
-        setItemsPerPage(newPerPage);
-        const totalPagesCount = Math.ceil(allProducts.length / newPerPage);
-        setTotalPages(totalPagesCount > 0 ? totalPagesCount : 1);
-        setCurrentPage(1);
-        updateDisplayedProducts(allProducts, 1, newPerPage);
+        changeItemsPerPage(parseInt(e.target.value));
     };
 
     // Filter products based on search term
-    const filteredProducts = products.filter(product =>
+    const filteredProducts = displayedProducts.filter(product =>
         product.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.type?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         product.productName?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -302,28 +73,26 @@ const Product = () => {
         navigate('/stock', { state: { filterSku: sku } });
     };
 
-    // Calculate totals from all products (not just current page)
-    const totalMargin = allProducts.reduce((sum, product) => {
-        const margin = parseFloat(product.margin) || 0;
-        return sum + margin;
-    }, 0);
-    const totalStockValue = allProducts.reduce((sum, product) => {
-        const value = parseFloat(product.currentStockValue) || 0;
-        return sum + value;
-    }, 0);
-
+    // Note: does NOT catch errors here — AddEditProduct's handleSubmit awaits this
+    // and shows the failure in its own inline error banner. Catching + alerting here
+    // too would show the user the same failure twice.
     const handleProductSave = async (productData) => {
+        if (modalMode === 'edit') {
+            await updateProduct(productData.sku, productData);
+        } else {
+            await createProduct(productData);
+        }
+        setIsModalOpen(false);
+    };
+
+    // Handle product delete — now owned by the parent, not the modal
+    const handleProductDelete = async (sku) => {
         try {
-            if (modalMode === 'edit') {
-                await productsAPI.update(productData.sku, productData);
-            } else {
-                await productsAPI.create(productData);
-            }
-            await fetchAllProducts();
+            await deleteProduct(sku);
             setIsModalOpen(false);
         } catch (err) {
-            console.error("Failed to save product:", err);
-            alert("Failed to save product. Please try again.");
+            console.error("Failed to delete product:", err);
+            alert(err.response?.data?.detail || err.message || "Failed to delete product. Please try again.");
         }
     };
 
@@ -747,6 +516,7 @@ const Product = () => {
                     product={selectedProduct} 
                     mode={modalMode}
                     onSave={handleProductSave}
+                    onDelete={handleProductDelete}
                 />
 
                 {/* Image Preview Modal */}

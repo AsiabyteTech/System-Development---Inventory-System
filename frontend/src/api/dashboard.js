@@ -1,7 +1,6 @@
 // Dashboard metrics
 
-import apiClient from './client';
-// import { DASHBOARD_ENDPOINTS } from '../constants/apiEndpoints';
+import { apiClient } from "./api";
 
 // Helper to transform dashboard data from backend to frontend format
 const transformMetrics = (data) => {
@@ -144,7 +143,7 @@ export const dashboardAPI = {
     /**
      * Get packages data for dashboard table
      */
-    getPackages: async () => {
+    getPackages: async (params = {}) => {
         try {
             const response = await apiClient.get('/api/v1/package', { params });
             return response.data?.items || response.data || [];
@@ -157,7 +156,7 @@ export const dashboardAPI = {
     /**
      * Get promotions data for dashboard table
      */
-    getPromotions: async () => {
+    getPromotions: async (params = {}) => {
         try {
             const response = await apiClient.get('/api/v1/promotion', { params });
             return response.data?.items || response.data || [];

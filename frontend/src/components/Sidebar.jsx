@@ -1,14 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { FaHome, FaTachometerAlt, FaTruck, FaBox, FaShoppingCart, FaSignOutAlt, FaBars, FaUserPlus } from 'react-icons/fa';
 import { NavLink, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../contexts/AuthContext.jsx'; // Adjust path as needed
 
 const Sidebar = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const { user, logout } = useContext(AuthContext);
   
-  // Get user role from localStorage (set during login)
-  const userRole = localStorage.getItem("role") || localStorage.getItem("userRole") || "staff";
-  const isAdminUser = userRole === "admin";
+  // Get user data from localStorage or context
+  const [userName, setUserName] = useState('User');
+  const [userRole, setUserRole] = useState('staff');
+  
+  useEffect(() => {
+    // Try to get user data from multiple sources
+    const name = localStorage.getItem('userName') || 
+                 user?.name || 
+                 user?.fullName || 
+                 'User';
+    setUserName(name);
+    
+    // Get role - normalize to lowercase for consistent checking
+    const role = localStorage.getItem('role') || 
+                 localStorage.getItem('userRole') || 
+                 user?.role || 
+                 'staff';
+    setUserRole(role.toLowerCase());
+  }, [user]);
+  
+  const isAdminUser = userRole === 'admin' || userRole === 'administrator';
   
   // Base menu items
   const baseMenuItems = [
@@ -19,28 +39,37 @@ const Sidebar = () => {
     { name: "Order", path: "/order", icon: <FaShoppingCart />, isParent: false },
   ];
   
-  // ✅ ADDED: Admin-only menu item for Staff Registration
+  // Admin-only menu items
   const adminMenuItems = [
     { name: "Register Staff", path: "/registerstaff", icon: <FaUserPlus />, isParent: false },
   ];
   
-  // Combine menu items based on user role
   const menuItems = isAdminUser ? [...baseMenuItems, ...adminMenuItems] : baseMenuItems;
 
-  const handleLogout = () => {
-    localStorage.removeItem("role");
-    localStorage.removeItem("userRole");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("loginRole");
-    localStorage.removeItem("rememberMe");
-    localStorage.removeItem("googleLogin");
-    navigate('/login');
+  const handleLogout = async () => {
+    // If logout function is available from context, use it
+    if (logout) {
+      await logout();
+    } else {
+      // Fallback logout
+      localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("role");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("userName");
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("loginRole");
+      localStorage.removeItem("rememberMe");
+      localStorage.removeItem("googleLogin");
+      localStorage.removeItem("user");
+      navigate('/login');
+    }
   };
 
   const formatRole = (role) => {
     if (!role) return "Staff";
     const roleLower = role.toLowerCase();
-    if (roleLower === "admin") return "Admin";
+    if (roleLower === "admin" || roleLower === "administrator") return "Admin";
     return "Staff";
   };
 
@@ -50,7 +79,7 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* Hamburger Menu Button - Mobile Only */}
+      {/* Hamburger Menu Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="fixed top-4 left-4 z-50 lg:hidden bg-blue-600 text-white p-2 rounded-lg shadow-lg hover:bg-blue-700 transition-all duration-200"
@@ -59,7 +88,7 @@ const Sidebar = () => {
         <FaBars className="w-5 h-5" />
       </button>
 
-      {/* Overlay - Mobile Only */}
+      {/* Overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
@@ -86,7 +115,7 @@ const Sidebar = () => {
           </svg>
         </button>
 
-        {/* Sidebar Header - Modern glass effect */}
+        {/* Sidebar Header */}
         <div className="px-5 pt-6 pb-4 border-b border-white/10">
           <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/home')}>
             <div className="relative">
@@ -106,7 +135,7 @@ const Sidebar = () => {
           </div>
         </div>
 
-        {/* Navigation Content - Improved spacing and visual hierarchy */}
+        {/* Navigation Content */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden py-6">
           <div className="px-4 mb-3">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-blue-400/60 px-3">
@@ -150,9 +179,9 @@ const Sidebar = () => {
           </ul>
         </div>
 
-        {/* Sidebar Footer - Modern profile & logout section */}
+        {/* Sidebar Footer */}
         <div className="border-t border-white/10 pt-4 pb-6 px-4 mt-auto">
-          {/* User Profile - Enhanced design */}
+          {/* User Profile */}
           <div className="relative group mb-4">
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <div className="relative flex items-center gap-3 p-3 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300">
@@ -166,15 +195,19 @@ const Sidebar = () => {
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">Zaty Raof</p>
+                <p className="text-sm font-semibold text-white truncate">
+                  {userName || 'User'}
+                </p>
                 <div className="flex items-center gap-1.5 mt-0.5">
-                  <p className="text-xs text-slate-400 truncate">{formatRole(userRole)}</p>
+                  <p className="text-xs text-slate-400 truncate">
+                    {formatRole(userRole)}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
           
-          {/* Logout Button - Enhanced */}
+          {/* Logout Button */}
           <button 
             onClick={handleLogout} 
             className="group relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-300 text-slate-300 hover:text-white hover:bg-red-500/20 hover:border-red-500/30 border border-transparent"
@@ -186,29 +219,11 @@ const Sidebar = () => {
             <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-red-500/0 via-red-500/0 to-red-500/0 group-hover:from-red-500/5 group-hover:to-red-500/5 transition-all duration-500"></div>
           </button>
           
-          {/* Version info - subtle touch */}
+          {/* Version info */}
           <div className="mt-4 text-center">
             <p className="text-[10px] text-slate-500/60">v2.0.0 © 2026</p>
           </div>
         </div>
-
-        {/* Custom scrollbar styling */}
-        <style jsx>{`
-          .overflow-y-auto::-webkit-scrollbar {
-            width: 4px;
-          }
-          .overflow-y-auto::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-          }
-          .overflow-y-auto::-webkit-scrollbar-thumb {
-            background: rgba(59, 130, 246, 0.4);
-            border-radius: 10px;
-          }
-          .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-            background: rgba(59, 130, 246, 0.6);
-          }
-        `}</style>
       </div>
     </>
   );

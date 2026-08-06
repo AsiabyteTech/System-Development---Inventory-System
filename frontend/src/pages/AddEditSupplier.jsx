@@ -1,9 +1,9 @@
 // ✅ REFACTORED: imports organized
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { invoicesAPI } from './api/invoices';
-import './App.css';
-import './styles/animations.css';
+import { invoicesAPI } from '../api/invoices';
+import '../App.css';
+import '../styles/animations.css';
 
 const AddEditInvoice = ({ isOpen, onClose, invoice, mode, onSave }) => {
   const navigate = useNavigate();

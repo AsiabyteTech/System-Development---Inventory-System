@@ -1,24 +1,24 @@
 // ✅ REFACTORED: imports organized
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { packageAPI } from "./api/package";
-import { productsAPI } from "./api/products";
-import './App.css';
-import './styles/animations.css';
+import { usePackage } from '../hooks/usePackage';
+import { useProducts } from '../hooks/useProducts';
+import '../App.css';
+import '../styles/animations.css';
 
 // ✅ REFACTORED: component imports
-import { isAdmin } from "./shared/role";
+import { isAdmin } from "../shared/role";
 
 const AddEditPackage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [selectedImage, setSelectedImage] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [products, setProducts] = useState([]);
     const [saving, setSaving] = useState(false);
-    
+
+    const { createPackage, updatePackage, deletePackage } = usePackage();
+    const { allProducts, loading, error: productsError, fetchAllProducts } = useProducts();
+
     // ✅ Check if we're in edit mode
     const editMode = location.state?.mode === 'edit';
     const packageData = location.state?.packageData || null;
@@ -35,63 +35,23 @@ const AddEditPackage = () => {
     const [selectedProducts, setSelectedProducts] = useState([]);
     const [totalQuantity, setTotalQuantity] = useState(0);
 
-    // Fetch products from API with inventory data
-    const fetchProducts = async () => {
-        try {
-            const response = await productsAPI.getAll();
-            
-            console.log('Raw products response:', response);
-            
-            let productData = [];
-            if (response?.data) {
-                productData = Array.isArray(response.data) ? response.data : [response.data];
-            } else if (response?.products) {
-                productData = response.products;
-            } else if (Array.isArray(response)) {
-                productData = response;
-            }
-            
-            console.log('Extracted product data:', productData);
-            
-            // Map backend fields to frontend expected fields
-            const mappedProducts = productData.map(item => {
-                console.log(`Product ${item.SKU || item.sku} - QuantityOnHand:`, item.QuantityOnHand);
-                
-                return {
-                    id: item.id || item.SKU || item.sku || `prod-${Math.random().toString(36).substr(2, 9)}`,
-                    sku: item.SKU || item.sku || '',
-                    name: item.ProductName || item.product_name || item.name || '',
-                    type: item.ProductType || item.product_type || item.type || '',
-                    margin: item.Margin || item.margin || 0,
-                    quantity: item.QuantityOnHand || item.quantity_balance || item.quantity || 0,
-                    image: item.product_image || item.image || '/Pictures/default-product.png'
-                };
-            });
-            
-            console.log('Mapped products with quantities:', mappedProducts);
-            
-            setProducts(mappedProducts);
-            return mappedProducts;
-        } catch (err) {
-            console.error("Failed to fetch products:", err);
-            setError(err.message || "Failed to load products");
-            return [];
-        }
-    };
+    // Product picker list — reuses useProducts (already merges live stock/margin data)
+    // instead of this component independently re-fetching and re-mapping products.
+    const products = useMemo(() => {
+        return (allProducts || []).map(item => ({
+            id: item.id,
+            sku: item.sku,
+            name: item.productName,
+            type: item.type,
+            margin: item.margin,
+            quantity: item.quantityOnHand,
+            image: item.image || '/Pictures/default-product.png',
+        }));
+    }, [allProducts]);
 
     // Initialize quantities with zeros
     const initialQuantities = products.reduce((acc, product) => ({ ...acc, [product.id]: 0}), {});
     const [quantities, setQuantities] = useState(initialQuantities);
-
-    // Load data when component mounts
-    useEffect(() => {
-        const loadData = async () => {
-            setLoading(true);
-            await fetchProducts();
-            setLoading(false);
-        };
-        loadData();
-    }, []);
 
     // Reset quantities when products change
     useEffect(() => {
@@ -100,14 +60,12 @@ const AddEditPackage = () => {
     }, [products]);
 
     const handleDelete = async () => {
-        try {
-            await packageAPI.delete(packageId);
-            console.log("Package Deleted:", packageId);
-            setShowDeleteConfirm(false);
+        setShowDeleteConfirm(false);
+        const result = await deletePackage(packageId);
+        if (result.success) {
             navigate('/dashboard');
-        } catch (err) {
-            console.error("Failed to delete package:", err);
-            alert(err.response?.data?.detail || err.message || "Failed to delete package");
+        } else {
+            alert(result.error || "Failed to delete package");
         }
     };
 
@@ -244,21 +202,21 @@ const AddEditPackage = () => {
 
         try {
             setSaving(true);
-            
-            if (editMode) {
-                console.log('🔄 Updating package:', packageDataToSave);
-                await packageAPI.update(packageId, packageDataToSave);
-                alert(`Package "${packageName}" updated successfully!`);
-            } else {
-                console.log('📦 Creating new package:', packageDataToSave);
-                await packageAPI.create(packageDataToSave);
-                alert(`Package "${packageName}" created successfully!`);
+
+            const result = editMode
+                ? await updatePackage(packageId, packageDataToSave)
+                : await createPackage(packageDataToSave);
+
+            if (!result.success) {
+                alert(result.error || "Failed to save package. Please try again.");
+                return;
             }
-            
+
+            alert(editMode
+                ? `Package "${packageName}" updated successfully!`
+                : `Package "${packageName}" created successfully!`);
+
             navigate('/dashboard');
-        } catch (err) {
-            console.error("Failed to save package:", err);
-            alert(err.response?.data?.detail || err.message || "Failed to save package. Please try again.");
         } finally {
             setSaving(false);
         }
@@ -306,11 +264,11 @@ const AddEditPackage = () => {
 
             <main className="all-main-content max-w-7xl mx-auto p-4 sm:p-6 md:p-8">
                 {/* Error Message */}
-                {error && (
+                {productsError && (
                     <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
-                        <p className="text-sm">{error}</p>
+                        <p className="text-sm">{productsError}</p>
                         <button 
-                            onClick={fetchProducts}
+                            onClick={fetchAllProducts}
                             className="mt-2 text-sm font-medium text-red-600 hover:text-red-800"
                         >
                             Retry

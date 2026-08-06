@@ -1,11 +1,10 @@
 // ✅ REFACTORED: imports organized
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { invoicesAPI } from './api/invoices';
-import './App.css';
-import './styles/animations.css';
+import '../App.css';
+import '../styles/animations.css';
 
-const AddEditInvoice = ({ isOpen, onClose, invoice, mode, onSave }) => {
+const AddEditInvoice = ({ isOpen, onClose, invoice, mode, onSave, onDelete, suppliers = [], products = [] }) => {
   const navigate = useNavigate();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
@@ -25,7 +24,6 @@ const AddEditInvoice = ({ isOpen, onClose, invoice, mode, onSave }) => {
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  const [suppliers, setSuppliers] = useState([]);
   const [showSupplierDropdown, setShowSupplierDropdown] = useState(false);
   const [supplierSearchText, setSupplierSearchText] = useState('');
   
@@ -34,63 +32,10 @@ const AddEditInvoice = ({ isOpen, onClose, invoice, mode, onSave }) => {
   const [showProductDropdown, setShowProductDropdown] = useState(false);
   const [currentProductSection, setCurrentProductSection] = useState(null);
   const [barcodeInputValue, setBarcodeInputValue] = useState('');
-  const [products, setProducts] = useState([]);
   
   // State for file upload
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileName, setFileName] = useState('');
-
-  // Fetch suppliers on mount
-  useEffect(() => {
-    if (isOpen) {
-      fetchSuppliers();
-      fetchProducts();
-    }
-  }, [isOpen]);
-
-  const fetchSuppliers = async () => {
-    try {
-      const response = await invoicesAPI.getSuppliers();
-      let supplierData = [];
-      if (response?.data) {
-        supplierData = Array.isArray(response.data) ? response.data : [response.data];
-      } else if (response?.suppliers) {
-        supplierData = response.suppliers;
-      } else if (Array.isArray(response)) {
-        supplierData = response;
-      }
-      
-      const mappedSuppliers = supplierData.map(item => ({
-        id: item.SupplierID || item.supplier_id || item.id,
-        name: item.SupplierName || item.supplier_name || item.name || 'Unknown'
-      }));
-      setSuppliers(mappedSuppliers);
-    } catch (err) {
-      console.error("Failed to fetch suppliers:", err);
-    }
-  };
-
-  const fetchProducts = async () => {
-    try {
-      const response = await invoicesAPI.getProducts();
-      let productData = [];
-      if (response?.data) {
-        productData = Array.isArray(response.data) ? response.data : [response.data];
-      } else if (response?.products) {
-        productData = response.products;
-      } else if (Array.isArray(response)) {
-        productData = response;
-      }
-      
-      const mappedProducts = productData.map(item => ({
-        sku: item.SKU || item.sku || '',
-        name: item.ProductName || item.product_name || ''
-      }));
-      setProducts(mappedProducts);
-    } catch (err) {
-      console.error("Failed to fetch products:", err);
-    }
-  };
 
   // Filtered suppliers based on search text
   const filteredSuppliers = supplierSearchText
@@ -170,20 +115,14 @@ const AddEditInvoice = ({ isOpen, onClose, invoice, mode, onSave }) => {
   );
 
   const handleDelete = async () => {
-    try {
-      if (invoice && invoice.refNo) {
-        await invoicesAPI.delete(invoice.refNo);
-        console.log("Invoice Deleted:", invoice.refNo);
-        setShowDeleteConfirm(false);
-        onClose();
-        if (onSave) {
-          onSave(null);
-        }
-        navigate('/invoice');
-      }
-    } catch (err) {
-      console.error("Failed to delete invoice:", err);
-      alert(err.response?.data?.detail || err.message || "Failed to delete invoice");
+    if (!invoice || !invoice.refNo || !onDelete) return;
+    setShowDeleteConfirm(false);
+    const result = await onDelete(invoice.refNo);
+    if (result.success) {
+      onClose();
+      navigate('/invoice');
+    } else {
+      alert(result.error || "Failed to delete invoice");
     }
   };
 
@@ -376,20 +315,21 @@ const AddEditInvoice = ({ isOpen, onClose, invoice, mode, onSave }) => {
       console.log('Saving invoice data:', invoiceData);
       console.log('Stock items:', stockItems);
 
-      if (mode === 'edit') {
-        // Update existing invoice
-        await invoicesAPI.update(formData.refNo, invoiceData);
-        alert(`Invoice "${formData.refNo}" updated successfully!`);
-      } else {
-        // Create new invoice with stock items
-        await invoicesAPI.create(invoiceData, stockItems);
-        alert(`Invoice "${formData.refNo}" created successfully!`);
-      }
-
-      // Close modal and refresh
-      onClose();
+      // The actual API call + refresh lives in the parent (Invoice.jsx), via
+      // useInvoices' createInvoice/updateInvoice. This modal only collects and
+      // validates form data — calling invoicesAPI here too would save twice,
+      // and previously also silently dropped stockItems on the parent's call.
       if (onSave) {
-        onSave(invoiceData);
+        const result = await onSave(invoiceData, stockItems);
+        if (result.success) {
+          alert(mode === 'edit'
+            ? `Invoice "${formData.refNo}" updated successfully!`
+            : `Invoice "${formData.refNo}" created successfully!`);
+          onClose();
+        } else {
+          setError(result.error || "Failed to save invoice");
+          alert(result.error || "Failed to save invoice. Please try again.");
+        }
       }
     } catch (err) {
       console.error("Failed to save invoice:", err);

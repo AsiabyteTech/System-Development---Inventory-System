@@ -5,11 +5,11 @@ import { FiShoppingCart, FiArrowRight, FiUser } from 'react-icons/fi';
 import { BsGraphUp, BsBoxSeam, BsPeople } from 'react-icons/bs';
 
 // ✅ REFACTORED: role import path corrected
-import { isAdmin } from "./shared/role";
+import { isAdmin } from "../shared/role";
 
 // ✅ REFACTORED: CSS imports - animations moved to dedicated file
-import "./App.css";
-import "./styles/animations.css";
+import "../App.css";
+import "../styles/animations.css";
 
 const Home = () => {
   const navigate = useNavigate();

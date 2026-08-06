@@ -1,11 +1,10 @@
 // ✅ REFACTORED: imports organized
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { productsAPI } from "./api/products";
-import './App.css';
-import './styles/animations.css';
+import '../App.css';
+import '../styles/animations.css';
 
-const AddEditProduct = ({ isOpen, onClose, product, mode, onSave }) => {
+const AddEditProduct = ({ isOpen, onClose, product, mode, onSave, onDelete }) => {
     const navigate = useNavigate();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [imagePreview, setImagePreview] = useState(null);
@@ -96,20 +95,10 @@ const AddEditProduct = ({ isOpen, onClose, product, mode, onSave }) => {
     }, [product, isOpen, mode]);
 
     const handleDelete = async () => {
-        try {
-            if (product && product.sku) {
-                await productsAPI.delete(product.sku);
-                console.log("Product Deleted:", product.sku);
-                setShowDeleteConfirm(false);
-                onClose();
-                if (onSave) {
-                    onSave(null); // Trigger refresh
-                }
-                navigate('/product');
-            }
-        } catch (err) {
-            console.error("Failed to delete product:", err);
-            alert(err.response?.data?.detail || err.message || "Failed to delete product");
+        if (!product || !product.sku) return;
+        setShowDeleteConfirm(false);
+        if (onDelete) {
+            await onDelete(product.sku); // Parent (Product.jsx) owns the actual delete + refresh
         }
     };
 
@@ -189,18 +178,11 @@ const AddEditProduct = ({ isOpen, onClose, product, mode, onSave }) => {
                 image: imageFile
             };
 
-            if (mode === 'edit') {
-                await productsAPI.update(formData.sku, productData);
-                alert(`Product "${formData.productName}" updated successfully!`);
-            } else {
-                await productsAPI.create(productData);
-                alert(`Product "${formData.productName}" created successfully!`);
-            }
-
-            // Close modal and refresh
-            onClose();
+            // The actual API call + list refresh lives in the parent (Product.jsx),
+            // via useProducts' createProduct/updateProduct. This modal only collects
+            // and validates form data — calling productsAPI here as well would save twice.
             if (onSave) {
-                onSave(productData);
+                await onSave(productData);
             }
         } catch (err) {
             console.error("Failed to save product:", err);

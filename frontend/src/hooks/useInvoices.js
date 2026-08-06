@@ -220,16 +220,8 @@ export const useInvoices = (initialParams = {}) => {
 
   useEffect(() => {
     refreshAllInvoiceData();
+    fetchProducts(); // Load products for dropdown (suppliers/invoices already covered above)
   }, [refreshAllInvoiceData]);
-
-  // ============ INITIAL DATA LOADING ============
-  useEffect(() => {
-    fetchInvoices(initialParams);
-    fetchSuppliers();      // Load suppliers for dropdown
-    fetchProducts();       // Load products for dropdown
-    fetchRecentSuppliers(); 
-    fetchMonthlyPurchaseTotal();
-  }, []);
 
   return {
     // Invoice data
@@ -249,10 +241,11 @@ export const useInvoices = (initialParams = {}) => {
     statsLoading,
     // Supplier data
     suppliers,
-    recentSuppliers,
     fetchSuppliers,
-    fetchRecentSuppliers,
-    fetchMonthlyPurchaseTotal,
+    // NOTE: fetchRecentSuppliers / fetchMonthlyPurchaseTotal / recentSuppliers were
+    // referenced elsewhere in this hook but never implemented, and invoices.js has
+    // no matching API method either. Removed rather than guessing at an endpoint —
+    // add them back (with a real invoicesAPI method) if/when that feature is built.
     
     // Product data
     products,

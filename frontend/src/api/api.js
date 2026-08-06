@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // Make this configurable for different environments
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = 'http://localhost:8000';
 
 // Create axios instance with default config
 const apiClient = axios.create({
@@ -57,15 +57,12 @@ apiClient.interceptors.response.use(
 // Login user
 const loginUser = async (credentials) => {
     try {
-        // Try different possible endpoint structures
         const response = await apiClient.post('/api/v1/auth/login', {
             email: credentials.email,
             password: credentials.password
         });
         
-        // Log response for debugging
         console.log('Login response:', response.data);
-        
         return response.data;
     } catch (error) {
         console.error("Login API error:", error.response?.data || error.message);
@@ -73,33 +70,41 @@ const loginUser = async (credentials) => {
     }
 };
 
-// Register user (staff)
+// Register user (staff) - FIXED
 const registerUser = async (userData) => {
     try {
-        // Map frontend field names to backend expected names
         const payload = {
-            name: userData.name,        // Backend expects 'name'
+            name: userData.name,
             email: userData.email,
             password: userData.password,
-            staff_id: userData.staffId, // Add staff_id if backend needs it
             role: userData.role || "STAFF"
+            // staff_id is omitted - backend will generate it
         };
         
         console.log('Registration payload:', payload);
-        
-        // Try multiple possible endpoints
-        let response;
-        try {
-            response = await apiClient.post('/api/v1/auth/login', payload);
-        } catch (err) {
-            // Fallback to staff register endpoint
-            response = await apiClient.post('/api/v1/staff/register', payload);
-        }
-        
+        const response = await apiClient.post('/api/v1/staff/register', payload);
         console.log('Registration response:', response.data);
         return response.data;
     } catch (error) {
         console.error("Registration API error:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// Alternative register endpoint if the above fails
+const registerUserAlt = async (userData) => {
+    try {
+        const payload = {
+            name: userData.name,
+            email: userData.email,
+            password: userData.password,
+            role: userData.role || "STAFF"
+        };
+        
+        const response = await apiClient.post('/api/v1/staff/register', payload);
+        return response.data;
+    } catch (error) {
+        console.error("Alternative registration failed:", error);
         throw error;
     }
 };
@@ -119,7 +124,7 @@ const fetchUserProfile = async (token) => {
     }
 };
 
-// Optional: Test connection function
+// Test connection function
 const testConnection = async () => {
     try {
         const response = await apiClient.get('/health');
@@ -131,4 +136,53 @@ const testConnection = async () => {
     }
 };
 
-export { loginUser, registerUser, fetchUserProfile, testConnection, apiClient };
+// Forgot password
+const forgotPassword = async (email) => {
+    try {
+        const response = await apiClient.post('/api/v1/auth/forgot-password', { email });
+        return response.data;
+    } catch (error) {
+        console.error("Forgot password error:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// Reset password
+const resetPassword = async (token, newPassword, confirmPassword) => {
+    try {
+        const response = await apiClient.post('/api/v1/auth/reset-password', {
+            token,
+            new_password: newPassword,
+            confirm_password: confirmPassword
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Reset password error:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+// Validate reset token
+const validateResetToken = async (token) => {
+    try {
+        const response = await apiClient.get('/api/v1/auth/validate-reset-token', {
+            params: { token }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Validate token error:", error.response?.data || error.message);
+        throw error;
+    }
+};
+
+export { 
+    loginUser, 
+    registerUser, 
+    registerUserAlt,
+    fetchUserProfile, 
+    testConnection, 
+    forgotPassword,
+    resetPassword,
+    validateResetToken,
+    apiClient 
+};

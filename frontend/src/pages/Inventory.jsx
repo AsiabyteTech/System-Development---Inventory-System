@@ -1,6 +1,9 @@
 // ✅ REFACTORED: imports organized
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useProducts } from './hooks/useProducts';
+import { usePromo } from './hooks/usePromo';
+import { usePackage } from './hooks/usePackage';
 import './App.css';
 import './styles/animations.css';
 
@@ -10,19 +13,100 @@ const Inventory = ({}) => {
   
   // Get tracking number from navigation state
   const trackingNumber = location.state?.trackingNumber || '';
-  
-  const [products] = useState([
-    { id: '1', sku: 'C8C2MP', type: 'CCTV', image: '/Pictures/EZC8C.jpg', price: 180.00, qtyLeft: 2 },
-    { id: '2', sku: 'C8C5MP', type: 'CCTV', image: '/Pictures/C8C5MP.png', price: 240.00, qtyLeft: 3 },
-    { id: '3', sku: 'H1C', type: 'CCTV', image: '/Pictures/Ezviz-H1C front.jpg', price: 95.00, qtyLeft: 4 },
-    { id: '4', sku: 'PROD004', type: 'CCTV', image: '/Pictures/EZC8C.jpg', price: 150.00, qtyLeft: 5 },
-    { id: '5', sku: 'PROD005', type: 'CCTV', image: '/Pictures/C8C5MP.png', price: 200.00, qtyLeft: 3 },
-    { id: '6', sku: 'PROD006', type: 'CCTV', image: '/Pictures/Ezviz-H1C front.jpg', price: 120.00, qtyLeft: 6 }
-  ]);
 
-  const [quantities, setQuantities] = useState(
-    products.reduce((acc, product) => ({ ...acc, [product.id]: 0 }), {})
-  );
+  const { allProducts, loading, error, fetchAllProducts } = useProducts();
+  const { getApplicablePromos } = usePromo();
+  const { getApplicablePackages } = usePackage();
+
+  // Only show sellable (active) products in the order picker.
+  // qtyLeft comes from useProducts' merged stock count (quantityOnHand),
+  // which is already computed from real AVAILABLE stock units per SKU.
+  const products = useMemo(() => {
+    return (allProducts || [])
+      .filter(p => (p.status || 'ACTIVE').toUpperCase() === 'ACTIVE')
+      .map(p => ({
+        id: p.id,
+        sku: p.sku,
+        type: p.type,
+        // ⚠️ VERIFY: falls back to a placeholder if no product image is set —
+        // confirm this path exists under public/Pictures, or swap for your own.
+        image: p.image || '/Pictures/placeholder.png',
+        price: parseFloat(p.sellingPrice) || 0,
+        qtyLeft: p.quantityOnHand || 0,
+      }));
+  }, [allProducts]);
+
+  // --- Promotions & Packages: fetch whatever applies to the current active catalog ---
+  const [deals, setDeals] = useState([]);
+  const [dealsLoading, setDealsLoading] = useState(false);
+  const [appliedDealIds, setAppliedDealIds] = useState(new Set());
+
+  useEffect(() => {
+    const skus = products.map(p => p.sku).filter(Boolean);
+    if (skus.length === 0) return;
+
+    let cancelled = false;
+    const loadDeals = async () => {
+      setDealsLoading(true);
+      const [promoResult, packageResult] = await Promise.all([
+        getApplicablePromos(skus),
+        getApplicablePackages(skus),
+      ]);
+      if (cancelled) return;
+
+      // ⚠️ VERIFY: assumes each applicable promo/package includes its own linked
+      // `products` array (sku + quantity) — the same shape now correctly sent by
+      // AddEditPromo/AddEditPackage after the promo.js/package.js fix.
+      const promoDeals = (promoResult.data || []).map(p => ({
+        id: `promo-${p.PromoID || p.promo_id || p.id}`,
+        type: 'promo',
+        name: p.PromoName || p.promo_name || p.name || 'Promotion',
+        price: parseFloat(p.Price || p.price) || 0,
+        items: (p.products || []).map(item => ({
+          sku: item.sku || item.SKU,
+          quantity: item.quantity || 1,
+        })),
+      }));
+
+      const packageDeals = (packageResult.data || []).map(pkg => ({
+        id: `package-${pkg.PackageID || pkg.package_id || pkg.id}`,
+        type: 'package',
+        name: pkg.PackageName || pkg.package_name || pkg.name || 'Package',
+        price: parseFloat(pkg.Price || pkg.price) || 0,
+        items: (pkg.products || []).map(item => ({
+          sku: item.sku || item.SKU,
+          quantity: item.quantity || 1,
+        })),
+      }));
+
+      setDeals([...promoDeals, ...packageDeals].filter(d => d.items.length > 0));
+      setDealsLoading(false);
+    };
+
+    loadDeals();
+    return () => { cancelled = true; };
+  }, [products]);
+
+  // Per your requirement: if a product qualifies for more than one deal,
+  // only the single cheapest (lowest total price) bundle is shown.
+  const visibleDeals = useMemo(() => {
+    const bestPerSku = {};
+    deals.forEach(deal => {
+      deal.items.forEach(item => {
+        if (!bestPerSku[item.sku] || deal.price < bestPerSku[item.sku].price) {
+          bestPerSku[item.sku] = deal;
+        }
+      });
+    });
+    const seen = new Set();
+    return Object.values(bestPerSku).filter(deal => {
+      if (seen.has(deal.id)) return false;
+      seen.add(deal.id);
+      return true;
+    });
+  }, [deals]);
+
+  const [quantities, setQuantities] = useState({});
 
   const updateQty = (id, delta) => {
     setQuantities(prev => {
@@ -36,6 +120,37 @@ const Inventory = ({}) => {
     });
   };
 
+  // Add every product in a deal (promo/package) to the cart at its bundle quantity
+  const applyDeal = (deal) => {
+    setQuantities(prev => {
+      const next = { ...prev };
+      deal.items.forEach(item => {
+        const product = products.find(p => p.sku === item.sku);
+        if (!product) return;
+        next[product.id] = Math.min(item.quantity, product.qtyLeft);
+      });
+      return next;
+    });
+    setAppliedDealIds(prev => new Set(prev).add(deal.id));
+  };
+
+  // Remove a deal — resets its member products' quantities back to 0
+  const removeDeal = (deal) => {
+    setQuantities(prev => {
+      const next = { ...prev };
+      deal.items.forEach(item => {
+        const product = products.find(p => p.sku === item.sku);
+        if (product) next[product.id] = 0;
+      });
+      return next;
+    });
+    setAppliedDealIds(prev => {
+      const next = new Set(prev);
+      next.delete(deal.id);
+      return next;
+    });
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [showSearch, setShowSearch] = useState(false);
 
@@ -45,15 +160,29 @@ const Inventory = ({}) => {
 
   // Function to handle navigation back to Customer with cart data
   const handleBackToCustomer = () => {
+    // Map each applied deal's SKUs so we can tag matching cart items below
+    const dealBySku = {};
+    visibleDeals
+      .filter(deal => appliedDealIds.has(deal.id))
+      .forEach(deal => {
+        deal.items.forEach(item => { dealBySku[item.sku] = deal; });
+      });
+
     // Create selected items array from cart (quantities > 0)
     const selectedItems = products
       .filter(product => quantities[product.id] > 0)
-      .map(product => ({
-        sku: product.sku,
-        type: product.type,
-        quantity: quantities[product.id],
-        total: (product.price * quantities[product.id]).toFixed(2)
-      }));
+      .map(product => {
+        const appliedDeal = dealBySku[product.sku];
+        return {
+          sku: product.sku,
+          type: product.type,
+          quantity: quantities[product.id],
+          total: (product.price * quantities[product.id]).toFixed(2),
+          // ⚠️ VERIFY: backend field names for applying promo/package pricing to an order item
+          ...(appliedDeal?.type === 'promo' ? { promo_id: appliedDeal.id.replace('promo-', '') } : {}),
+          ...(appliedDeal?.type === 'package' ? { package_id: appliedDeal.id.replace('package-', '') } : {}),
+        };
+      });
     
     console.log('Selected Items from Inventory:', selectedItems);
     
@@ -157,9 +286,70 @@ const Inventory = ({}) => {
           </div>
         </div>
 
+        {/* Promotions & Packages — shown above the regular product grid.
+            Only the cheapest applicable deal per SKU is shown (per your setup). */}
+        {(dealsLoading || visibleDeals.length > 0) && (
+          <div className="mb-6">
+            <h3 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+              <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              Promotions &amp; Packages
+            </h3>
+            {dealsLoading ? (
+              <div className="bg-white rounded-xl shadow-sm border border-slate-100 p-6 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+                {visibleDeals.map(deal => {
+                  const isApplied = appliedDealIds.has(deal.id);
+                  return (
+                    <div key={deal.id} className={`rounded-xl border p-4 shadow-sm transition-all ${isApplied ? 'border-emerald-300 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
+                      <div className="flex items-start justify-between gap-2 mb-2">
+                        <div>
+                          <span className={`inline-block text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full ${deal.type === 'promo' ? 'bg-amber-500 text-white' : 'bg-blue-600 text-white'}`}>
+                            {deal.type === 'promo' ? 'Promo' : 'Package'}
+                          </span>
+                          <h4 className="font-semibold text-slate-800 text-sm mt-1">{deal.name}</h4>
+                        </div>
+                        <span className="font-bold text-blue-900 text-base whitespace-nowrap">RM {deal.price.toFixed(2)}</span>
+                      </div>
+                      <ul className="text-xs text-slate-500 mb-3 space-y-0.5">
+                        {deal.items.map(item => (
+                          <li key={item.sku}>{item.sku} × {item.quantity}</li>
+                        ))}
+                      </ul>
+                      <button
+                        onClick={() => (isApplied ? removeDeal(deal) : applyDeal(deal))}
+                        className={`w-full py-1.5 rounded-lg text-xs font-semibold transition-all ${isApplied ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-blue-600 text-white hover:bg-blue-700'}`}
+                      >
+                        {isApplied ? 'Added — Remove' : 'Add to Order'}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Error banner */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 flex items-center justify-between">
+            <span className="text-sm">{error}</span>
+            <button onClick={fetchAllProducts} className="text-sm font-medium underline">Retry</button>
+          </div>
+        )}
+
         {/* Product Grid - modernized card layout matching Product page style */}
         <div className='w-full'>
-          {filteredProducts.length > 0 ? (
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-12 sm:py-20 px-4 w-full bg-white rounded-xl shadow-lg border border-slate-100">
+              <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-3"></div>
+              <p className="text-sm text-slate-500">Loading products...</p>
+            </div>
+          ) : filteredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
               {filteredProducts.map(product => {
                 // Calculate live available quantity = original qtyLeft - selected quantity
@@ -203,7 +393,7 @@ const Inventory = ({}) => {
                             <button
                               onClick={() => updateQty(product.id, -1)}
                               className="w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-lg text-blue-900 font-bold hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-sm sm:text-base"
-                              disabled={quantities[product.id] === 0}
+                              disabled={(quantities[product.id] || 0) === 0}
                             >
                               -
                             </button>
@@ -213,7 +403,7 @@ const Inventory = ({}) => {
                             <button
                               onClick={() => updateQty(product.id, 1)}
                               className="w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-lg text-blue-900 font-bold hover:bg-blue-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm text-sm sm:text-base"
-                              disabled={quantities[product.id] >= product.qtyLeft}
+                              disabled={(quantities[product.id] || 0) >= product.qtyLeft}
                             >
                               +
                             </button>
@@ -268,7 +458,7 @@ const Inventory = ({}) => {
               <polyline points='17 21 17 13 7 13 7 21' />
               <polyline points='7 3 7 8 15 8' />
             </svg>
-            <span></span>
+            <span>Continue to Customer</span>
           </button>
         </div>
       </main>

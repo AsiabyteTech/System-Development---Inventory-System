@@ -1,15 +1,15 @@
 // ✅ REFACTORED: imports organized
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { Outlet } from 'react-router';
 import { useNavigate } from 'react-router-dom';
-import { invoicesAPI } from "./api/invoices";
-import './App.css';
-import './styles/animations.css';
+import { useInvoices } from '../hooks/useInvoices';
+import '../App.css';
+import '../styles/animations.css';
 
 // ✅ REFACTORED: component imports
-import Sidebar from './components/Sidebar';
+import Sidebar from '../components/Sidebar';
 import AddEditInvoiceModal from './AddEditInvoice';
-import { isAdmin } from "./shared/role";
+import { isAdmin } from "../shared/role";
 
 const Invoice = () => {
   const navigate = useNavigate();
@@ -18,158 +18,89 @@ const Invoice = () => {
   const [modalMode, setModalMode] = useState('add');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
-  const [invoices, setInvoices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [suppliersMap, setSuppliersMap] = useState({});
-  const [stats, setStats] = useState({
-    supplier_count: 0,
-    total_inventory_value: 0,
-    total_invoices: 0,
-    average_invoice_value: 0
-  });
 
-  // Fetch suppliers and create a map for quick lookup
-  const fetchSuppliers = async () => {
-    try {
-      const response = await invoicesAPI.getSuppliers();
-      let supplierData = [];
-      if (response?.data) {
-        supplierData = Array.isArray(response.data) ? response.data : [response.data];
-      } else if (response?.suppliers) {
-        supplierData = response.suppliers;
-      } else if (Array.isArray(response)) {
-        supplierData = response;
-      }
-      
-      // Create a map: SupplierID -> SupplierName
-      const map = {};
-      supplierData.forEach(supplier => {
-        const id = supplier.SupplierID || supplier.supplier_id || supplier.id;
-        const name = supplier.SupplierName || supplier.supplier_name || supplier.name || 'Unknown';
-        map[id] = name;
-      });
-      setSuppliersMap(map);
-      return map;
-    } catch (err) {
-      console.error("Failed to fetch suppliers:", err);
-      return {};
-    }
-  };
+  const {
+    invoices: rawInvoices,
+    loading,
+    error,
+    stats,
+    suppliers: rawSuppliers,
+    products: rawProducts,
+    createInvoice,
+    updateInvoice,
+    deleteInvoice,
+  } = useInvoices();
 
-  // Fetch invoices from API
-  const fetchInvoices = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      // Fetch suppliers first to get the map
-      const supplierMap = await fetchSuppliers();
-      
-      const response = await invoicesAPI.getAll();
-      
-      console.log('Raw API response:', response);
-      
-      // Handle different response structures
-      let invoiceData = [];
-      if (response?.data) {
-        invoiceData = Array.isArray(response.data) ? response.data : [response.data];
-      } else if (response?.invoices) {
-        invoiceData = response.invoices;
-      } else if (Array.isArray(response)) {
-        invoiceData = response;
-      } else if (response) {
-        invoiceData = Array.isArray(response) ? response : [response];
+  // Build SupplierID -> SupplierName lookup from the hook's raw supplier list
+  const suppliersMap = useMemo(() => {
+    const map = {};
+    (rawSuppliers || []).forEach(supplier => {
+      const id = supplier.SupplierID || supplier.supplier_id || supplier.id;
+      const name = supplier.SupplierName || supplier.supplier_name || supplier.name || 'Unknown';
+      map[id] = name;
+    });
+    return map;
+  }, [rawSuppliers]);
+
+  // Simplified supplier/product lists for the modal's dropdowns (single source of truth,
+  // instead of the modal independently re-fetching its own copies)
+  const supplierOptions = useMemo(() => {
+    return (rawSuppliers || []).map(item => ({
+      id: item.SupplierID || item.supplier_id || item.id,
+      name: item.SupplierName || item.supplier_name || item.name || 'Unknown',
+    }));
+  }, [rawSuppliers]);
+
+  const productOptions = useMemo(() => {
+    return (rawProducts || []).map(item => ({
+      sku: item.SKU || item.sku || '',
+      name: item.ProductName || item.product_name || '',
+    }));
+  }, [rawProducts]);
+
+  // Map backend fields to frontend expected fields (uses suppliersMap above)
+  const invoices = useMemo(() => {
+    return (rawInvoices || []).map(item => {
+      const supplierId = item.SupplierID || item.supplier_id || item.supplierId;
+      const supplierName = suppliersMap[supplierId] || item.SupplierName || item.supplier_name || item.supplier || 'Unknown Supplier';
+
+      let snDetails = [];
+      if (item.snDetails) {
+        snDetails = Array.isArray(item.snDetails) ? item.snDetails : [item.snDetails];
+      } else if (item.serial_numbers) {
+        snDetails = Array.isArray(item.serial_numbers) ? item.serial_numbers : [item.serial_numbers];
+      } else if (item.stock_items) {
+        snDetails = item.stock_items.map(stock => stock.serial_number || 'N/A');
       }
-      
-      console.log('Extracted invoice data:', invoiceData);
-      
-      // Map backend fields to frontend expected fields
-      const mappedInvoices = invoiceData.map(item => {
-        console.log('Mapping invoice item:', item);
-        
-        // Get supplier name from the map using SupplierID
-        const supplierId = item.SupplierID || item.supplier_id || item.supplierId;
-        const supplierName = supplierMap[supplierId] || item.SupplierName || item.supplier_name || item.supplier || 'Unknown Supplier';
-        
-        // Handle SN details - could be array or string
-        let snDetails = [];
-        if (item.snDetails) {
-          snDetails = Array.isArray(item.snDetails) ? item.snDetails : [item.snDetails];
-        } else if (item.serial_numbers) {
-          snDetails = Array.isArray(item.serial_numbers) ? item.serial_numbers : [item.serial_numbers];
-        } else if (item.stock_items) {
-          snDetails = item.stock_items.map(stock => stock.serial_number || 'N/A');
-        }
-        
-        // Format date
-        let formattedDate = item.InvoiceDate || item.invoice_date || item.date || '';
-        if (formattedDate) {
-          // If date is in YYYY-MM-DD format, keep as is
-          // Otherwise try to format it
-          try {
-            const dateObj = new Date(formattedDate);
-            if (!isNaN(dateObj.getTime())) {
-              formattedDate = dateObj.toISOString().split('T')[0];
-            }
-          } catch (e) {
-            // Keep original if parsing fails
+
+      let formattedDate = item.InvoiceDate || item.invoice_date || item.date || '';
+      if (formattedDate) {
+        try {
+          const dateObj = new Date(formattedDate);
+          if (!isNaN(dateObj.getTime())) {
+            formattedDate = dateObj.toISOString().split('T')[0];
           }
+        } catch (e) {
+          // Keep original if parsing fails
         }
-        
-        return {
-          id: item.id || item.InvoiceID || `INV-${Math.random().toString(36).substr(2, 9)}`,
-          refNo: item.RefNo || item.reference_no || item.refNo || 'N/A',
-          date: formattedDate || new Date().toISOString().split('T')[0],
-          snDetails: snDetails.length > 0 ? snDetails : ['N/A'],
-          supplier: supplierName,
-          supplierId: supplierId,
-          amount: item.Amount || item.amount || 0,
-          remark: item.Remark || item.remark || '',
-          image: item.invoice_file || item.image || null,
-          // Store raw data for editing
-          rawData: item
-        };
-      });
-      
-      console.log('Mapped invoices:', mappedInvoices);
-      
-      setInvoices(mappedInvoices);
-      
-      // Fetch stats
-      await fetchStats();
-      
-    } catch (err) {
-      console.error("Failed to fetch invoices:", err);
-      setError(err.message || "Failed to load invoices");
-      setInvoices([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+      }
+
+      return {
+        id: item.id || item.InvoiceID || `INV-${Math.random().toString(36).substr(2, 9)}`,
+        refNo: item.RefNo || item.reference_no || item.refNo || 'N/A',
+        date: formattedDate || new Date().toISOString().split('T')[0],
+        snDetails: snDetails.length > 0 ? snDetails : ['N/A'],
+        supplier: supplierName,
+        supplierId: supplierId,
+        amount: item.Amount || item.amount || 0,
+        remark: item.Remark || item.remark || '',
+        image: item.invoice_file || item.image || null,
+        rawData: item,
+      };
+    });
+  }, [rawInvoices, suppliersMap]);
 
   // Fetch invoice stats
-  const fetchStats = async () => {
-    try {
-      const statsData = await invoicesAPI.getInvoiceStats();
-      if (statsData.success) {
-        setStats({
-          supplier_count: statsData.supplier_count || 0,
-          total_inventory_value: statsData.total_inventory_value || 0,
-          total_invoices: statsData.total_invoices || 0,
-          average_invoice_value: statsData.average_invoice_value || 0
-        });
-      }
-    } catch (err) {
-      console.error("Failed to fetch stats:", err);
-    }
-  };
-
-  // Load invoices on component mount
-  useEffect(() => {
-    fetchInvoices();
-  }, []);
-
   // Apply filters
   const filteredInvoices = invoices.filter(invoice => {
     // Search filter
@@ -204,35 +135,18 @@ const Invoice = () => {
     setIsModalOpen(true);
   };
 
-  // Handle invoice save/update
+  // Delegates to the hook — AddEditInvoice.jsx only collects form data now,
+  // it no longer calls invoicesAPI itself (that was causing a double-create).
   const handleInvoiceSave = async (invoiceData, stockItems = []) => {
-    try {
-      if (modalMode === 'edit' && selectedInvoice) {
-        await invoicesAPI.update(selectedInvoice.refNo, invoiceData);
-      } else {
-        await invoicesAPI.create(invoiceData, stockItems);
-      }
-      // Refresh invoice list
-      await fetchInvoices();
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error("Failed to save invoice:", err);
-      alert(err.response?.data?.detail || err.message || "Failed to save invoice. Please try again.");
+    if (modalMode === 'edit' && selectedInvoice) {
+      return await updateInvoice(selectedInvoice.refNo, invoiceData);
     }
+    return await createInvoice(invoiceData, stockItems);
   };
 
   // Handle invoice delete
   const handleInvoiceDelete = async (refNo) => {
-    if (!window.confirm('Are you sure you want to delete this invoice?')) return;
-    
-    try {
-      await invoicesAPI.delete(refNo);
-      await fetchInvoices();
-      setIsModalOpen(false);
-    } catch (err) {
-      console.error("Failed to delete invoice:", err);
-      alert(err.response?.data?.detail || err.message || "Failed to delete invoice. Please try again.");
-    }
+    return await deleteInvoice(refNo);
   };
 
   if (loading) {
@@ -550,6 +464,8 @@ const Invoice = () => {
           mode={modalMode}
           onSave={handleInvoiceSave}
           onDelete={handleInvoiceDelete}
+          suppliers={supplierOptions}
+          products={productOptions}
         />
       </div>
     </div>

@@ -1,6 +1,6 @@
 // src/UserProfile.jsx
 import React, { useContext, useEffect, useState } from 'react';
-import { AuthContext } from './contexts/AuthContext.jsx';
+import { AuthContext } from '../contexts/AuthContext.jsx';
 
 const UserProfile = () => {
     const { user, token, loading } = useContext(AuthContext);

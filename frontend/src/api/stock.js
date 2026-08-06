@@ -1,6 +1,6 @@
 // Stock operations
 
-import apiClient from './client';
+import { apiClient } from "./api";
 
 export const stockAPI = {
   // Get all stock units
@@ -8,6 +8,54 @@ export const stockAPI = {
     const response = await apiClient.get('/api/v1/stock', { params });
     return response.data;
   },
+
+  // Get a single stock unit's full record by ID
+  // ⚠️ VERIFY this path matches your actual Django urls.py
+  /*getById: async (id) => {
+    try {
+      const response = await apiClient.get(`/api/v1/stock/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Get stock unit error:", error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  // Create a new stock unit (stock-in: a physical unit arriving with a serial number + reference no)
+  // ⚠️ VERIFY this path matches your actual Django urls.py
+  create: async (stockData) => {
+    try {
+      const response = await apiClient.post('/api/v1/stock', stockData);
+      return response.data;
+    } catch (error) {
+      console.error("Create stock unit error:", error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  // Update an existing stock unit's record (e.g. correcting ref no, remark, purchase cost)
+  // ⚠️ VERIFY this path matches your actual Django urls.py
+  update: async (id, stockData) => {
+    try {
+      const response = await apiClient.put(`/api/v1/stock/${id}`, stockData);
+      return response.data;
+    } catch (error) {
+      console.error("Update stock unit error:", error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  // Delete a stock unit (e.g. a mis-entered record)
+  // ⚠️ VERIFY this path matches your actual Django urls.py
+  delete: async (id) => {
+    try {
+      const response = await apiClient.delete(`/api/v1/stock/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error("Delete stock unit error:", error.response?.data || error.message);
+      throw error;
+    }
+  },*/
   
   // Get available stock (not reserved)
   getAvailable: async (sku = null) => {

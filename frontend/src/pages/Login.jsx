@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
-import { AuthContext } from './contexts/AuthContext.jsx'; 
+import { AuthContext } from '../contexts/AuthContext.jsx'; 
 import { useNavigate } from 'react-router-dom';
-import './App.css';
+import '../App.css';
 
 const Login = () => {
   //const [data, setData] = useState(null);
@@ -396,7 +396,7 @@ const Login = () => {
                   </button>
                 </div>
                 <div className="forgot-password-link text-right mt-2">
-                  <a href="#" className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors hover:underline">Forgot password?</a>
+                  <button type='button' onClick={() => navigate('/forgot-password')} className='text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors hover:underline'>Forgot password?</button>
                 </div>
               </div>
 

@@ -1,16 +1,23 @@
 // ✅ REFACTORED: imports organized
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import './App.css';
-import './styles/animations.css';
+import { useCustomers } from '../hooks/useCustomers';
+import { useOrders } from '../hooks/useOrders';
+import '../App.css';
+import '../styles/animations.css';
 
 const Customer = ({}) => {
     const navigate = useNavigate();
     const location = useLocation();
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [saving, setSaving] = useState(false);
     // State for file upload
     const [selectedFile, setSelectedFile] = useState(null);
     const [fileName, setFileName] = useState('');
+
+    const { createCustomer, updateCustomer } = useCustomers();
+    const { createOrder, cancelOrder, markAsDelivery, markAsComplete } = useOrders();
+    const [statusUpdating, setStatusUpdating] = useState(false);
     
     // Check if we're editing an order from Order page
     const editOrderData = location.state?.editOrderData;
@@ -81,10 +88,70 @@ const Customer = ({}) => {
         }
     }, [incomingItems, incomingTracking]);
     
-    const handleDelete = () => {
-        console.log("Customer/Order Deleted");
+    // Generate a client-side tracking number, same technique as AddEditInvoice's RefNo
+    // (localStorage day-scoped counter). ⚠️ VERIFY the backend accepts a client-supplied
+    // TrackingNumber rather than generating its own.
+    const generateTrackingNumber = () => {
+        const today = new Date();
+        const datePart = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
+        const storageKey = `orderTrackingCounter_${datePart}`;
+        const currentCount = parseInt(localStorage.getItem(storageKey) || '0', 10) + 1;
+        localStorage.setItem(storageKey, currentCount.toString());
+        return `TN-${datePart}-${String(currentCount).padStart(4, '0')}`;
+    };
+
+    const handleDelete = async () => {
         setShowDeleteConfirm(false);
+        // If editing an existing order, "delete" here really means cancel/release
+        // (there's no DELETE endpoint for orders — only status transitions).
+        if (isEditingOrder && orderData.trackingNumber) {
+            const result = await cancelOrder(orderData.trackingNumber);
+            if (!result.success) {
+                alert(result.error || 'Failed to cancel order');
+                return;
+            }
+            alert('Order cancelled — stock has been released.');
+        }
+        // If this is a brand-new, not-yet-saved form, there's nothing on the
+        // backend to delete yet — just leave without saving.
         navigate('/order');
+    };
+
+    // Mark this order as Delivery (Pending → Delivery)
+    const handleMarkDelivery = async () => {
+        if (!orderData.trackingNumber) return;
+        setStatusUpdating(true);
+        try {
+            const result = await markAsDelivery(orderData.trackingNumber);
+            if (result.success) {
+                setOrderData(prev => ({ ...prev, orderStatus: 'Delivery' }));
+                alert('Order marked as Delivery.');
+                navigate('/order');
+            } else {
+                alert(result.error || 'Failed to update order status');
+            }
+        } finally {
+            setStatusUpdating(false);
+        }
+    };
+
+    // Mark this order as Complete (Delivery → Complete) — per your flow, this
+    // is also where the stock unit's status becomes sold on the Stock page.
+    const handleMarkComplete = async () => {
+        if (!orderData.trackingNumber) return;
+        setStatusUpdating(true);
+        try {
+            const result = await markAsComplete(orderData.trackingNumber);
+            if (result.success) {
+                setOrderData(prev => ({ ...prev, orderStatus: 'Complete' }));
+                alert('Order marked as Complete.');
+                navigate('/order');
+            } else {
+                alert(result.error || 'Failed to update order status');
+            }
+        } finally {
+            setStatusUpdating(false);
+        }
     };
 
     // Handle file upload
@@ -97,15 +164,93 @@ const Customer = ({}) => {
         }
     };
     
-    // Handle save (could save customer + order together)
-    const handleSave = () => {
-        console.log("Saving customer/order:", { customerFormData, orderData });
-        if (isEditingOrder) {
-            alert('Order updated successfully!');
-        } else {
-            alert('Customer saved successfully!');
+    // Handle save: creates the customer + order together (order creation reserves
+    // the selected stock units, per your described flow), or — when editing an
+    // existing order — updates the customer's details only.
+    // ⚠️ There's no general order-edit endpoint in your API (only status/fulfill/
+    // return), so order fields (items/shipping/payment) can't be edited here once
+    // the order exists — only its status, via the Order page or the Delete/Cancel
+    // button below.
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            if (isEditingOrder) {
+                const customerId = editOrderData.customerData?.id || editOrderData.customerId;
+                if (!customerId) {
+                    alert('Cannot update: no customer ID found on this order.');
+                    return;
+                }
+                const result = await updateCustomer(customerId, {
+                    customer_name: customerFormData.customerName,
+                    phone_number: customerFormData.phoneNumber,
+                    email: customerFormData.email,
+                    address: customerFormData.address,
+                    status: customerFormData.status,
+                    sales_platform: customerFormData.salesPlatform,
+                    purchase_date: customerFormData.purchaseDate,
+                    image: selectedFile,
+                });
+                if (!result.success) {
+                    alert(result.error || 'Failed to update customer');
+                    return;
+                }
+                alert('Order updated successfully!');
+                navigate('/order');
+                return;
+            }
+
+            // --- New customer + order flow ---
+            if (orderData.orderItems.length === 0) {
+                alert('Please select at least one product from Inventory before saving.');
+                return;
+            }
+
+            const customerResult = await createCustomer({
+                customer_name: customerFormData.customerName,
+                phone_number: customerFormData.phoneNumber,
+                email: customerFormData.email,
+                address: customerFormData.address,
+                status: customerFormData.status,
+                sales_platform: customerFormData.salesPlatform,
+                purchase_date: customerFormData.purchaseDate,
+                image: selectedFile,
+            });
+
+            if (!customerResult.success) {
+                alert(customerResult.error || 'Failed to save customer');
+                return;
+            }
+
+            const newCustomerId =
+                customerResult.data?.CustomerID ||
+                customerResult.data?.customer_id ||
+                customerResult.data?.id;
+
+            const trackingNumber = orderData.trackingNumber || generateTrackingNumber();
+
+            const orderResult = await createOrder(
+                {
+                    tracking_number: trackingNumber,
+                    customer_id: newCustomerId,
+                    sales_platform: customerFormData.salesPlatform,
+                    purchase_date: customerFormData.purchaseDate,
+                    shipping_address: orderData.shippingAddress || customerFormData.address,
+                    payment_method: orderData.paymentMethod,
+                    remark: orderData.remark,
+                },
+                orderData.orderItems
+            );
+
+            if (!orderResult.success) {
+                alert(`Customer saved, but failed to create order: ${orderResult.error || 'Unknown error'}`);
+                return;
+            }
+
+            alert('Customer and order saved successfully!');
+            navigate('/order');
+        } finally {
+            setSaving(false);
         }
-        navigate('/order');
     };
     
     // Function to handle navigation to AddEditStock with data
@@ -444,17 +589,19 @@ const Customer = ({}) => {
                 </div>
 
                 {/* Action Buttons - responsive */}
-                <div className="flex justify-between items-center gap-4 w-full">
-                    <div className="flex gap-2">
-                        <button 
-                            className="flex items-center gap-1 sm:gap-2 text-red-600 hover:text-red-700 px-4 sm:px-6 py-2 sm:py-3 transition-all duration-200 hover:scale-105 font-semibold text-sm sm:text-base"
-                            onClick={() => setShowDeleteConfirm(true)}
-                        >
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            <span className="text-sm font-medium"></span>
-                        </button>
+                <div className="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 w-full">
+                    <div className="flex flex-wrap gap-2">
+                        {(!isEditingOrder || ['Pending', 'Delivery'].includes(orderData.orderStatus)) && (
+                            <button 
+                                className="flex items-center gap-1 sm:gap-2 text-red-600 hover:text-red-700 px-4 sm:px-6 py-2 sm:py-3 transition-all duration-200 hover:scale-105 font-semibold text-sm sm:text-base"
+                                onClick={() => setShowDeleteConfirm(true)}
+                            >
+                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                                <span className="text-sm font-medium">{isEditingOrder ? 'Cancel Order' : 'Delete'}</span>
+                            </button>
+                        )}
                         {/* Stock button to pass data to AddEditStock */}
                         <button 
                             onClick={handleOpenStock}
@@ -465,18 +612,40 @@ const Customer = ({}) => {
                             </svg>
                             <span>Stock</span>
                         </button>
+
+                        {/* Status transition buttons — only shown when editing an existing order,
+                            and only the next valid transition per Pending → Delivery → Complete */}
+                        {isEditingOrder && orderData.orderStatus === 'Pending' && (
+                            <button
+                                onClick={handleMarkDelivery}
+                                disabled={statusUpdating}
+                                className="flex items-center gap-1 sm:gap-2 text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:shadow-lg px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-200 hover:scale-105 font-semibold text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+                            >
+                                {statusUpdating ? 'Updating...' : 'Mark as Delivery'}
+                            </button>
+                        )}
+                        {isEditingOrder && orderData.orderStatus === 'Delivery' && (
+                            <button
+                                onClick={handleMarkComplete}
+                                disabled={statusUpdating}
+                                className="flex items-center gap-1 sm:gap-2 text-white bg-gradient-to-r from-emerald-500 to-emerald-600 hover:shadow-lg px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-200 hover:scale-105 font-semibold text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
+                            >
+                                {statusUpdating ? 'Updating...' : 'Mark as Complete'}
+                            </button>
+                        )}
                     </div>
 
                     <button 
                         onClick={handleSave}
-                        className="save-btn-main bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 sm:gap-3 text-sm sm:text-base"
+                        disabled={saving}
+                        className="save-btn-main bg-gradient-to-r from-blue-900 to-blue-700 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center gap-2 sm:gap-3 text-sm sm:text-base disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
                         <svg className='w-4 h-4 sm:w-5 sm:h-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                             <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'></path>
                             <polyline points='17 21 17 13 7 13 7 21' />
                             <polyline points='7 3 7 8 15 8' />
                         </svg>
-                        <span>{isEditingOrder ? '' : ''}</span>
+                        <span>{saving ? 'Saving...' : (isEditingOrder ? 'Update Order' : 'Save Order')}</span>
                     </button>
                 </div>
             </main>
@@ -493,7 +662,9 @@ const Customer = ({}) => {
                             </div>
                             <h3 className="modal-title text-lg sm:text-xl font-bold text-slate-800 mb-2">Are you sure?</h3>
                             <p className="modal-description text-xs sm:text-sm text-slate-500 mb-5 sm:mb-6">
-                                This action cannot be undone. This will permanently delete this customer record from the system.
+                                {isEditingOrder
+                                    ? 'This will cancel the order and release its reserved stock back to available. This action cannot be undone.'
+                                    : 'This will discard the customer and order details entered so far. Nothing has been saved yet.'}
                             </p>
                             <div className="modal-actions flex gap-3">
                                 <button className="btn-cancel flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors font-medium text-sm" onClick={() => setShowDeleteConfirm(false)}>

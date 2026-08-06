@@ -34,7 +34,7 @@ export const packageAPI = {
     create: async (packageData) => {
         try {
             const formData = new FormData();
-            
+
             // Map frontend fields to backend expected fields (matching your table)
             const backendPackage = {
                 PackageName: packageData.PackageName || packageData.package_name || packageData.name,
@@ -48,12 +48,24 @@ export const packageAPI = {
                     formData.append(key, backendPackage[key]);
                 }
             });
-            
+
+            // Which products this package bundles — previously dropped entirely,
+            // meaning packages were created with no product linkage at all, which is
+            // why "applicable packages" lookups always came back empty.
+            const products = packageData.products || [];
+            products.forEach((item, index) => {
+                formData.append(`products[${index}][sku]`, item.sku || '');
+                formData.append(`products[${index}][quantity]`, item.quantity || 1);
+                if (item.product_id) {
+                    formData.append(`products[${index}][product_id]`, item.product_id);
+                }
+            });
+
             // If there's an image
             if (packageData.image && packageData.image instanceof File) {
                 formData.append('package_image', packageData.image);
             }
-            
+
             const response = await apiClient.post('/api/v1/package', formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
@@ -70,7 +82,7 @@ export const packageAPI = {
     update: async (id, packageData) => {
         try {
             const formData = new FormData();
-            
+
             const updatePackage = {
                 PackageName: packageData.PackageName || packageData.package_name || packageData.name,
                 Dateline: packageData.Dateline || packageData.dateline,
@@ -81,6 +93,16 @@ export const packageAPI = {
             Object.keys(updatePackage).forEach(key => {
                 if (updatePackage[key] !== undefined && updatePackage[key] !== null) {
                     formData.append(key, updatePackage[key]);
+                }
+            });
+
+            // Same fix as create() — the product linkage was previously dropped here too.
+            const products = packageData.products || [];
+            products.forEach((item, index) => {
+                formData.append(`products[${index}][sku]`, item.sku || '');
+                formData.append(`products[${index}][quantity]`, item.quantity || 1);
+                if (item.product_id) {
+                    formData.append(`products[${index}][product_id]`, item.product_id);
                 }
             });
 
@@ -112,7 +134,7 @@ export const packageAPI = {
     },
 
     /**
-     * Get products in package - FIXED: removed extra { params }
+     * Get products in package
      */
     getPackageProducts: async (id) => {
         try {
@@ -125,8 +147,7 @@ export const packageAPI = {
     },
 
     /**
-     * Get packages that apply to a product (for Order Page dropdown)
-     * FIXED: Added /api/v1 prefix
+     * Get packages that apply to a product (for Inventory/Order page)
      */
     getApplicablePackages: async (skus) => {
         try {
