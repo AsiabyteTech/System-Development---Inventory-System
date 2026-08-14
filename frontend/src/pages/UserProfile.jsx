@@ -1,8 +1,11 @@
 // src/UserProfile.jsx
 import React, { useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext.jsx';
+import { FiArrowLeft } from 'react-icons/fi';
 
 const UserProfile = () => {
+    const navigate = useNavigate();
     const { user, token, loading } = useContext(AuthContext);
     const [profileData, setProfileData] = useState(null);
     const [error, setError] = useState(null);
@@ -61,6 +64,15 @@ const UserProfile = () => {
 
     return (
         <div className="max-w-4xl mx-auto p-6">
+            {/* Back button */}
+            <button 
+                onClick={() => navigate('/home')}
+                className="flex items-center gap-2 text-blue-600 hover:text-blue-800 mb-4 transition-colors"
+            >
+                <FiArrowLeft className="w-4 h-4" />
+                <span>Back to Home</span>
+            </button>
+
             <div className="bg-white rounded-xl shadow-lg p-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">User Profile</h2>
                 
@@ -85,13 +97,13 @@ const UserProfile = () => {
                         <div className="p-4 bg-gray-50 rounded-lg">
                             <p className="text-sm text-gray-500">Role</p>
                             <p className="font-semibold text-gray-800">
-                                {profileData.role || 'STAFF'}
+                                {profileData.role || profileData.user_type || 'STAFF'}
                             </p>
                         </div>
                         <div className="p-4 bg-gray-50 rounded-lg">
                             <p className="text-sm text-gray-500">Staff ID</p>
                             <p className="font-semibold text-gray-800">
-                                {profileData.staff_id || profileData.staffId || 'N/A'}
+                                {profileData.staff_id || profileData.staffId || profileData.id || 'N/A'}
                             </p>
                         </div>
                     </div>

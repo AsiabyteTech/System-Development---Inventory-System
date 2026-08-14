@@ -43,7 +43,7 @@ export const useStock = (initialParams = {}) => {
 
   // --- Unit-record CRUD (stock-in a new unit, correct a record, remove a mis-entry) ---
 
-  /*const createStock = async (stockData) => {
+  const createStock = async (stockData) => {
     try {
       const created = await stockAPI.create(stockData);
       await fetchStocks();
@@ -71,7 +71,7 @@ export const useStock = (initialParams = {}) => {
     } catch (err) {
       return { success: false, error: err.response?.data?.detail || err.message || 'Failed to delete stock record' };
     }
-  };*/
+  };
 
   // --- Inventory-movement operations (status transitions on existing units) ---
 
@@ -117,6 +117,23 @@ export const useStock = (initialParams = {}) => {
     }
   };
 
+  const loadAssociatedStocks = async (stockData) => {
+    try {
+        let stocks = [];
+        if (stockData.promo || stockData.promoId) {
+            const response = await stockAPI.getByPromo(stockData.promo || stockData.promoId);
+            stocks = response.data || [];
+        } else if (stockData.package || stockData.packageId) {
+            const response = await stockAPI.getByPackage(stockData.package || stockData.packageId);
+            stocks = response.data || [];
+        }
+        setAssociatedStocks(stocks);
+    } catch (error) {
+        console.error('Failed to load associated stocks:', error);
+        setAssociatedStocks([]);
+    }
+};
+
   useEffect(() => {
     fetchStocks(initialParams);
   }, []);
@@ -126,12 +143,13 @@ export const useStock = (initialParams = {}) => {
     loading,
     error,
     fetchStocks,
-    //createStock,
-    //updateStock,
-    //deleteStock,
+    createStock,
+    updateStock,
+    deleteStock,
     reserveStock,
     releaseStock,
     fulfillStock,
     adjustStock,
+    loadAssociatedStocks,
   };
 };

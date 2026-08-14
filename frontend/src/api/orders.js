@@ -6,7 +6,20 @@ export const ordersAPI = {
   // List all orders
   getAll: async (params = { page: 1, limit: 20 }) => {
     try {
-      const response = await apiClient.get('/api/v1/order', { params });
+      // Clean up params - remove any undefined or null values
+      const cleanParams = {};
+      Object.keys(params).forEach(key => {
+        if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+          cleanParams[key] = params[key];
+        }
+      });
+      
+      console.log('Fetching orders with params:', cleanParams);
+      const response = await apiClient.get('/api/v1/order', { params: cleanParams });
+      console.log('Orders API response:', response);
+      console.log('Response data structure:', response.data);
+      
+      // The backend returns { data: [], pagination: { total, page, limit } }
       return response.data;
     } catch (error) {
       console.error("Get orders error:", error.response?.data || error.message);
@@ -14,11 +27,7 @@ export const ordersAPI = {
     }
   },
 
-  // Create new order (bundles order details + selected product line items).
-  // Matches the invoice-creation pattern: the backend is assumed to reserve
-  // stock for these items atomically as part of order creation.
-  // ⚠️ VERIFY: if your backend instead expects a separate reserve step after
-  // create, call stockAPI.reserve(trackingNumber, items) right after this succeeds.
+  // Create new order
   create: async (orderData, orderItems = []) => {
     try {
       const payload = {
@@ -32,8 +41,6 @@ export const ordersAPI = {
         items: (orderItems || []).map(item => ({
           sku: item.sku,
           quantity: item.quantity,
-          // Present only for the synthetic bundle line items Inventory adds when
-          // a promo/package deal is applied — links the order line back to the deal.
           ...(item.dealType === 'promo' ? { promo_id: item.dealId } : {}),
           ...(item.dealType === 'package' ? { package_id: item.dealId } : {}),
         })),
@@ -58,8 +65,6 @@ export const ordersAPI = {
   },
 
   // Update order status
-  // ⚠️ VERIFY exact status string casing expected by the backend
-  // (using 'Pending' | 'Delivery' | 'Complete' | 'Cancelled' to match the UI)
   updateStatus: async (trackingNumber, status) => {
     try {
       const response = await apiClient.put(`/api/v1/order/${trackingNumber}/status`, {
@@ -72,7 +77,7 @@ export const ordersAPI = {
     }
   },
 
-  // Fulfill order (generate pick list)
+  // Fulfill order
   fulfill: async (trackingNumber) => {
     try {
       const response = await apiClient.post(`/api/v1/order/${trackingNumber}/fulfill`);
@@ -83,7 +88,7 @@ export const ordersAPI = {
     }
   },
 
-  // Process return with evidence (also used for the Cancel/Release flow)
+  // Process return
   processReturn: async (trackingNumber, returnData) => {
     try {
       const formData = new FormData();

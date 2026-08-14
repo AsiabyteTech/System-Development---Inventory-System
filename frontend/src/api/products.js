@@ -26,21 +26,8 @@ export const productsAPI = {
       throw error;
     }
   },
-  
-  // Get product summary stats (total products, total margin) for card display
-  // ⚠️ VERIFY this path matches your actual Django urls.py — placeholder based on existing route pattern
-  getSummary: async () => {
-    try {
-      const response = await apiClient.get('/api/v1/product/summary');
-      return response.data;
-    } catch (error) {
-      console.error("Get product summary error:", error.response?.data || error.message);
-      throw error;
-    }
-  },
 
   // Get stock info for a single product by SKU
-  // ⚠️ VERIFY this path matches your actual Django urls.py — placeholder based on existing route pattern
   getStockInfo: async (sku) => {
     try {
       const response = await apiClient.get(`/api/v1/product/${sku}/stock`);

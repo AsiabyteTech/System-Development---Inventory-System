@@ -5,119 +5,146 @@ import { productsAPI } from '../api/products';
 import { stockAPI } from '../api/stock';
 
 export const useProducts = (initialParams = {}) => {
-  // --- Single-page (server-side pagination) state — kept for any other consumers ---
-  const [products, setProducts] = useState([]);
-  const [pagination, setPagination] = useState({ page: 1, total: 0, limit: 20 });
-  const [summary, setSummary] = useState({ total_products: 0, total_margin: 0 });
-
-  // --- Full-catalog state (fetches every page, merges stock, dedupes by SKU) ---
   const [allProducts, setAllProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(50);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProductsCount, setTotalProductsCount] = useState(0);
-
-  // --- Shared state ---
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Display card summary (backend summary endpoint)
-  const fetchSummary = useCallback(async () => {
-    try {
-      const data = await productsAPI.getSummary();
-      setSummary(data);
-    } catch (err) {
-      console.error('Failed to load summary:', err);
-    }
-  }, []);
-
-  // List a single page of products (server-side pagination)
-  const fetchProducts = useCallback(async (params = {}) => {
-    setLoading(true);
-    try {
-      const response = await productsAPI.getAll({ ...pagination, ...params });
-      setProducts(response.items || []);
-      setPagination({
-        page: response.page || 1,
-        total: response.total || 0,
-        limit: response.limit || 20,
-      });
-      setError(null);
-      await fetchSummary();
-    } catch (err) {
-      setError(err.response?.data?.error?.message || 'Failed to load products');
-    } finally {
-      setLoading(false);
-    }
-  }, [fetchSummary]);
-
-  // Map one backend product record to the shape the UI expects
   const mapProduct = (item, stockCountBySku) => {
-    const sku = item.SKU || item.sku || '';
+    const sku = item.SKU || item.sku || item.product_sku || '';
+    const productName = item.ProductName || item.product_name || item.name || item.inventory_name || '';
+    const type = item.ProductType || item.product_type || item.type || item.inventory_type || '';
+    const description = item.ProductDetail || item.description || item.productDetails || item.inventory_detail || '';
+    const vendorPrice = item.InitialVendorPrice || item.vendor_price || item.cost_price || item.vendorPrice || 0;
+    const sellingPrice = item.InitialSellingPrice || item.selling_price || item.sellingPrice || 0;
+    const margin = item.Margin || item.margin || 0;
+    const status = item.Stat || item.status || 'ACTIVE';
+    const staffId = item.StaffID || item.staff_id || item.staffId || '';
+    const quantityOnHand = item.QuantityOnHand || item.quantity_on_hand || stockCountBySku[sku] || 0;
+    const reservedQuantity = item.ReservedQuantity || item.reserved_quantity || 0;
+    const currentAvgCost = item.CurrentAvgCost || item.current_avg_cost || 0;
+    const currentStockValue = item.CurrentStockValue || item.current_stock_value || 0;
+    const image = item.product_image || item.image || item.inventory_image || null;
+    const id = item.id || item.ProductID || item.product_id || item.SKU || item.sku || `prod-${Math.random().toString(36).substr(2, 9)}`;
+
     return {
-      id: item.id || item.SKU || item.sku || `prod-${Math.random().toString(36).substr(2, 9)}`,
+      id,
       sku,
-      productName: item.ProductName || item.product_name || item.productName || '',
-      type: item.ProductType || item.product_type || item.type || '',
-      productDetails: item.ProductDetail || item.description || item.productDetails || '',
-      vendorPrice: item.InitialVendorPrice || item.cost_price || item.vendorPrice || 0,
-      sellingPrice: item.InitialSellingPrice || item.selling_price || item.sellingPrice || 0,
-      margin: item.Margin || item.margin || 0,
-      status: item.Stat || item.status || 'ACTIVE',
-      staffId: item.StaffID || item.staff_id || item.staffId || '',
-      quantityOnHand: item.QuantityOnHand || stockCountBySku[sku] || 0,
-      reservedQuantity: item.ReservedQuantity || 0,
-      currentAvgCost: item.CurrentAvgCost || 0,
-      currentStockValue: item.CurrentStockValue || 0,
-      image: item.product_image || item.image || null,
+      productName,
+      type,
+      productDetails: description,
+      vendorPrice: parseFloat(vendorPrice) || 0,
+      sellingPrice: parseFloat(sellingPrice) || 0,
+      margin: parseFloat(margin) || 0,
+      status,
+      staffId,
+      quantityOnHand: parseInt(quantityOnHand) || 0,
+      reservedQuantity: parseInt(reservedQuantity) || 0,
+      currentAvgCost: parseFloat(currentAvgCost) || 0,
+      currentStockValue: parseFloat(currentStockValue) || 0,
+      image,
     };
   };
 
-  // Fetch EVERY product across all backend pages, merge in stock counts, dedupe by SKU.
-  // This replaces the manual pagination loop that used to live inside Product.jsx.
   const fetchAllProducts = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      let all = [];
-      let page = 1;
-      const pageSize = 100;
-      let hasMore = true;
-
-      while (hasMore) {
-        const response = await productsAPI.getAll({ page, limit: pageSize });
-        const pageData =
-          response?.items ||
-          response?.data?.items ||
-          (Array.isArray(response?.data) ? response.data : null) ||
-          (Array.isArray(response) ? response : []);
-
-        if (!pageData || pageData.length === 0) {
-          hasMore = false;
-        } else {
-          all = [...all, ...pageData];
-          if (pageData.length < pageSize) hasMore = false;
-          page++;
+      const response = await productsAPI.getAll({ 
+        page: currentPage, 
+        limit: itemsPerPage 
+      });
+      
+      console.log('Fetching page:', currentPage, 'with limit:', itemsPerPage);
+      
+      // Extract data from response
+      let productsData = [];
+      let total = 0;
+      
+      // Check if response is an object with pagination metadata
+      if (response && typeof response === 'object') {
+        // Check for different response structures
+        
+        // Structure 1: { items: [], total: 100 }
+        if (response.items && Array.isArray(response.items)) {
+          productsData = response.items;
+          total = response.total || response.count || productsData.length;
+          console.log('Found items array, total:', total);
+        }
+        // Structure 2: { results: [], count: 100 } (Django REST Framework)
+        else if (response.results && Array.isArray(response.results)) {
+          productsData = response.results;
+          total = response.count || response.total || productsData.length;
+          console.log('Found results array, count:', total);
+        }
+        // Structure 3: { data: { items: [], total: 100 } }
+        else if (response.data && response.data.items && Array.isArray(response.data.items)) {
+          productsData = response.data.items;
+          total = response.data.total || response.data.count || productsData.length;
+          console.log('Found data.items array, total:', total);
+        }
+        // Structure 4: { data: [], total: 100 }
+        else if (response.data && Array.isArray(response.data)) {
+          productsData = response.data;
+          total = response.total || response.count || productsData.length;
+          console.log('Found data array, total:', total);
+        }
+        // Structure 5: Direct array response
+        else if (Array.isArray(response)) {
+          productsData = response;
+          total = response.length;
+          console.log('Found direct array, length:', total);
+        }
+        // Structure 6: Response has a property that's an array
+        else {
+          for (const key in response) {
+            if (Array.isArray(response[key]) && response[key].length > 0) {
+              productsData = response[key];
+              total = response.total || response.count || response.pagination?.total || productsData.length;
+              console.log(`Found array in response.${key}, total:`, total);
+              break;
+            }
+          }
         }
       }
-
-      // Merge in stock counts (AVAILABLE units per SKU)
+      
+      // If we still don't have data, try to find any array in the response
+      if (productsData.length === 0 && response && typeof response === 'object') {
+        for (const key in response) {
+          if (Array.isArray(response[key])) {
+            productsData = response[key];
+            total = response.total || response.count || productsData.length;
+            console.log(`Fallback: Found array in response.${key}`);
+            break;
+          }
+        }
+      }
+      
+      console.log(`Page ${currentPage}: Retrieved ${productsData.length} items out of ${total} total`);
+      
+      // Merge in stock counts
       let stockCountBySku = {};
       try {
         const stockResponse = await stockAPI.getAll();
         const stockData = stockResponse.data || stockResponse.stocks || [];
-        stockData.forEach((item) => {
-          const sku = item.SKU || item.sku;
-          if (!sku) return;
-          if (!stockCountBySku[sku]) stockCountBySku[sku] = 0;
-          const status = item.Stat || item.status || '';
-          if (status.toUpperCase() === 'AVAILABLE') stockCountBySku[sku]++;
-        });
+        if (Array.isArray(stockData)) {
+          stockData.forEach((item) => {
+            const sku = item.SKU || item.sku;
+            if (!sku) return;
+            if (!stockCountBySku[sku]) stockCountBySku[sku] = 0;
+            const status = item.Stat || item.status || '';
+            if (status.toUpperCase() === 'AVAILABLE') stockCountBySku[sku]++;
+          });
+        }
       } catch (stockErr) {
         console.warn('Could not fetch stock data:', stockErr);
       }
 
-      const mapped = all.map((item) => mapProduct(item, stockCountBySku));
+      // Map the products
+      const mapped = productsData.map((item) => mapProduct(item, stockCountBySku));
 
       // Dedupe by SKU
       const seen = new Set();
@@ -127,18 +154,31 @@ export const useProducts = (initialParams = {}) => {
         return true;
       });
 
+      // Update state
       setAllProducts(unique);
-      setTotalProductsCount(unique.length);
-      setTotalPages(Math.ceil(unique.length / itemsPerPage) || 1);
-      setCurrentPage(1);
+      setTotalProductsCount(total);
+      
+      // Calculate total pages
+      const calculatedTotalPages = Math.ceil(total / itemsPerPage) || 1;
+      setTotalPages(calculatedTotalPages);
+      
+      console.log(`Page ${currentPage}: Mapped ${unique.length} unique products`);
+      console.log(`Total pages: ${calculatedTotalPages}`);
+      
     } catch (err) {
-      console.error('Failed to fetch all products:', err);
+      console.error('Failed to fetch products:', err);
       let errorMsg = 'Failed to load products. ';
-      if (err.response?.status === 422) errorMsg += 'Invalid request parameters. Please check the API configuration.';
-      else if (err.response?.status === 404) errorMsg += 'Product endpoint not found. Please check if the backend is running.';
-      else if (err.response?.status === 500) errorMsg += 'Server error. Please check backend logs.';
-      else if (err.code === 'ERR_NETWORK') errorMsg += 'Network error. Please check if the backend server is running.';
-      else errorMsg += err.message || 'Please try again.';
+      if (err.response?.status === 404) {
+        errorMsg += 'Product endpoint not found. Please check if the backend is running.';
+      } else if (err.response?.status === 422) {
+        errorMsg += 'Invalid request parameters. Please check the API configuration.';
+      } else if (err.response?.status === 500) {
+        errorMsg += 'Server error. Please check backend logs.';
+      } else if (err.code === 'ERR_NETWORK') {
+        errorMsg += 'Network error. Please check if the backend server is running.';
+      } else {
+        errorMsg += err.message || 'Please try again.';
+      }
       setError(errorMsg);
       setAllProducts([]);
       setTotalProductsCount(0);
@@ -146,30 +186,24 @@ export const useProducts = (initialParams = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [itemsPerPage]);
+  }, [currentPage, itemsPerPage]);
 
-  // Change page (client-side slice of allProducts)
   const goToPage = useCallback((page) => {
-    setCurrentPage((prev) => {
-      if (page < 1) return prev;
-      return page;
-    });
-  }, []);
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [totalPages]);
 
-  // Change items-per-page and recompute total pages
   const changeItemsPerPage = useCallback((newPerPage) => {
     setItemsPerPage(newPerPage);
-    setTotalPages(Math.ceil(allProducts.length / newPerPage) || 1);
     setCurrentPage(1);
-  }, [allProducts.length]);
+  }, []);
 
-  // Derived: current page slice of the full catalog
-  const displayedProducts = allProducts.slice(
-    (currentPage - 1) * itemsPerPage,
-    (currentPage - 1) * itemsPerPage + itemsPerPage
-  );
+  useEffect(() => {
+    fetchAllProducts();
+  }, [currentPage, itemsPerPage]);
 
-  // Derived totals across the FULL catalog (not just the current page)
+  const displayedProducts = allProducts;
   const totalMargin = allProducts.reduce((sum, p) => sum + (parseFloat(p.margin) || 0), 0);
   const totalStockValue = allProducts.reduce((sum, p) => sum + (parseFloat(p.currentStockValue) || 0), 0);
 
@@ -182,7 +216,6 @@ export const useProducts = (initialParams = {}) => {
     }
   };
 
-  // Create product (Admin only)
   const createProduct = async (productData) => {
     try {
       const newProduct = await productsAPI.create(productData);
@@ -193,7 +226,6 @@ export const useProducts = (initialParams = {}) => {
     }
   };
 
-  // Update product (Admin only)
   const updateProduct = async (sku, productData) => {
     try {
       const updated = await productsAPI.update(sku, productData);
@@ -204,7 +236,6 @@ export const useProducts = (initialParams = {}) => {
     }
   };
 
-  // Delete product (Admin only)
   const deleteProduct = async (sku) => {
     try {
       await productsAPI.delete(sku);
@@ -214,19 +245,7 @@ export const useProducts = (initialParams = {}) => {
     }
   };
 
-  useEffect(() => {
-    fetchAllProducts();
-  }, []);
-
   return {
-    // Single-page API (kept for any other consumers of this hook)
-    products,
-    pagination,
-    summary,
-    fetchProducts,
-    fetchSummary,
-
-    // Full-catalog API (used by Product.jsx)
     allProducts,
     displayedProducts,
     currentPage,
@@ -238,8 +257,6 @@ export const useProducts = (initialParams = {}) => {
     fetchAllProducts,
     goToPage,
     changeItemsPerPage,
-
-    // Shared
     loading,
     error,
     getProductStock,

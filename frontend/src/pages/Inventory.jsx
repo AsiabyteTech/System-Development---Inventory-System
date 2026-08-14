@@ -1,11 +1,11 @@
 // ✅ REFACTORED: imports organized
 import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { useProducts } from './hooks/useProducts';
-import { usePromo } from './hooks/usePromo';
-import { usePackage } from './hooks/usePackage';
-import './App.css';
-import './styles/animations.css';
+import { useProducts } from '../hooks/useProducts';
+import { usePromo } from '../hooks/usePromo';
+import { usePackage } from '../hooks/usePackage';
+import '../App.css';
+import '../styles/animations.css';
 
 const Inventory = ({}) => {
   const navigate = useNavigate();

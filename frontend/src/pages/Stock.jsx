@@ -278,17 +278,6 @@ const Stock = () => {
                     </svg>
                     <span>Search</span>
                   </button>
-                  {isAdmin() && (
-                    <button
-                      onClick={openAddModal}
-                      className="w-9 h-9 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110 flex items-center justify-center flex-shrink-0"
-                      title="Add New Stock"
-                    >
-                      <svg className="w-4 h-4 sm:w-4.5 sm:h-4.5 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                      </svg>
-                    </button>
-                  )}
                 </div>
                 <p className="text-[10px] sm:text-xs text-slate-400 mt-1 sm:mt-2">*Serial Number, Reference No, Tracking Number</p>
               </div>

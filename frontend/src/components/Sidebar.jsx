@@ -41,7 +41,7 @@ const Sidebar = () => {
   
   // Admin-only menu items
   const adminMenuItems = [
-    { name: "Register Staff", path: "/registerstaff", icon: <FaUserPlus />, isParent: false },
+    { name: "Staff", path: "/staff", icon: <FaUserPlus />, isParent: false },
   ];
   
   const menuItems = isAdminUser ? [...baseMenuItems, ...adminMenuItems] : baseMenuItems;

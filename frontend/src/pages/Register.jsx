@@ -174,15 +174,182 @@ const Register = () => {
   };
 
   const privacyPolicyContent = (
-    <div className="space-y-4">
-      <p className="text-sm">Privacy Policy content here...</p>
-    </div>
+    <>
+      <div className="space-y-4">
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">1. Information We Collect</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">AsiaByte P&L Inventory System collects the following information to provide and improve our services:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li><strong>Personal Information:</strong> Full name, email address, Staff ID, and role information</li>
+            <li><strong>Account Credentials:</strong> Securely hashed password for system access</li>
+            <li><strong>Usage Data:</strong> Inventory management activities, order history, and system interactions</li>
+            <li><strong>Device Information:</strong> Browser type, IP address, and access timestamps for security purposes</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">2. How We Use Your Information</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">Your information is used for the following purposes:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Authenticating your identity and providing secure system access</li>
+            <li>Managing inventory, orders, and supplier relationships</li>
+            <li>Generating reports and analytics for business insights</li>
+            <li>Communicating important system updates and notifications</li>
+            <li>Improving system performance and user experience</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">3. Data Security & Protection</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We implement industry-standard security measures to protect your data:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>End-to-end encryption for sensitive data transmission</li>
+            <li>Secure password hashing (never stored in plain text)</li>
+            <li>Regular security audits and vulnerability assessments</li>
+            <li>Role-based access controls to prevent unauthorized data access</li>
+            <li>Automatic session timeout after periods of inactivity</li>
+          </ul>
+          <p className="text-xs sm:text-sm leading-relaxed mt-2">We do NOT sell, trade, or rent your personal information to third parties.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">4. User Rights & Control</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">You have the following rights regarding your data:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li><strong>Access:</strong> Request a copy of your personal data</li>
+            <li><strong>Correction:</strong> Update or correct inaccurate information</li>
+            <li><strong>Deletion:</strong> Request account deletion (subject to business retention policies)</li>
+            <li><strong>Restriction:</strong> Limit how your data is processed</li>
+          </ul>
+          <p className="text-xs sm:text-sm leading-relaxed mt-2">To exercise these rights, contact your system administrator.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">5. Data Retention</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We retain your personal information only as long as necessary to fulfill the purposes outlined in this policy, including legal, accounting, or reporting requirements. Inactive accounts may be archived after 12 months of inactivity.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">6. Cookies & Tracking Technologies</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We use cookies and similar technologies to enhance your experience, remember your preferences, and analyze system usage. You can control cookie settings through your browser preferences, though disabling cookies may affect system functionality.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">7. Policy Updates</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">We may update this Privacy Policy periodically to reflect changes in our practices or legal requirements. Material changes will be communicated via email or system notification. The effective date will be updated accordingly.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">8. Contact Information</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">For questions about this Privacy Policy or your data, please contact:</p>
+          <p className="text-xs sm:text-sm leading-relaxed mt-1"><strong>Email:</strong> privacy@asiabyte.com</p>
+          <p className="text-xs sm:text-sm leading-relaxed"><strong>Phone:</strong> +60 3-1234 5678</p>
+          <p className="text-xs sm:text-sm leading-relaxed"><strong>Address:</strong> 12-1, Jalan PJS 7/19, Bandar Sunway, 47500 Subang Jaya, Selangor, Malaysia</p>
+        </div>
+        
+        <p className="text-xs text-slate-400 italic mt-4">Effective Date: April 1, 2026</p>
+      </div>
+    </>
   );
 
+  // ✅ UPDATED: Expanded Terms of Service content
   const termsContent = (
-    <div className="space-y-4">
-      <p className="text-sm">Terms of Service content here...</p>
-    </div>
+    <>
+      <div className="space-y-4">
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">1. Acceptance of Terms</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">By accessing or using the AsiaByte P&L Inventory System, you agree to be bound by these Terms of Service. If you do not agree to these terms, please do not use the system.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">2. Account Registration & Security</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">You must provide accurate and complete information when creating an account. You are responsible for:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Maintaining the confidentiality of your login credentials</li>
+            <li>All activities that occur under your account</li>
+            <li>Immediately notifying AsiaByte of any unauthorized account access</li>
+            <li>Ensuring your password meets security requirements (minimum 8 characters, including uppercase, lowercase, numbers, and special characters)</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">3. User Responsibilities</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">As a user of the AsiaByte Inventory System, you agree to:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Use the system only for legitimate business purposes</li>
+            <li>Maintain accurate and up-to-date inventory records</li>
+            <li>Follow proper procedures for stock intake, orders, and returns</li>
+            <li>Report any system errors or security vulnerabilities promptly</li>
+            <li>Respect the confidentiality of other users' data</li>
+            <li>Comply with all applicable laws and regulations</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">4. Prohibited Activities</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">The following activities are strictly prohibited:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li>Attempting to gain unauthorized access to other accounts or data</li>
+            <li>Uploading malicious code, viruses, or harmful software</li>
+            <li>Manipulating inventory data to falsify records</li>
+            <li>Using the system for any illegal or fraudulent activities</li>
+            <li>Sharing your account credentials with unauthorized personnel</li>
+            <li>Attempting to bypass security measures or access restrictions</li>
+            <li>Interfering with system performance or availability</li>
+          </ul>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">5. Role-Based Access & Permissions</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">Access to system features is determined by your assigned role:</p>
+          <ul className="list-disc pl-5 mt-2 text-xs sm:text-sm leading-relaxed space-y-1">
+            <li><strong>Admin:</strong> Full system access, including user management, reporting, and configuration</li>
+            <li><strong>Staff:</strong> Access to inventory and order management, limited administrative functions</li>
+          </ul>
+          <p className="text-xs sm:text-sm leading-relaxed mt-2">You may not attempt to access features beyond your authorized role.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">6. Intellectual Property</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">All content, features, and functionality of the AsiaByte Inventory System, including but not limited to software, design, logos, and trademarks, are owned by AsiaByte and are protected by intellectual property laws. You may not copy, modify, distribute, or reverse engineer any part of the system without express written consent.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">7. Limitation of Liability</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">To the maximum extent permitted by law, AsiaByte shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including but not limited to loss of profits, data, or business interruption, resulting from your use of or inability to use the system.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">8. Termination of Access</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">AsiaByte reserves the right to suspend or terminate your account immediately, without prior notice, for conduct that violates these terms, poses a security risk, or is harmful to other users or the system. Upon termination, your access to the system will be revoked, and your data may be archived or deleted in accordance with our data retention policy.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">9. Data Backup & Recovery</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">While AsiaByte performs regular system backups, users are encouraged to maintain their own records of critical data. AsiaByte is not responsible for data loss resulting from system failures, user errors, or unauthorized access.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">10. Modification of Terms</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">AsiaByte reserves the right to modify these terms at any time. Material changes will be communicated via email or system notification. Your continued use of the system after any changes constitutes acceptance of the new terms.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">11. Governing Law</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">These terms shall be governed by and construed in accordance with the laws of Malaysia, without regard to its conflict of law provisions. Any disputes arising from these terms or your use of the system shall be subject to the exclusive jurisdiction of the courts of Malaysia.</p>
+        </div>
+        
+        <div>
+          <h4 className="text-base sm:text-lg font-semibold text-slate-800 mb-2">12. Contact Information</h4>
+          <p className="text-xs sm:text-sm leading-relaxed">For questions about these Terms of Service, please contact:</p>
+          <p className="text-xs sm:text-sm leading-relaxed mt-1"><strong>Email:</strong> legal@asiabyte.com</p>
+          <p className="text-xs sm:text-sm leading-relaxed"><strong>Phone:</strong> +60 3-1234 5678</p>
+          <p className="text-xs sm:text-sm leading-relaxed"><strong>Address:</strong> 12-1, Jalan PJS 7/19, Bandar Sunway, 47500 Subang Jaya, Selangor, Malaysia</p>
+        </div>
+        
+        <p className="text-xs text-slate-400 italic mt-4">Last Updated: April 1, 2026</p>
+      </div>
+    </>
   );
 
   return (
@@ -464,37 +631,6 @@ const Register = () => {
                 ) : 'Register'}
               </button>
             </form>
-
-            {/* Divider */}
-            <div className="divider relative my-6 text-center">
-              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200"></div></div>
-              <div className="relative flex justify-center text-sm"><span className="px-4 bg-white text-slate-500 font-medium">or sign up with</span></div>
-            </div>
-
-            {/* Google button */}
-            <button 
-              onClick={handleGoogleRegister} 
-              disabled={isLoading} 
-              className="social-btn w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:shadow-md transition-all duration-200 hover:scale-[1.02] disabled:opacity-70 active:scale-95"
-            >
-              <svg className="w-5 h-5 flex-shrink-0" viewBox="0 0 24 24">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-              </svg>
-              <span className="text-slate-700 font-medium text-sm sm:text-base">Continue with Google</span>
-            </button>
-
-            {/* Footer */}
-            <footer className="card-footer mt-6 text-center">
-              <p className="text-slate-600 font-medium text-sm sm:text-base">
-                Already have an account? 
-                <button onClick={() => navigate('/login')} className="text-blue-600 hover:text-blue-700 font-semibold ml-1 hover:underline transition-colors">
-                  Sign in
-                </button>
-              </p>
-            </footer>
           </div>
           
           {/* Legal links */}

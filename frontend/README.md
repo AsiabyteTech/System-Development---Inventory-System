@@ -75,6 +75,44 @@ frontend/
 └── .gitignore
 ```
 
+---
+
+## Quick Start
+
+```bash
+# 1. Direct to Frontend
+cd frontend
+
+# 2. Run frontend
+npm run dev
+
+# 3. Direct to Backend
+cd backend
+cp .env.example .env
+
+# 4. Enter backend environment
+./venv/Scripts/activate
+
+# 5. Start the server
+uvicorn app.main:app --reload
+
+# 6. Direct to Server
+cd server
+
+# 7. Cloud and Database authorization
+mysql -h inventoryproject.cp6ektunmgpv.ap-southeast-1.rds.amazonaws.com -P 3306 -u admin -p
+
+# 8. Password
+5GqokJgPqo7MOiUJKlHt
+
+# 9. Open Swagger docs
+# http://localhost:5173/login
+
+# 10. Login Credentials
+Email: alice@company.com
+Password: 123
+Role: Admin
+```
 
 ---
 
@@ -82,17 +120,38 @@ frontend/
 
 | Software Component | Tool/Software Name | Version | Purpose |
 |--------------------|--------------------|---------|---------|
-| DBMS | MySQL | 8.40 | Database storage and management |
-| Server Platform |  |  |  |
-| Cloud Network Computing | Amazon Web Server (AWS) |  |  |
-| Operating System | Windows OS | 10 | Provides the foundational platform for hosting the development and production environments. |
-| Design & Modeling | Draw.io |  | Used to create all system design diagrams, including Entity-Relationship Diagrams (ERD), Data Flow Diagrams (DFD), and Architecture Diagrams |
-| Integrated Development Environment (IDE) | Visual Studio Code |  | The primary code editor used for writing, debugging, and testing the application's source code. Offers extensions for Python, HTML, CSS, and ReactJS. |
-| Server-side Scripting |  |  |  |
-| Frontend | React.js, CSS3, HTML5 |  | Standard web technologies used to build the structure, style, and interactivity of the user interface in the client's browser.  |
-| Backend | Python (Django) |  |  |
-| Communication API | RESTFUL API |  |  |
-
+| Operating System | Windows OS | Windows 10 | Provides the foundational platform for hosting the development and production environments. |
+| Integrated Development Environment (IDE) | Visual Studio Code | Latest | Primary code editor for writing, debugging, and testing source code. Supports extensions for Python, JavaScript/TypeScript, and React development. |
+| Version Control | Git | Latest | Source code version control and collaboration. |
+| Repository Hosting | GitHub | N/A | Remote repository hosting for code management and CI/CD pipelines. |
+| **Frontend Development** | | | |
+| JavaScript Runtime | Node.js | v20 LTS | Required for running Vite build tool, npm packages, and React development server. |
+| Package Manager | npm / yarn | Latest | Dependency management for frontend packages. |
+| Frontend Framework | React.js | v19.2.0 | Component-based UI library for building the interactive user interface. |
+| Build Tool | Vite | v7.2.4 | Modern build tool providing fast development server and optimized production builds. |
+| Styling Framework | Tailwind CSS | v4.1.18 | Utility-first CSS framework for responsive and consistent UI design. |
+| Charting Library | Recharts | v3.6.0 | Composable charting library for dashboard data visualizations. |
+| HTTP Client | Axios | v1.13.2 | Promise-based HTTP client for API communication with backend. |
+| Routing | React Router DOM | v7.11.0 | Client-side routing for navigation between application views. |
+| Icons | React Icons | v5.5.0 | Icon library for enhanced UI visual elements. |
+| **Backend Development** | | | |
+| Programming Language | Python | 3.12+ | Core server-side scripting language for all business logic and API endpoints. |
+| Web Framework | FastAPI | v0.115.0 | High-performance asynchronous web framework with automatic OpenAPI documentation and data validation. |
+| ASGI Server | Uvicorn | v0.30.6 | ASGI server for serving FastAPI in development and production environments. |
+| ORM | SQLAlchemy | v2.0.35 | Object-Relational Mapper for database interactions with MySQL. |
+| Database Migration | Alembic | v1.13.3 | Database schema migration management and version control. |
+| Data Validation | Pydantic | v2 | Data validation and settings management using Python type hints. |
+| Authentication | python-jose[cryptography] | v3.3.0 | JWT token creation and verification for authentication. |
+| Password Hashing | passlib[bcrypt] | v1.7.4 | Secure password hashing using bcrypt algorithm. |
+| File Uploads | python-multipart | v0.0.12 | Multipart form data parsing for handling file uploads. |
+| Caching | Redis | v5.1.1 | In-memory caching layer for improved performance and rate limiting. |
+| Testing | pytest, pytest-asyncio, httpx | Latest | Unit and integration testing framework for backend services. |
+| API Documentation | Swagger UI (FastAPI built-in) | N/A | Interactive API documentation accessible at `/docs` endpoint. |
+| **Database** | | | |
+| Database Management System | MySQL | 8.0+ | Relational database for persistent storage of all system data. |
+| Database GUI Tool | MySQL Workbench | Latest | Visual database design, administration, and query execution. |
+| **Cloud Infrastructure** | | | |
+| Cloud Service Provider | Amazon Web Services (AWS) | N/A | Cloud infrastructure for production deployment. |
 
 ---
 

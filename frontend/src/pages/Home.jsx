@@ -1,11 +1,12 @@
 // ✅ REFACTORED: imports organized and cleaned
-import React from "react";
+import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiShoppingCart, FiArrowRight, FiUser } from 'react-icons/fi';
 import { BsGraphUp, BsBoxSeam, BsPeople } from 'react-icons/bs';
 
 // ✅ REFACTORED: role import path corrected
 import { isAdmin } from "../shared/role";
+import { AuthContext } from "../contexts/AuthContext.jsx";
 
 // ✅ REFACTORED: CSS imports - animations moved to dedicated file
 import "../App.css";
@@ -13,6 +14,7 @@ import "../styles/animations.css";
 
 const Home = () => {
   const navigate = useNavigate();
+  const { user, loading } = useContext(AuthContext);
   
   const partners = [
     "ruckus-networks-logo.png",
@@ -28,6 +30,43 @@ const Home = () => {
   ];
 
   const getImagePath = (img) => `/Pictures/${img}`;
+
+  // Get user display name
+  const getUserDisplayName = () => {
+    if (!user) return 'Guest';
+    return user.name || user.fullName || user.username || user.email || 'User';
+  };
+
+  // Get user role display
+  const getUserRoleDisplay = () => {
+    if (!user) return 'Guest';
+    const role = user.role || user.user_type || 'STAFF';
+    if (role === 'ADMIN' || role === 'admin' || role === 'Admin') return 'Administrator';
+    if (role === 'MANAGER' || role === 'manager' || role === 'Manager') return 'Manager';
+    return 'Staff';
+  };
+
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    const name = getUserDisplayName();
+    if (name === 'Guest') return 'G';
+    const parts = name.split(' ');
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  // Get user email
+  const getUserEmail = () => {
+    if (!user) return 'No email provided';
+    return user.email || 'No email provided';
+  };
+
+  // Navigate to user profile
+  const goToProfile = () => {
+    navigate('/user-profile');
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col overflow-x-hidden">
@@ -55,12 +94,23 @@ const Home = () => {
 
           <div className="flex items-center space-x-2 sm:space-x-3 md:space-x-4">
             <div className='hidden sm:flex flex-col items-end mr-0 sm:mr-1 md:mr-2'>
-              <span className='text-xs sm:text-sm font-semibold text-slate-800'>Zaty Raof</span>
-              <span className='text-[10px] sm:text-xs text-blue-600/70'>{isAdmin() ? 'Administrator' : 'Staff'}</span>
+              <span className='text-xs sm:text-sm font-semibold text-slate-800'>
+                {loading ? 'Loading...' : getUserDisplayName()}
+              </span>
+              <span className='text-[10px] sm:text-xs text-blue-600/70'>
+                {loading ? '...' : getUserRoleDisplay()}
+              </span>
             </div>
             <div className="relative flex items-center">
-              <button className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center">
-                <FiUser className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5" />
+              <button 
+                onClick={goToProfile}
+                className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md hover:shadow-xl transition-all duration-300 hover:scale-105 flex items-center justify-center relative group"
+                title="View Profile"
+              >
+                <span className="text-xs sm:text-sm font-bold">
+                  {loading ? '...' : getUserInitials()}
+                </span>
+                <div className="absolute inset-0 rounded-xl bg-blue-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </button>
               <span className='absolute -bottom-1 -right-1 w-2 h-2 sm:w-2.5 sm:h-2.5 md:w-3.5 md:h-3.5 bg-green-500 border-2 border-white rounded-full animate-pulse'></span>
             </div>
@@ -95,6 +145,15 @@ const Home = () => {
             <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-blue-50/95 mb-4 sm:mb-6 md:mb-8 max-w-2xl mx-auto sm:mx-0 leading-relaxed">
               We specialize in networking, cloud services, security systems, and IT support tailored to your business needs.
             </p>
+            {/* Welcome message for logged-in user */}
+            {!loading && user && (
+              <div className="inline-block bg-white/10 backdrop-blur-sm rounded-lg px-4 sm:px-6 py-2 sm:py-3 border border-white/20">
+                <p className="text-white text-sm sm:text-base">
+                  Welcome back, <span className="font-semibold">{getUserDisplayName()}</span>! 
+                  <span className="hidden sm:inline"> Ready to manage your inventory?</span>
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </section>

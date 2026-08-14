@@ -21,6 +21,7 @@ import { AuthProvider } from './contexts/AuthContext.jsx';  // ✅ Remove .jsx e
 import ForgotPassword from './pages/ForgotPassword.jsx';
 import ResetPassword from './pages/ResetPassword';
 import UserProfile from './pages/UserProfile';
+import Staff from './pages/Staff.jsx';
 
 // ScrollToTop component
 function ScrollToTop() {
@@ -58,6 +59,8 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/user-profile" element={<UserProfile />} />
+          <Route path="/staff" element={<Staff />} />
+          
         </Routes>
       </AuthProvider>
     </BrowserRouter>

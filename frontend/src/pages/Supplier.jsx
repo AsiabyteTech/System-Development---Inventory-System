@@ -127,7 +127,7 @@ const Supplier = () => {
     : {
         id: 'N/A',
         name: 'No Supplier',
-        logo: '/Pictures/default-supplier.png',
+        logo: 'N/A',
         pic: 'N/A',
         address: 'N/A',
         phone: 'N/A'
@@ -153,31 +153,7 @@ const Supplier = () => {
       
       <div className="flex-1 min-w-0 ml-16 md:ml-64 transition-all duration-300 overflow-x-hidden">
         <div className="containersys w-full">
-          {/* Top Header Bar */}
-          <div className="top-info-bar bg-gradient-to-r from-blue-900 to-blue-800 text-white text-[10px] sm:text-xs py-2 px-3 sm:px-6 flex flex-wrap justify-between items-center gap-2">
-            <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
-              <span>📍</span>
-              <span className="truncate max-w-[180px] sm:max-w-none">12-1, Jalan PJS 7/19, Bandar Sunway, 47500 Subang Jaya, Selangor, Malaysia</span>
-            </div>
-            <div className="flex items-center gap-1 sm:gap-2">
-              <span>🕒</span>
-              <span>Office Hours: 9:00 AM - 6:00 PM</span>
-            </div>
-          </div>
-
-          {/* Navigation */}
-          <header className="headersys bg-white border-b border-slate-200/60 shadow-sm py-2 sm:py-3 px-4 sm:px-6">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-2 sm:gap-3 group cursor-pointer" onClick={() => navigate('/invoice')}>
-                <div className="relative">
-                  <img src="/Pictures/Asiabite.png" alt="AsiaByte Logo" className="h-8 sm:h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
-                  <div className="absolute -inset-1 bg-blue-600/20 rounded-xl blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-                <span className="logo-text text-lg sm:text-xl font-bold font-serif bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">AsiaByte</span>
-              </div>
-            </div>
-          </header>
-
+          
           <main className="all-main-content w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6">
             
             {/* Error Message */}
@@ -224,7 +200,7 @@ const Supplier = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
                         </svg>
                       </div>
-                      <span className="text-[10px] sm:text-[11px] md:text-sm font-medium text-slate-500 uppercase tracking-wider">SUPPLIER MANAGEMENT</span>
+                      <span className="text-[10px] sm:text-[11px] md:text-sm font-medium text-slate-500 uppercase tracking-wider">SUPPLIER</span>
                     </div>
                   </div>
                   <div className="space-y-0.5 sm:space-y-1 md:space-y-2">
@@ -312,7 +288,7 @@ const Supplier = () => {
                                 className="w-10 h-10 sm:w-12 sm:h-12 md:w-16 md:h-16 object-contain"
                                 onError={(e) => {
                                   e.target.onerror = null;
-                                  e.target.src = '/Pictures/default-supplier.png';
+                                  e.target.src = '';
                                 }}
                               />
                             </div>
@@ -338,27 +314,6 @@ const Supplier = () => {
                       </button>
                     )}
                   </div>
-
-                  {/* Pagination Dots */}
-                  {suppliers.length > 1 && (
-                    <div className="flex justify-center gap-1.5 sm:gap-2 mt-3 sm:mt-4">
-                      {suppliers.map((_, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => {
-                            setActiveSupplierIdx(idx);
-                            scrollToSupplier(idx);
-                          }}
-                          className={`transition-all duration-300 ${
-                            activeSupplierIdx === idx
-                              ? 'w-4 sm:w-5 md:w-6 h-1.5 sm:h-2 bg-blue-600 rounded-full'
-                              : 'w-1.5 sm:w-2 h-1.5 sm:h-2 bg-slate-300 rounded-full hover:bg-slate-400'
-                          }`}
-                          aria-label={`Go to supplier ${idx + 1}`}
-                        />
-                      ))}
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -443,14 +398,6 @@ const Supplier = () => {
             onDelete={handleSupplierDelete}
           />
 
-          {/* Footer */}
-          <footer className="bg-gradient-to-r from-blue-900 to-blue-700 h-8 w-full print:hidden flex items-center justify-center">
-            <span className="text-white text-[10px] sm:text-xs">© 2026 AsiaByte. All rights reserved.</span>
-          </footer>
-
-          <div className="print-footer hidden print:block text-center text-gray-700 text-xs mt-4">
-            © 2026 AsiaByte. All rights reserved.
-          </div>
         </div>
       </div>
     </div>

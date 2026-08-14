@@ -15,6 +15,7 @@ const AddEditPromo = () => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [searchTerm, setSearchTerm] = useState(''); // ✅ Added search state
 
     const { createPromo, updatePromo, deletePromo } = usePromo();
     const { allProducts, loading, error: productsError, fetchAllProducts } = useProducts();
@@ -36,8 +37,7 @@ const AddEditPromo = () => {
     const [selectedProducts, setSelectedProducts] = useState([]);
     const [totalQuantity, setTotalQuantity] = useState(0);
 
-    // Product picker list — reuses useProducts (already merges live stock/margin data)
-    // instead of this component independently re-fetching and re-mapping products.
+    // Product picker list — reuses useProducts
     const products = useMemo(() => {
         return (allProducts || []).map(item => ({
             id: item.id,
@@ -49,6 +49,18 @@ const AddEditPromo = () => {
             image: item.image || '/Pictures/default-product.png',
         }));
     }, [allProducts]);
+
+    // ✅ Filter products based on search term
+    const filteredProducts = useMemo(() => {
+        if (!searchTerm.trim()) return products;
+        
+        const term = searchTerm.toLowerCase().trim();
+        return products.filter(product =>
+            product.sku?.toLowerCase().includes(term) ||
+            product.name?.toLowerCase().includes(term) ||
+            product.type?.toLowerCase().includes(term)
+        );
+    }, [products, searchTerm]);
 
     // Initialize quantities with zeros
     const initialQuantities = products.reduce((acc, product) => ({ ...acc, [product.id]: 0}), {});
@@ -75,7 +87,6 @@ const AddEditPromo = () => {
         if (editMode && promoData && products.length > 0) {
             console.log('📦 Loading promotion for edit:', promoData);
             
-            // Map backend fields to frontend
             setPromoId(promoData.PromoID || promoData.promo_id || promoData.id || '');
             setPromoName(promoData.PromoName || promoData.promo_name || promoData.name || '');
             setPromoPrice(promoData.Price || promoData.price || '');
@@ -83,7 +94,6 @@ const AddEditPromo = () => {
             setReduction(promoData.Reduction || promoData.reduction || '');
             setPromoRemark(promoData.Remark || promoData.remark || '');
             
-            // Load products with their quantities if available
             if (promoData.products && promoData.products.length > 0) {
                 const newQuantities = { ...initialQuantities };
                 let totalQty = 0;
@@ -101,7 +111,6 @@ const AddEditPromo = () => {
                 console.log('✅ Restored quantities:', newQuantities);
             }
         } else if (!editMode) {
-            // Reset quantities when not in edit mode
             setQuantities(initialQuantities);
             setSelectedProducts([]);
             setTotalQuantity(0);
@@ -117,7 +126,6 @@ const AddEditPromo = () => {
 
             if (newQty < 0 || (product && newQty > product.quantity)) return prev;
 
-            // Update total quantity
             const newTotal = Object.values({ ...prev, [id]: newQty }).reduce((sum, qty) => sum + qty, 0);
             setTotalQuantity(newTotal);
 
@@ -135,7 +143,7 @@ const AddEditPromo = () => {
     const reductionValue = (totalMargin * (parseFloat(reduction) || 0)) / 100;
     const finalPrice = totalMargin - reductionValue;
 
-    // Auto update promo price when margin or reduction changes (unless manually overridden)
+    // Auto update promo price when margin or reduction changes
     useEffect(() => {
         if (!isManualPrice && totalMargin > 0 && !editMode) {
             setPromoPrice(finalPrice.toFixed(2));
@@ -152,7 +160,6 @@ const AddEditPromo = () => {
         setPromoPrice(value);
         setIsManualPrice(true);
         
-        // If user clears the price, reset auto mode
         if (value === '') {
             setIsManualPrice(false);
         }
@@ -160,9 +167,8 @@ const AddEditPromo = () => {
 
     const hasSelectedItems = totalMargin > 0;
 
-    // ✅ Handle Save/Update with actual API
+    // ✅ Handle Save/Update
     const handleSave = async () => {
-        // Validate required fields
         if (!promoName.trim()) {
             alert('Please enter a promotion name');
             return;
@@ -176,7 +182,6 @@ const AddEditPromo = () => {
             return;
         }
         
-        // Build the product list from selected quantities
         const selectedProductsList = [];
         let totalQty = 0;
         
@@ -197,7 +202,6 @@ const AddEditPromo = () => {
             return;
         }
 
-        // Prepare data matching your table structure
         const promoDataToSave = {
             PromoName: promoName,
             Dateline: promoDateline,
@@ -342,7 +346,7 @@ const AddEditPromo = () => {
                                         value={promoPrice}
                                         onChange={handlePriceChange}
                                         placeholder="0.00"
-                                        className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                                        className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed"
                                     />
                                     <p className="text-[10px] text-slate-400 mt-1">
                                         {editMode 
@@ -447,8 +451,45 @@ const AddEditPromo = () => {
                     </div>
                 </div>
 
-                {/* Product Table */}
+                {/* Product Table with Search Bar */}
                 <div className="table-wrapper bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden mb-6 sm:mb-8">
+                    {/* ✅ Search Bar for Product Table */}
+                    <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                            <label className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                Search Products
+                            </label>
+                            <div className="relative flex-1 w-full">
+                                <input
+                                    type="text"
+                                    placeholder="Search by Product Name, SKU"
+                                    className="w-full px-3 sm:px-4 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all pl-8 text-sm"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                                <svg className="absolute left-2.5 top-2.5 w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="11" cy="11" r="8" strokeWidth="2"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65" strokeWidth="2"></line>
+                                </svg>
+                                {searchTerm && (
+                                    <button
+                                        onClick={() => setSearchTerm('')}
+                                        className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                                        </svg>
+                                    </button>
+                                )}
+                            </div>
+                            {searchTerm && (
+                                <span className="text-xs text-slate-500 whitespace-nowrap">
+                                    Found {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
                     <div className="overflow-x-auto">
                         <div className="min-w-[700px]">
                             <table className="table w-full">
@@ -463,8 +504,8 @@ const AddEditPromo = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="text-xs sm:text-sm text-slate-600 bg-white divide-y divide-slate-100">
-                                    {products.length > 0 ? (
-                                        products.map((item) => (
+                                    {filteredProducts.length > 0 ? (
+                                        filteredProducts.map((item) => (
                                             <tr key={item.id} className="hover:bg-blue-50/50 transition-colors group">
                                                 <td className="px-3 sm:px-6 py-3 sm:py-4">
                                                     <div className="w-10 h-10 sm:w-14 sm:h-14 bg-slate-100 rounded-lg flex items-center justify-center overflow-hidden">
@@ -529,7 +570,7 @@ const AddEditPromo = () => {
                                     ) : (
                                         <tr>
                                             <td colSpan="6" className="text-center py-8 text-slate-500">
-                                                No products available. Please add products first.
+                                                {searchTerm ? 'No products match your search criteria' : 'No products available. Please add products first.'}
                                             </td>
                                         </tr>
                                     )}

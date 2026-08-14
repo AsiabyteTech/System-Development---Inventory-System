@@ -29,6 +29,10 @@ const Invoice = () => {
     createInvoice,
     updateInvoice,
     deleteInvoice,
+    fetchInvoices,
+    pagination,
+    goToPage,
+    changeItemsPerPage,
   } = useInvoices();
 
   // Build SupplierID -> SupplierName lookup from the hook's raw supplier list
@@ -433,6 +437,7 @@ const Invoice = () => {
                   </tbody>
                 </table>
               </div>
+              
             ) : (
               /* No Results Found State */
               <div className="flex flex-col items-center justify-center py-8 sm:py-12 md:py-20 px-4 w-full">
@@ -454,6 +459,119 @@ const Invoice = () => {
               </div>
             )}
           </div>
+
+          {pagination.total > pagination.limit && (
+          <div className="border-t border-slate-200 px-4 sm:px-6 py-3 bg-gradient-to-r from-slate-50 to-white">
+            <div className="flex flex-col sm:flex-row justify-between items-center gap-3">
+              {/* Left side - Showing info */}
+              <div className="text-xs sm:text-sm text-slate-600">
+                Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                {pagination.total} invoices
+              </div>
+
+              {/* Right side - Pagination controls */}
+              <div className="flex flex-wrap items-center gap-2">
+                {/* Items per page selector */}
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <select
+                    value={pagination.limit}
+                    onChange={(e) => changeItemsPerPage(parseInt(e.target.value))}
+                    className="px-2 py-1 text-xs sm:text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value={10}>10</option>
+                    <option value={20}>20</option>
+                    <option value={50}>50</option>
+                    <option value={100}>100</option>
+                  </select>
+                  <span className="text-xs text-slate-500">per page</span>
+                </div>
+
+                {/* Navigation buttons */}
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => goToPage(1)}
+                    disabled={pagination.page === 1}
+                    className={`px-2 py-1 rounded-lg text-xs sm:text-sm ${
+                      pagination.page === 1
+                        ? 'text-slate-300 cursor-not-allowed'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => goToPage(pagination.page - 1)}
+                    disabled={pagination.page === 1}
+                    className={`px-2 py-1 rounded-lg text-xs sm:text-sm ${
+                      pagination.page === 1
+                        ? 'text-slate-300 cursor-not-allowed'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Page numbers */}
+                  {Array.from({ length: Math.min(5, Math.ceil(pagination.total / pagination.limit)) }, (_, i) => {
+                    const totalPages = Math.ceil(pagination.total / pagination.limit);
+                    let startPage = Math.max(1, pagination.page - 2);
+                    let endPage = Math.min(totalPages, startPage + 4);
+                    if (endPage - startPage + 1 < 5) {
+                      startPage = Math.max(1, endPage - 4);
+                    }
+                    const page = startPage + i;
+                    if (page > endPage) return null;
+                    return (
+                      <button
+                        key={page}
+                        onClick={() => goToPage(page)}
+                        className={`px-2 sm:px-3 py-1 rounded-lg text-xs sm:text-sm font-medium ${
+                          pagination.page === page
+                            ? 'bg-blue-600 text-white'
+                            : 'text-slate-600 hover:bg-slate-100'
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    onClick={() => goToPage(pagination.page + 1)}
+                    disabled={pagination.page === Math.ceil(pagination.total / pagination.limit)}
+                    className={`px-2 py-1 rounded-lg text-xs sm:text-sm ${
+                      pagination.page === Math.ceil(pagination.total / pagination.limit)
+                        ? 'text-slate-300 cursor-not-allowed'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => goToPage(Math.ceil(pagination.total / pagination.limit))}
+                    disabled={pagination.page === Math.ceil(pagination.total / pagination.limit)}
+                    className={`px-2 py-1 rounded-lg text-xs sm:text-sm ${
+                      pagination.page === Math.ceil(pagination.total / pagination.limit)
+                        ? 'text-slate-300 cursor-not-allowed'
+                        : 'text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 5l7 7-7 7m-8-14l7 7-7 7" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
           <Outlet />
         </main>

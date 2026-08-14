@@ -6,7 +6,11 @@ export const useInvoices = (initialParams = {}) => {
   const [invoices, setInvoices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({ page: 1, total: 0, limit: 20 });
+  const [pagination, setPagination] = useState({ 
+    page: initialParams.page || 1, 
+    total: 0, 
+    limit: initialParams.limit || 20 
+  });
   
   // Supplier states
   const [suppliers, setSuppliers] = useState([]);
@@ -33,64 +37,30 @@ export const useInvoices = (initialParams = {}) => {
   const fetchInvoices = useCallback(async (params = {}) => {
     setLoading(true);
     try {
-      const response = await invoicesAPI.getAll({ ...pagination, ...params });
-      setInvoices(response.data || response.items || []);
+      const response = await invoicesAPI.getAll({ 
+        page: pagination.page, 
+        limit: pagination.limit,
+        ...params 
+      });
+      
+      // Extract data from response
+      const invoicesData = response.data || response.items || [];
+      const total = response.total || response.pagination?.total || 0;
+      
+      setInvoices(invoicesData);
       setPagination({
-        page: response.page || 1,
-        total: response.total || 0,
-        limit: response.limit || 20,
+        page: response.page || response.pagination?.page || pagination.page,
+        total: total,
+        limit: response.limit || response.pagination?.limit || pagination.limit,
       });
       setError(null);
     } catch (err) {
       setError(err.response?.data?.error?.message || 'Failed to load invoices');
+      setInvoices([]);
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  const createInvoice = async (invoiceData, stockItems) => {
-    try {
-      const newInvoice = await invoicesAPI.create(invoiceData, stockItems);
-      await fetchInvoices();
-      await fetchInvoiceStats();
-      await fetchSuppliers();
-      return { success: true, data: newInvoice };
-    } catch (err) {
-      return { 
-        success: false, 
-        error: err.response?.data?.error?.message || 'Failed to create invoice' 
-      };
-    }
-  };
-
-  const updateInvoice = async (referenceNo, invoiceData) => {
-    try {
-      const updated = await invoicesAPI.update(referenceNo, invoiceData);
-      await fetchInvoices();
-      await fetchInvoiceStats();
-      return { success: true, data: updated };
-    } catch (err) {
-      return { 
-        success: false, 
-        error: err.response?.data?.error?.message || 'Failed to update invoice' 
-      };
-    }
-  };
-
-  const deleteInvoice = async (referenceNo) => {
-    try {
-      await invoicesAPI.delete(referenceNo);
-      await fetchInvoices();
-      await fetchInvoiceStats();
-      await fetchSuppliers();
-      return { success: true };
-    } catch (err) {
-      return { 
-        success: false, 
-        error: err.response?.data?.error?.message || 'Failed to delete invoice' 
-      };
-    }
-  };
+  }, [pagination.page, pagination.limit]);
 
   // ============ SUPPLIER METHODS ============
 
@@ -101,10 +71,10 @@ export const useInvoices = (initialParams = {}) => {
       const response = await invoicesAPI.getInvoiceStats();
       if (response.success) {
         setStats({
-          supplier_count: response.supplier_count,
-          total_inventory_value: response.total_inventory_value,
-          total_invoices: response.total_invoices,
-          average_invoice_value: response.average_invoice_value,
+          supplier_count: response.supplier_count || 0,
+          total_inventory_value: response.total_inventory_value || 0,
+          total_invoices: response.total_invoices || 0,
+          average_invoice_value: response.average_invoice_value || 0,
           loading: false,
         });
       } else {
@@ -209,6 +179,66 @@ export const useInvoices = (initialParams = {}) => {
     }
   }, []);
 
+  // ============ CRUD OPERATIONS ============
+  const createInvoice = async (invoiceData, stockItems) => {
+    try {
+      const newInvoice = await invoicesAPI.create(invoiceData, stockItems);
+      await fetchInvoices();
+      await fetchInvoiceStats();
+      await fetchSuppliers();
+      return { success: true, data: newInvoice };
+    } catch (err) {
+      return { 
+        success: false, 
+        error: err.response?.data?.error?.message || 'Failed to create invoice' 
+      };
+    }
+  };
+
+  const updateInvoice = async (referenceNo, invoiceData) => {
+    try {
+      const updated = await invoicesAPI.update(referenceNo, invoiceData);
+      await fetchInvoices();
+      await fetchInvoiceStats();
+      return { success: true, data: updated };
+    } catch (err) {
+      return { 
+        success: false, 
+        error: err.response?.data?.error?.message || 'Failed to update invoice' 
+      };
+    }
+  };
+
+  const deleteInvoice = async (referenceNo) => {
+    try {
+      await invoicesAPI.delete(referenceNo);
+      await fetchInvoices();
+      await fetchInvoiceStats();
+      await fetchSuppliers();
+      return { success: true };
+    } catch (err) {
+      return { 
+        success: false, 
+        error: err.response?.data?.error?.message || 'Failed to delete invoice' 
+      };
+    }
+  };
+
+  // ============ PAGINATION CONTROLS ============
+  const goToPage = useCallback((page) => {
+    if (page < 1) return;
+    if (page > Math.ceil(pagination.total / pagination.limit)) return;
+    setPagination(prev => ({ ...prev, page }));
+  }, [pagination.total, pagination.limit]);
+
+  const changeItemsPerPage = useCallback((newLimit) => {
+    setPagination(prev => ({ 
+      ...prev, 
+      limit: newLimit,
+      page: 1 // Reset to first page when changing items per page
+    }));
+  }, []);
+
   // Refresh all invoice data (stats + invoices + suppliers)
   const refreshAllInvoiceData = useCallback(async () => {
     await Promise.all([
@@ -218,10 +248,16 @@ export const useInvoices = (initialParams = {}) => {
     ]);
   }, [fetchInvoiceStats, fetchInvoices, fetchSuppliers]);
 
+  // Fetch invoices whenever page or limit changes
+  useEffect(() => {
+    fetchInvoices();
+  }, [pagination.page, pagination.limit]);
+
+  // Initial data load
   useEffect(() => {
     refreshAllInvoiceData();
-    fetchProducts(); // Load products for dropdown (suppliers/invoices already covered above)
-  }, [refreshAllInvoiceData]);
+    fetchProducts(); // Load products for dropdown
+  }, []);
 
   return {
     // Invoice data
@@ -234,18 +270,20 @@ export const useInvoices = (initialParams = {}) => {
     fetchInvoiceStats,
     refreshAllInvoiceData,
     
+    // CRUD operations
     createInvoice,
     updateInvoice,
     deleteInvoice,
     
+    // Pagination controls
+    goToPage,
+    changeItemsPerPage,
+    
     statsLoading,
+    
     // Supplier data
     suppliers,
     fetchSuppliers,
-    // NOTE: fetchRecentSuppliers / fetchMonthlyPurchaseTotal / recentSuppliers were
-    // referenced elsewhere in this hook but never implemented, and invoices.js has
-    // no matching API method either. Removed rather than guessing at an endpoint —
-    // add them back (with a real invoicesAPI method) if/when that feature is built.
     
     // Product data
     products,

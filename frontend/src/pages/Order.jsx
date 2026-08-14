@@ -78,16 +78,17 @@ const Order = ({}) => {
     }
   };
 
+  
   const filteredOrders = orders.filter(order => {
     const matchesSearch = searchTerm === '' ||
-      order.trackingNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.salesPlatform.toLowerCase().includes(searchTerm.toLowerCase());
+        order.trackingNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        order.salesPlatform?.toLowerCase().includes(searchTerm.toLowerCase());
     
     let matchesMonth = true;
     if (selectedMonth) {
-      const orderMonth = order.purchaseDate.substring(0, 7);
-      matchesMonth = orderMonth === selectedMonth;
+        const orderMonth = order.purchaseDate?.substring(0, 7);
+        matchesMonth = orderMonth === selectedMonth;
     }
     
     const matchesPlatform = selectedPlatform === '' || order.salesPlatform === selectedPlatform;

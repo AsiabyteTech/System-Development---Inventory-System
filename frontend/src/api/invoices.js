@@ -142,7 +142,8 @@ export const invoicesAPI = {
 
     /**
      * Returns invoice stats (supplier count, total inventory value, etc.)
-     */
+     * using get
+     
     getInvoiceStats: async () => {
         try {
             const response = await apiClient.get('/api/v1/invoice/stats');
@@ -164,7 +165,7 @@ export const invoicesAPI = {
                 error: error.response?.data?.error?.message || 'Failed to load stats'
             };
         }
-    },
+    },*/
 
     /**
      * Get all suppliers for dropdown
@@ -193,7 +194,8 @@ export const invoicesAPI = {
     },
 
     /**
-     * Get products by SKU (for search/filter)
+     * from get
+     * Get products by SKU (for search/filter) /api/v1/product/search
      */
     getProductsBySKU: async (sku) => {
         try {
@@ -210,7 +212,7 @@ export const invoicesAPI = {
      */
     checkSerialNumber: async (serialNumber) => {
         try {
-            const response = await apiClient.get('/api/v1/stock/check-sn', { params: { serial_number: serialNumber } });
+            const response = await apiClient.get('/api/v1/stock/{serial_number}', { params: { serial_number: serialNumber } });
             return response.data;
         } catch (error) {
             console.error("Check serial number error:", error.response?.data || error.message);
@@ -252,7 +254,7 @@ export const invoicesAPI = {
             const formData = new FormData();
             formData.append('invoice_file', file);
             
-            const response = await apiClient.post(`/api/v1/invoice/${ref_no}/upload`, formData, {
+            const response = await apiClient.post(`/api/v1/invoice/${ref_no}/file`, formData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             return response.data;

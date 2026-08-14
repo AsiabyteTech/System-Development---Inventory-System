@@ -10,6 +10,7 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave, onDelete }) => {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
+    const [showStockList, setShowStockList] = useState(false);
     
     const [formData, setFormData] = useState({
         id: '',
@@ -19,12 +20,17 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave, onDelete }) => {
         stockDate: '',
         trackingNumber: '',
         promo: '',
+        promoPrice: '',
         package: '',
+        packagePrice: '',
         customerName: '',
         status: 'AVAILABLE',
         purchaseCost: '',
         remark: ''
     });
+
+    // Mock stock items for display - In production, this would come from an API
+    const [associatedStocks, setAssociatedStocks] = useState([]);
 
     // Check for pending stock data from localStorage (passed from Customer)
     useEffect(() => {
@@ -68,12 +74,17 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave, onDelete }) => {
                     stockDate: stock.stockDate || stock.stockIn || '',
                     trackingNumber: stock.trackingNumber || '',
                     promo: stock.promo || stock.promoId || '',
+                    promoPrice: stock.promoPrice || '',
                     package: stock.package || stock.packageId || '',
+                    packagePrice: stock.packagePrice || '',
                     customerName: stock.customerName || '',
                     status: stock.status || 'AVAILABLE',
                     purchaseCost: stock.purchaseCost || '',
                     remark: stock.remark || ''
                 });
+
+                // Load associated stocks for this promo/package
+                loadAssociatedStocks(stock);
             } else {
                 setFormData({
                     id: '',
@@ -83,16 +94,42 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave, onDelete }) => {
                     stockDate: new Date().toISOString().split('T')[0],
                     trackingNumber: '',
                     promo: '',
+                    promoPrice: '',
                     package: '',
+                    packagePrice: '',
                     customerName: '',
                     status: 'AVAILABLE',
                     purchaseCost: '',
                     remark: ''
                 });
+                setAssociatedStocks([]);
             }
             setError(null);
         }
     }, [stock, isOpen, mode]);
+
+    // Load associated stocks (mock data - replace with API call)
+    const loadAssociatedStocks = (stockData) => {
+        // In production, you would fetch from API:
+        // const stocks = await stockAPI.getByPromoOrPackage(stockData.promoId || stockData.packageId);
+        
+        // Mock data for demo
+        const mockStocks = [
+            { id: 'STK-001', serialNumber: 'SN-1001', sku: 'CAM-001', status: 'AVAILABLE' },
+            { id: 'STK-002', serialNumber: 'SN-1002', sku: 'CAM-001', status: 'RESERVED' },
+            { id: 'STK-003', serialNumber: 'SN-1003', sku: 'CAM-002', status: 'AVAILABLE' },
+        ];
+        
+        // Filter based on promo or package
+        let filtered = mockStocks;
+        if (stockData.promo || stockData.promoId) {
+            filtered = mockStocks.filter(s => s.sku === stockData.sku);
+        } else if (stockData.package || stockData.packageId) {
+            filtered = mockStocks.filter(s => s.sku === stockData.sku);
+        }
+        
+        setAssociatedStocks(filtered);
+    };
 
     const handleDelete = async () => {
         if (!stock || !stock.id || !onDelete) return;
@@ -137,7 +174,10 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave, onDelete }) => {
                 purchase_cost: parseFloat(formData.purchaseCost) || 0,
                 remark: formData.remark,
                 promo_id: formData.promo || null,
-                package_id: formData.package || null
+                promo_price: parseFloat(formData.promoPrice) || 0,
+                package_id: formData.package || null,
+                package_price: parseFloat(formData.packagePrice) || 0,
+                customer_name: formData.customerName || ''
             };
 
             if (onSave) {
@@ -158,6 +198,19 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave, onDelete }) => {
             alert(err.response?.data?.detail || err.message || "Failed to save stock. Please try again.");
         } finally {
             setSaving(false);
+        }
+    };
+
+    // Get status badge color
+    const getStatusBadge = (status) => {
+        const statusUpper = status?.toUpperCase() || '';
+        switch (statusUpper) {
+            case 'RESERVED': return 'bg-purple-50 text-purple-700 border-purple-200';
+            case 'AVAILABLE': return 'bg-green-50 text-green-700 border-green-200';
+            case 'SOLD': return 'bg-blue-50 text-blue-700 border-blue-200';
+            case 'DAMAGED': return 'bg-red-50 text-red-700 border-red-200';
+            case 'RETURNED': return 'bg-amber-50 text-amber-700 border-amber-200';
+            default: return 'bg-slate-50 text-slate-700 border-slate-200';
         }
     };
 
@@ -233,8 +286,7 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave, onDelete }) => {
                                             type="text"
                                             value={formData.sku}
                                             onChange={(e) => setFormData({...formData, sku: e.target.value.toUpperCase()})}
-                                            placeholder="Enter SKU"
-                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm"
+                                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed"
                                             disabled={mode === 'edit'}
                                         />
                                     </div>
@@ -244,8 +296,8 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave, onDelete }) => {
                                             type="text"
                                             value={formData.serialNumber}
                                             onChange={(e) => setFormData({...formData, serialNumber: e.target.value})}
-                                            placeholder="Enter Serial Number"
-                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm"
+                                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed"
+                                            disabled={mode === 'edit'}
                                         />
                                     </div>
                                 </div>
@@ -304,8 +356,8 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave, onDelete }) => {
                                             type="text"
                                             value={formData.refNo}
                                             onChange={(e) => setFormData({...formData, refNo: e.target.value})}
-                                            placeholder="e.g., INV-001"
-                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm"
+                                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed"
+                                            disabled={mode === 'edit'}
                                         />
                                     </div>
                                     <div>
@@ -317,8 +369,8 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave, onDelete }) => {
                                                 const value = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
                                                 setFormData({...formData, purchaseCost: value});
                                             }}
-                                            placeholder="0.00"
-                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm"
+                                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed"
+                                            disabled={mode === 'edit'}
                                         />
                                     </div>
                                     <div>
@@ -349,8 +401,8 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave, onDelete }) => {
                                             type="text" 
                                             value={formData.trackingNumber} 
                                             onChange={(e) => setFormData({...formData, trackingNumber: e.target.value})}
-                                            placeholder="Enter tracking number"
-                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed" 
+                                            disabled={mode === 'edit'}
                                         />
                                     </div>
                                     <div>
@@ -359,14 +411,175 @@ const AddEditStock = ({ isOpen, onClose, stock, mode, onSave, onDelete }) => {
                                             type="text" 
                                             value={formData.customerName} 
                                             onChange={(e) => setFormData({...formData, customerName: e.target.value})}
-                                            placeholder="Enter customer name"
-                                            className="w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white text-sm" 
+                                            className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed" 
+                                            disabled={mode === 'edit'}
                                         />
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    {/* SECTION 5: Package & Promo - Full width at bottom */}
+                    {mode === 'edit' && (
+                        <div className="mt-4 sm:mt-6">
+                            <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 sm:p-5 rounded-xl border-2 border-purple-200">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                                        <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                                        </svg>
+                                        Package & Promo Details
+                                    </h3>
+                                    {associatedStocks.length > 0 && (
+                                        <button
+                                            onClick={() => setShowStockList(!showStockList)}
+                                            className="text-xs text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1"
+                                        >
+                                            {showStockList ? 'Hide' : 'Show'} Associated Stocks
+                                            <svg className={`w-3 h-3 transition-transform ${showStockList ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                                            </svg>
+                                        </button>
+                                    )}
+                                </div>
+                                
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                                    {/* Package Section */}
+                                    <div className="bg-white p-4 rounded-lg border border-purple-100">
+                                        <h4 className="text-sm font-medium text-purple-700 mb-3 flex items-center gap-2">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                            </svg>
+                                            Package
+                                        </h4>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Package ID</label>
+                                                <input 
+                                                    type="text"
+                                                    value={formData.package}
+                                                    onChange={(e) => setFormData({...formData, package: e.target.value})}
+                                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed"
+                                                    disabled
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Package Price (RM)</label>
+                                                <input 
+                                                    type="text"
+                                                    value={formData.packagePrice}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+                                                        setFormData({...formData, packagePrice: value});
+                                                    }}
+                                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed"
+                                                    disabled
+                                                />
+                                            </div>
+                                            {associatedStocks.filter(s => s.sku === formData.sku).length > 0 && (
+                                                <div className="mt-2 p-2 bg-purple-50 rounded-lg">
+                                                    <p className="text-xs text-purple-600">
+                                                        {associatedStocks.filter(s => s.sku === formData.sku).length} stock items in this package
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Promo Section */}
+                                    <div className="bg-white p-4 rounded-lg border border-blue-100">
+                                        <h4 className="text-sm font-medium text-blue-700 mb-3 flex items-center gap-2">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
+                                            </svg>
+                                            Promo
+                                        </h4>
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Promo ID</label>
+                                                <input 
+                                                    type="text"
+                                                    value={formData.promo}
+                                                    onChange={(e) => setFormData({...formData, promo: e.target.value})}
+                                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed"
+                                                    disabled
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs font-medium text-gray-600 mb-1">Promo Price (RM)</label>
+                                                <input 
+                                                    type="text"
+                                                    value={formData.promoPrice}
+                                                    onChange={(e) => {
+                                                        const value = e.target.value.replace(/[^0-9.]/g, '').replace(/(\..*)\./g, '$1');
+                                                        setFormData({...formData, promoPrice: value});
+                                                    }}
+                                                    className="form-input w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 border border-slate-200 rounded-lg text-sm cursor-not-allowed"
+                                                    disabled
+                                                />
+                                            </div>
+                                            {associatedStocks.filter(s => s.sku === formData.sku).length > 0 && (
+                                                <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+                                                    <p className="text-xs text-blue-600">
+                                                        {associatedStocks.filter(s => s.sku === formData.sku).length} stock items in this promo
+                                                    </p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Associated Stocks List */}
+                                {showStockList && associatedStocks.length > 0 && (
+                                    <div className="mt-4 bg-white rounded-lg border border-gray-200 overflow-hidden">
+                                        <div className="px-4 py-2 bg-gradient-to-r from-gray-50 to-white border-b border-gray-200">
+                                            <h5 className="text-xs font-semibold text-gray-600 flex items-center gap-2">
+                                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                                </svg>
+                                                Associated Stock Items
+                                                <span className="text-xs text-gray-400 font-normal">({associatedStocks.length} items)</span>
+                                            </h5>
+                                        </div>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-xs">
+                                                <thead>
+                                                    <tr className="bg-gray-50">
+                                                        <th className="px-3 py-2 text-left font-medium text-gray-600">ID</th>
+                                                        <th className="px-3 py-2 text-left font-medium text-gray-600">Serial Number</th>
+                                                        <th className="px-3 py-2 text-left font-medium text-gray-600">SKU</th>
+                                                        <th className="px-3 py-2 text-left font-medium text-gray-600">Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-100">
+                                                    {associatedStocks.map((s) => (
+                                                        <tr key={s.id} className="hover:bg-gray-50 transition-colors">
+                                                            <td className="px-3 py-2 font-mono text-blue-600">{s.id}</td>
+                                                            <td className="px-3 py-2 font-medium">{s.serialNumber}</td>
+                                                            <td className="px-3 py-2">{s.sku}</td>
+                                                            <td className="px-3 py-2">
+                                                                <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(s.status)}`}>
+                                                                    {s.status}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {associatedStocks.length === 0 && mode === 'edit' && (
+                                    <div className="mt-3 text-center py-4 bg-white rounded-lg border border-dashed border-gray-300">
+                                        <p className="text-sm text-gray-500">No stock items associated with this promo/package</p>
+                                        <p className="text-xs text-gray-400 mt-1">Stock items will appear here when assigned</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Modal Footer */}
