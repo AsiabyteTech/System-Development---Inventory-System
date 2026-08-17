@@ -88,7 +88,6 @@ npm run dev
 
 # 3. Direct to Backend
 cd backend
-cp .env.example .env
 
 # 4. Enter backend environment
 ./venv/Scripts/activate
